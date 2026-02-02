@@ -3,8 +3,82 @@ const User = require("../models/User");
 const Institution = require("../models/Institution");
 const crypto = require("crypto");
 
+/* ============================================================
+   NEW: AUTOPILOT ASSIGN & DYNAMIC BATCH CREATION
+   Logic: Scan unassigned students -> Domain Selection -> Assign/Create
+============================================================ */
+exports.autopilotAssign = async (req, res) => {
+  try {
+    const { targetDomain, isOther = false } = req.body;
+    const studentId = req.user.id;
+
+    // 1. Fetch student and validate unassigned status
+    const student = await User.findById(studentId);
+    if (!student || student.role !== "student") {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const educationLevel = student.educationLevel || "UG";
+    const institutionId = student.institutionId;
+
+    // 2. Find an existing active batch matching Level + Domain
+    let batch = await Batch.findOne({
+      educationLevel,
+      targetDomain,
+      institutionId,
+      isActive: true,
+      creationType: "autopilot"
+    });
+
+    // 3. If no batch exists or is full, AI creates a new one (Like an Admin)
+    if (!batch || batch.students.length >= batch.maxStudents) {
+      const timestamp = Date.now();
+      const newBatchId = `AUTO-${educationLevel.toUpperCase()}-${targetDomain.replace(/\s+/g, '-').toUpperCase()}-${timestamp}`;
+      
+      batch = await Batch.create({
+        batchId: newBatchId,
+        name: `AI Batch - ${educationLevel} (${targetDomain})`,
+        className: educationLevel,
+        educationLevel,
+        targetDomain,
+        institutionId,
+        createdBy: institutionId, // Assigned to the institution/system admin
+        creationType: "autopilot",
+        slot: {
+          date: new Date().toISOString().split('T')[0],
+          startTime: "00:00",
+          endTime: "23:59"
+        },
+        maxStudents: 500, // Default for AI batches
+        students: []
+      });
+    }
+
+    // 4. Assign Student to the Batch
+    if (!batch.students.includes(student._id)) {
+      batch.students.push(student._id);
+      await batch.save();
+    }
+
+    // 5. Update Student profile
+    student.batchId = batch.batchId;
+    student.batchRef = batch._id;
+    await student.save();
+
+    res.json({ 
+      message: "Assigned to batch successfully", 
+      batchId: batch.batchId,
+      targetDomain: batch.targetDomain 
+    });
+
+  } catch (err) {
+    console.error("AUTOPILOT ERROR:", err.message);
+    res.status(500).json({ message: "Automated assignment failed" });
+  }
+};
+
 /* =========================
-   CREATE BATCH (ADMIN)
+   CREATE BATCH (ADMIN - MANUAL)
 ========================= */
 exports.createBatch = async (req, res) => {
   try {
@@ -14,38 +88,27 @@ exports.createBatch = async (req, res) => {
       maxStudents = 50,
       className,
       educationLevel,
+      targetDomain = "General" // Default for manual
     } = req.body;
 
-    /* ===== BASIC VALIDATION ===== */
-    if (!name || !slot) {
-      return res.status(400).json({ message: "Missing batch data" });
+    if (!name || !slot || !className || !educationLevel) {
+      return res.status(400).json({ message: "Missing required batch data" });
     }
 
-    if (!className || !educationLevel) {
-      return res.status(400).json({
-        message: "Class name and education level are required",
-      });
-    }
-
-    /* ===== INSTITUTION CHECK ===== */
-    const institution = await Institution.findOne({
-      createdBy: req.user.id,
-    });
-
+    const institution = await Institution.findOne({ createdBy: req.user.id });
     if (!institution) {
-      return res.status(403).json({
-        message: "Create institution before creating batches",
-      });
+      return res.status(403).json({ message: "Create institution before creating batches" });
     }
 
-    /* ===== CREATE BATCH ===== */
     const batch = await Batch.create({
       name,
-      className,          // ✅ NEW
-      educationLevel,     // ✅ NEW
+      className,
+      educationLevel,
+      targetDomain,
       batchId: crypto.randomUUID(),
       institutionId: institution._id,
       createdBy: req.user.id,
+      creationType: "manual", // Distinction
       slot,
       maxStudents,
       students: [],
@@ -60,21 +123,15 @@ exports.createBatch = async (req, res) => {
 
 /* =========================
    GET ALL BATCHES (ADMIN)
+   Updated to include AI batches
 ========================= */
 exports.getAllBatches = async (req, res) => {
   try {
-    const institution = await Institution.findOne({
-      createdBy: req.user.id,
-    });
+    const institution = await Institution.findOne({ createdBy: req.user.id });
+    if (!institution) return res.json({ batches: [] });
 
-    if (!institution) {
-      return res.json({ batches: [] });
-    }
-
-    const batches = await Batch.find({
-      institutionId: institution._id,
-    })
-      .populate("students", "name email")
+    const batches = await Batch.find({ institutionId: institution._id })
+      .populate("students", "name email educationLevel")
       .sort({ createdAt: -1 });
 
     res.json({ batches });
@@ -84,50 +141,31 @@ exports.getAllBatches = async (req, res) => {
 };
 
 /* =========================
-   ASSIGN STUDENT TO BATCH
+   ASSIGN STUDENT TO BATCH (MANUAL)
 ========================= */
 exports.addStudentToBatch = async (req, res) => {
   try {
     const { batchId, studentEmail } = req.body;
+    if (!batchId || !studentEmail) return res.status(400).json({ message: "Missing data" });
 
-    if (!batchId || !studentEmail) {
-      return res.status(400).json({ message: "Missing data" });
-    }
-
-    const student = await User.findOne({
-      email: studentEmail,
-      role: "student",
-    });
-
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const student = await User.findOne({ email: studentEmail, role: "student" });
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     const batch = await Batch.findOne({ batchId });
-    if (!batch) {
-      return res.status(404).json({ message: "Batch not found" });
-    }
+    if (!batch) return res.status(404).json({ message: "Batch not found" });
 
-    /* 🔒 Institution match */
     if (!student.institutionId?.equals(batch.institutionId)) {
-      return res.status(403).json({
-        message: "Student belongs to a different institution",
-      });
+      return res.status(403).json({ message: "Institution mismatch" });
     }
 
-    /* 🔒 Student limit */
     if (batch.students.length >= batch.maxStudents) {
-      return res.status(403).json({
-        message: "Batch student limit reached",
-      });
+      return res.status(403).json({ message: "Batch full" });
     }
 
-    /* ✅ Already assigned */
     if (batch.students.includes(student._id)) {
       return res.json({ message: "Student already in batch" });
     }
 
-    /* ===== ASSIGN ===== */
     batch.students.push(student._id);
     await batch.save();
 
@@ -136,9 +174,8 @@ exports.addStudentToBatch = async (req, res) => {
     student.isActive = true;
     await student.save();
 
-    res.json({ message: "Student assigned to batch successfully" });
+    res.json({ message: "Student assigned successfully" });
   } catch (err) {
-    console.error("ASSIGN STUDENT ERROR:", err.message);
     res.status(500).json({ message: "Assignment failed" });
   }
 };

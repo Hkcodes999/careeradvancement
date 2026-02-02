@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/authMiddleware");
+const multer = require("multer");
 
 const {
   saveStudentProfile,
@@ -8,88 +9,99 @@ const {
   joinBatch,
   getAssessmentForStudent,
   fetchAvailableBatches,
+  getBatchStatus // Added the specific controller method for clean logic
 } = require("../controllers/studentController");
+
+// Import the AI Parsing logic
+const { parseBiodata } = require("../controllers/studentProfileController");
 
 const Batch = require("../models/Batch");
 const User = require("../models/User");
 
-/* ===============================
-   PROFILE
-================================ */
-router.post("/profile", protect, saveStudentProfile);
+/* ================= MULTER CONFIG ================= */
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 /* ===============================
-   SELECT INSTITUTION
+    PROFILE & AI PARSING
+================================ */
+router.post("/profile", protect, saveStudentProfile);
+router.post("/parse-biodata", protect, upload.single("biodata"), parseBiodata);
+
+/* ===============================
+    SELECT INSTITUTION & DOMAIN
 ================================ */
 router.post("/select-institution", protect, selectInstitution);
 
 /* ===============================
-   DASHBOARD STATUS
+    DASHBOARD & REFRESH STATUS
 ================================ */
 router.get("/batch-status", protect, async (req, res) => {
-  const user = await User.findById(req.user.id);
+  try {
+    // Populate institution and batchRef for complete frontend context
+    const user = await User.findById(req.user.id)
+      .populate("institutionId")
+      .populate("batchRef");
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-  if (!user.isProfileComplete) {
-    return res.json({
-      profileComplete: false,
+    /**
+     * DASHBOARD PAYLOAD SYNC
+     * profileStream: What they studied (from profile)
+     * stream: What they are TARGETING (from top-level user.stream)
+     */
+    const responseData = {
+      success: true,
+      userName: user.name,
+      profileComplete: user.isProfileComplete,
+      profile: user.profile || null,
       assigned: false,
-      userName: user.name, // ✅ ADDED: Return username
-    });
+      institutionId: user.institutionId?._id || null,
+      educationLevel: user.profile?.education || null,
+      profileStream: user.profile?.stream || null, // Existing background
+      stream: user.stream || null, // Target Upgrade Domain
+      batchId: user.batchId || null,
+      batchDetails: null
+    };
+
+    // Cross-verify Batch assignment
+    const activeBatchId = user.batchId || (user.batchRef ? user.batchRef.batchId : null);
+
+    if (activeBatchId) {
+      const batch = await Batch.findOne({ batchId: activeBatchId });
+
+      if (batch && batch.isActive) {
+        responseData.assigned = true;
+        responseData.batchId = batch.batchId;
+        responseData.slot = batch.slot;
+        responseData.batchDetails = {
+          name: batch.name,
+          className: batch.className,
+          educationLevel: batch.educationLevel,
+          targetDomain: batch.targetDomain
+        };
+      }
+    }
+
+    res.json(responseData);
+  } catch (err) {
+    console.error("Batch Status Sync Error:", err.message);
+    res.status(500).json({ success: false, message: "Failed to sync dashboard status" });
   }
-
-  if (!user.institutionId || !user.batchId) {
-    return res.json({
-      profileComplete: true,
-      institutionId: user.institutionId || null,
-      assigned: false,
-      userName: user.name, // ✅ ADDED: Return username
-    });
-  }
-
-  const batch = await Batch.findOne({
-    batchId: user.batchId,
-    students: user._id,
-  });
-
-  if (!batch) {
-    return res.json({
-      profileComplete: true,
-      assigned: false,
-      userName: user.name, // ✅ ADDED: Return username
-    });
-  }
-
-  res.json({
-    profileComplete: true,
-    institutionId: user.institutionId,
-    assigned: true,
-    batchId: batch.batchId,
-    slot: batch.slot,
-    isSlotActive: true,
-    userName: user.name, // ✅ ADDED: Return username
-  });
 });
 
 /* ===============================
-   AVAILABLE BATCHES (FIXED)
+    BATCH LOGIC (MANUAL FALLBACK)
 ================================ */
-router.get(
-  "/available-batches",
-  protect,
-  fetchAvailableBatches
-);
-
-/* ===============================
-   JOIN BATCH
-================================ */
+router.get("/available-batches", protect, fetchAvailableBatches);
 router.post("/join-batch", protect, joinBatch);
 
 /* ===============================
-   GET ASSESSMENT
+    ASSESSMENT ACCESS
 ================================ */
 router.get("/assessment", protect, getAssessmentForStudent);
 

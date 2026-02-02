@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const StudentProfile = require("../models/StudentProfile"); // Needed for cascading delete
+const Institution = require("../models/Institution");       // Needed for cascading delete
 
 // ✅ Optimized Stats (Parallel fetching)
 exports.getAdminStats = async (req, res) => {
@@ -20,10 +22,35 @@ exports.getAdminStats = async (req, res) => {
   }
 };
 
-// ✅ Updated: Returns SEPARATE activities for each milestone
+// ✅ Delete User and Cleanup Associated Data
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔥 Cascading Delete: Check role and delete associated profile/institution
+    if (user.role === "student") {
+      await StudentProfile.findOneAndDelete({ userId: id });
+    } else if (user.role === "institution") {
+      await Institution.findOneAndDelete({ userId: id });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.json({ message: "User and all related records deleted successfully" });
+  } catch (err) {
+    console.error("DELETE ERROR:", err.message);
+    res.status(500).json({ message: "Failed to delete user" });
+  }
+};
+
+// ✅ Returns SEPARATE activities for each milestone
 exports.getRecentActivities = async (req, res) => {
   try {
-    // Fetch recent student records
     const students = await User.find({ role: "student" })
       .sort({ updatedAt: -1 })
       .limit(10)
@@ -33,28 +60,25 @@ exports.getRecentActivities = async (req, res) => {
     const activities = [];
 
     students.forEach((student) => {
-      // 1. Always create an activity for Registration
       activities.push({
-        id: `${student._id}_reg`, // Unique ID for registration event
+        id: `${student._id}_reg`,
         text: `New student registered: ${student.name}`,
         time: student.createdAt,
         type: "new",
       });
 
-      // 2. Separate activity for Profile Completion
       if (student.isProfileComplete) {
         activities.push({
-          id: `${student._id}_profile`, // Unique ID for profile event
+          id: `${student._id}_profile`,
           text: `${student.name} completed their profile setup`,
           time: student.updatedAt,
           type: "profile",
         });
       }
 
-      // 3. Separate activity for Batch Assignment
       if (student.batchId) {
         activities.push({
-          id: `${student._id}_batch`, // Unique ID for batch event
+          id: `${student._id}_batch`,
           text: `${student.name} assigned to batch ${student.batchId}`,
           time: student.updatedAt,
           type: "enrollment",
@@ -62,7 +86,6 @@ exports.getRecentActivities = async (req, res) => {
       }
     });
 
-    // Sort all combined events by time (newest first) and limit to 10
     const finalFeed = activities
       .sort((a, b) => new Date(b.time) - new Date(a.time))
       .slice(0, 10);

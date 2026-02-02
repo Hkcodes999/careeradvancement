@@ -7,39 +7,23 @@ const getToken = () =>
   localStorage.getItem("token") || sessionStorage.getItem("token");
 
 /* =====================================================
-   STUDENT – Fetch active institutions
-   GET /api/institution/list
+   ADMIN – Get logged-in admin institution
+   GET /api/institution/my
 ===================================================== */
-export const fetchInstitutions = async () => {
-  const res = await fetch(`${API_BASE}/list`);
+export const getMyInstitution = async () => {
+  const token = getToken();
+  if (!token) throw new Error("No authentication token found");
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch institutions");
-  }
-
-  return res.json();
-};
-
-/* =====================================================
-   STUDENT – Select institution
-   POST /api/student/select-institution
-===================================================== */
-export const selectInstitution = async (institutionId) => {
-  const res = await fetch(
-    "http://localhost:5000/api/student/select-institution",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
-      body: JSON.stringify({ institutionId }),
-    }
-  );
+  const res = await fetch(`${API_BASE}/my`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
 
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err.message || "Failed to select institution");
+    throw new Error(err.message || "Failed to fetch institution profile");
   }
 
   return res.json();
@@ -54,7 +38,7 @@ export const createInstitution = async (payload) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${getToken()}`,
+      "Authorization": `Bearer ${getToken()}`,
     },
     body: JSON.stringify(payload),
   });
@@ -68,18 +52,62 @@ export const createInstitution = async (payload) => {
 };
 
 /* =====================================================
-   ADMIN – Get logged-in admin institution
-   GET /api/institution/my
+   ADMIN – Update institution
+   PUT /api/institution/update/:id
 ===================================================== */
-export const getMyInstitution = async () => {
-  const res = await fetch(`${API_BASE}/my`, {
+export const updateInstitution = async (id, payload) => {
+  const res = await fetch(`${API_BASE}/update/${id}`, {
+    method: "PUT",
     headers: {
-      Authorization: `Bearer ${getToken()}`,
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`,
     },
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch institution");
+    const err = await res.json();
+    throw new Error(err.message || "Failed to update institution");
+  }
+
+  return res.json();
+};
+
+/* =====================================================
+   STUDENT – Fetch active institutions
+   GET /api/institution/active
+===================================================== */
+export const fetchInstitutions = async () => {
+  const res = await fetch(`${API_BASE}/active`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch institutions");
+  }
+
+  return res.json();
+};
+
+/* =====================================================
+   STUDENT – Select institution & Domain
+   Updated to pass 'stream' for AI Autopilot context
+===================================================== */
+export const selectInstitution = async (institutionId, stream) => {
+  const res = await fetch(
+    "http://localhost:5000/api/student/select-institution",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${getToken()}`,
+      },
+      // Now sending both IDs to ensure batching logic has context
+      body: JSON.stringify({ institutionId, stream }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Failed to select institution and domain");
   }
 
   return res.json();

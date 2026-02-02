@@ -13,12 +13,36 @@ import "./AdminDashboard.css";
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [institution, setInstitution] = useState(null);
+  const [loading, setLoading] = useState(true); // Added loading state for persistence
 
   useEffect(() => {
-    getMyInstitution().then((res) => setInstitution(res.institution));
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        const res = await getMyInstitution();
+        setInstitution(res.institution);
+      } catch (err) {
+        console.error("Dashboard Load Error:", err.message);
+        // Handle case where admin hasn't created an institution yet
+        setInstitution(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
   }, []);
 
   const renderTab = () => {
+    // Optional: Show a spinner while loading to maintain UI consistency on refresh
+    if (loading) {
+      return (
+        <div className="loading-container">
+          <div className="loader-dots">Synchronizing profile...</div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case "dashboard":
         return <DashboardTab />;

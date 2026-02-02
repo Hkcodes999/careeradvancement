@@ -1,44 +1,81 @@
+const API_URL = "http://localhost:5000/api/ai";
+
 /**
- * GENERATE AI ASSESSMENT
- * @param {FormData} formData - Accepts the direct FormData object from the UI
+ * Helper to consolidate authentication and content-type headers
+ * @param {boolean} isJson - If true, sets application/json content-type
+ */
+const getHeaders = (isJson = true) => {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const headers = { Authorization: `Bearer ${token}` };
+  if (isJson) headers["Content-Type"] = "application/json";
+  return headers;
+};
+
+/**
+ * GENERATE AI ASSESSMENT / SAVE POLICY
+ * Used by Admin to manually generate exams or save Autopilot policies.
+ * @param {FormData} formData - Contains mode, payload, and optional PDF.
  */
 export const generateAssessment = async (formData) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  // NOTE: We don't need to append manually here because 
-  // the AiBuilderTab.jsx is already passing a fully formed FormData object.
-  // However, we ensure the backend 'pdf' field matches what multer expects.
-
-  const res = await fetch(
-    "http://localhost:5000/api/ai/generate-assessment",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        // Note: Do NOT set 'Content-Type' header when sending FormData
-        // Fetch will automatically set it with the correct boundary
-      },
-      body: formData,
-    }
-  );
+  const res = await fetch(`${API_URL}/generate-assessment`, {
+    method: "POST",
+    headers: getHeaders(false), // FormData requires boundary setting, so we skip manual Content-Type
+    body: formData,
+  });
 
   const data = await res.json();
 
-  /* ===============================
-      HANDLE KNOWN CASES
-  ================================ */
-
-  // ⚠️ Assessment already exists (Conflict)
   if (res.status === 409) {
-    throw new Error(
-      "Assessment already exists for this batch. Please delete it before regenerating."
-    );
+    throw new Error("Assessment already exists for this batch. Delete the existing one first.");
   }
 
-  // ❌ Other errors
   if (!res.ok) {
     throw new Error(data.message || "Assessment generation failed");
+  }
+
+  return data;
+};
+
+/**
+ * STUDENT TRIGGER: RUN AUTOPILOT ENGINE
+ * Triggered by StudentDashboard.jsx to auto-assign batches and check readiness.
+ * @param {Object} context - Optional student profile data { educationLevel, stream }
+ */
+export const runAutopilotEngine = async (context = {}) => {
+  const res = await fetch(`${API_URL}/run-autopilot`, {
+    method: "POST",
+    headers: getHeaders(true),
+    // Explicitly mapping keys to ensure backend receives expected fields
+    body: JSON.stringify({
+      educationLevel: context.educationLevel,
+      stream: context.stream
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to trigger AI engine");
+  }
+
+  return data;
+};
+
+/**
+ * PARSE BIODATA (RESUME PARSER)
+ * @param {FormData} formData - Contains the 'resume' file.
+ */
+export const parseBiodata = async (formData) => {
+  const res = await fetch(`${API_URL}/parse-biodata`, {
+    method: "POST",
+    headers: getHeaders(false), // Using FormData
+    body: formData,
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to parse resume");
   }
 
   return data;
@@ -49,18 +86,10 @@ export const generateAssessment = async (formData) => {
  * @param {string} id - The MongoDB ID of the assessment
  */
 export const rollbackAssessment = async (id) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  const res = await fetch(
-    `http://localhost:5000/api/ai/rollback/${id}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const res = await fetch(`${API_URL}/rollback/${id}`, {
+    method: "DELETE",
+    headers: getHeaders(true),
+  });
 
   const data = await res.json();
 

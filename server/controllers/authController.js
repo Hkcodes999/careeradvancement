@@ -1,38 +1,58 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 const twilio = require("twilio");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-// Initialize Twilio
-const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+const twilioClient = twilio(
+  process.env.TWILIO_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// 🔐 Centralized token generator
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
 
 /* ---------------- SIGNUP ---------------- */
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
+
   try {
     let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ success: false, message: "User already exists" });
+    if (user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     user = await User.create({
       name,
       email,
       password: hashedPassword,
       role: "student",
+      isActive: true, // ✅ FIX
     });
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-    
-    // Aligned response structure
-    res.json({ success: true, token, role: user.role, message: "Signup successful" });
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      token,
+      role: user.role,
+      message: "Signup successful",
+    });
   } catch (err) {
+    console.error("SIGNUP ERROR:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -40,22 +60,41 @@ exports.signup = async (req, res) => {
 /* ---------------- LOGIN ---------------- */
 exports.login = async (req, res) => {
   const { email, password, role } = req.body;
+
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ success: false, message: "Invalid credentials" });
-    if (user.role !== role) return res.status(403).json({ success: false, message: "Role mismatch" });
+    if (!user)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
+
+    if (user.role !== role)
+      return res
+        .status(403)
+        .json({ success: false, message: "Role mismatch" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
+    if (!isMatch)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "365d" }
-    );
-    
-    res.json({ success: true, token, role: user.role, message: "Login successful" });
+    if (!user.isActive) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User account inactive" });
+    }
+
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      token,
+      role: user.role,
+      message: "Login successful",
+    });
   } catch (err) {
+    console.error("LOGIN ERROR:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
@@ -67,46 +106,62 @@ exports.googleAuth = async (req, res) => {
       idToken: req.body.token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+
     const { name, email } = ticket.getPayload();
+
     let user = await User.findOne({ email });
 
     if (!user) {
       user = await User.create({
         name,
         email,
-        password: "google-auth-placeholder", // Security tip: use a random string
+        password: crypto.randomBytes(32).toString("hex"),
         role: null,
+        isActive: true, // ✅ FIX (CRITICAL)
       });
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-    
-    // role might be null here, which triggers the Role Modal on frontend
-    res.json({ success: true, token, role: user.role });
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      token,
+      role: user.role, // may be null → frontend role modal
+    });
   } catch (err) {
-    res.status(401).json({ success: false, message: "Google authentication failed" });
+    console.error("GOOGLE AUTH ERROR:", err);
+    res
+      .status(401)
+      .json({ success: false, message: "Google authentication failed" });
   }
 };
 
 /* ---------------- UPDATE ROLE ---------------- */
 exports.updateRole = async (req, res) => {
   try {
-    // req.user.id is populated by your 'protect' middleware
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { role: req.body.role },
+      {
+        role: req.body.role,
+        isActive: true, // ✅ FIX: activate user after role selection
+      },
       { new: true }
     );
-    
+
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-    res.json({ success: true, role: user.role, message: "Role updated successfully" });
+    const token = generateToken(user);
+
+    res.json({
+      success: true,
+      role: user.role,
+      token,
+      message: "Role updated successfully",
+    });
   } catch (err) {
     console.error("UPDATE ROLE ERROR:", err);
     res.status(500).json({ success: false, message: "Role update failed" });
@@ -121,29 +176,28 @@ exports.forgotPassword = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetOTP = otp;
     user.resetOTPExpires = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    // Twilio WhatsApp
     if (phone) {
       try {
         await twilioClient.messages.create({
           from: process.env.TWILIO_WHATSAPP_NUMBER,
           to: `whatsapp:${phone}`,
-          body: `Your Password Reset OTP is: ${otp}. It will expire in 10 minutes.`,
+          body: `Your Password Reset OTP is: ${otp}. It expires in 10 minutes.`,
         });
       } catch (twilioErr) {
-        console.error("Twilio Error:", twilioErr.message);
+        console.error("TWILIO ERROR:", twilioErr.message);
       }
     }
 
-    // Nodemailer Email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -152,19 +206,19 @@ exports.forgotPassword = async (req, res) => {
       },
     });
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset OTP",
-      html: `<h3>Reset Your Password</h3>
-             <p>Your OTP for password reset is: <strong>${otp}</strong></p>
-             <p>This code expires in 10 minutes.</p>`,
-    };
+      html: `<h3>Password Reset</h3>
+             <p>Your OTP is <strong>${otp}</strong></p>
+             <p>Valid for 10 minutes.</p>`,
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, message: "OTP sent to your email and WhatsApp!" });
-
+    res.json({
+      success: true,
+      message: "OTP sent to email and WhatsApp",
+    });
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
     res.status(500).json({ success: false, message: "Failed to process request" });
@@ -182,21 +236,22 @@ exports.resetPassword = async (req, res) => {
       resetOTPExpires: { $gt: Date.now() },
     });
 
-    if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
-    }
+    if (!user)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired OTP" });
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(newPassword, salt);
-
+    user.password = await bcrypt.hash(newPassword, 10);
     user.resetOTP = null;
     user.resetOTPExpires = null;
     await user.save();
 
-    res.json({ success: true, message: "Password updated successfully!" });
+    res.json({
+      success: true,
+      message: "Password updated successfully",
+    });
   } catch (error) {
     console.error("RESET PASSWORD ERROR:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-

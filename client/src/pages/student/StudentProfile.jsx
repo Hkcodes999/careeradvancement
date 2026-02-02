@@ -1,13 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { saveStudentProfile } from "../../services/studentApi";
+import {
+  saveStudentProfile,
+  fetchStudentBatchStatus,
+  uploadAndParseBiodata,
+} from "../../services/studentApi";
+import StudentSidebar from "../../components/StudentSidebar";
 import { toast } from "react-toastify";
-import "./StudentProfile.css";
-
+import {
+  FiUpload,
+  FiEdit2,
+  FiArrowLeft,
+  FiSave,
+  FiUser,
+  FiMapPin,
+  FiBookOpen,
+  FiActivity,
+  FiTarget,
+} from "react-icons/fi";
 
 const StudentProfile = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
+  // State Management
+  const [loading, setLoading] = useState(true);
+  const [isParsing, setIsParsing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
+
+  // Core Form Fields
   const [form, setForm] = useState({
     phone: "",
     age: "",
@@ -22,205 +44,577 @@ const StudentProfile = () => {
     careerGoal: "",
   });
 
+  // "Capture All" State for AI-extracted extra info
+  const [others, setOthers] = useState({});
   const [errors, setErrors] = useState({});
 
+  /* ================= LOAD PROFILE ================= */
+  useEffect(() => {
+    const getProfile = async () => {
+      try {
+        setLoading(true);
+        const res = await fetchStudentBatchStatus();
+
+        if (res.profileComplete && res.profile) {
+          const p = res.profile;
+          setForm({
+            phone: p.phone || "",
+            age: p.age || "",
+            gender: p.gender || "",
+            education: p.education || "",
+            stream: p.stream || "",
+            personalityType: p.personalityType || "",
+            city: p.city || "",
+            state: p.state || "",
+            interests: p.interests || "",
+            skills: Array.isArray(p.skills)
+              ? p.skills.join(", ")
+              : p.skills || "",
+            careerGoal: p.careerGoal || "",
+          });
+
+          // Load the 'others' data if it exists in the profile
+          if (p.others) {
+            setOthers(p.others);
+          }
+
+          setHasProfile(true);
+          setIsEditing(false);
+        } else {
+          setIsEditing(true);
+        }
+      } catch (err) {
+        toast.error("Error loading profile details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getProfile();
+  }, []);
+
   const educationNeedsStream = ["12th", "UG", "PG", "Post PG"].includes(
-    form.education
+    form.education,
   );
 
+  /* ================= AUTO-FILL FROM BIODATA ================= */
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setIsParsing(true);
+      toast.info("AI is analyzing your biodata... please wait");
+
+      const res = await uploadAndParseBiodata(file);
+
+      // Map primary fields to form
+      if (res.extractedData) {
+        setForm((prev) => ({
+          ...prev,
+          ...res.extractedData,
+          skills: Array.isArray(res.extractedData.skills)
+            ? res.extractedData.skills.join(", ")
+            : res.extractedData.skills || prev.skills,
+        }));
+      }
+
+      // Capture all extra details into 'others' state
+      if (res.others) {
+        setOthers(res.others);
+      }
+
+      toast.success("Profile fields auto-filled! Please review them.");
+    } catch (err) {
+      toast.error(err.message || "Failed to parse biodata.");
+    } finally {
+      setIsParsing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  /* ================= VALIDATION ================= */
   const validate = () => {
     const newErrors = {};
-
-    if (!/^[6-9]\d{9}$/.test(form.phone)) {
+    if (!/^[6-9]\d{9}$/.test(form.phone))
       newErrors.phone = "Enter valid 10-digit phone number";
-    }
-
-    if (!form.age || form.age < 10 || form.age > 100) {
+    if (!form.age || form.age < 10 || form.age > 100)
       newErrors.age = "Enter a valid age";
-    }
-
     if (!form.gender) newErrors.gender = "Gender is required";
     if (!form.education) newErrors.education = "Education is required";
-    if (educationNeedsStream && !form.stream.trim()) {
+    if (educationNeedsStream && !form.stream?.trim())
       newErrors.stream = "Stream is required";
-    }
-    if (!form.skills.trim()) newErrors.skills = "Skills are required";
-    if (!form.careerGoal.trim()) {
+    if (!form.skills?.trim()) newErrors.skills = "Skills are required";
+    if (!form.careerGoal?.trim())
       newErrors.careerGoal = "Career goal is required";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  /* ================= SAVE PROFILE ================= */
   const handleSubmit = async () => {
     if (!validate()) return;
 
     try {
-      await saveStudentProfile({
-        phone: form.phone,
+      const payload = {
+        ...form,
         age: Number(form.age),
-        gender: form.gender.toLowerCase(), // ✅ FIX
-        education: form.education,
-        stream: form.stream || null,
-        personalityType: form.personalityType || null,
-        city: form.city || null,
-        state: form.state || null,
-        interests: form.interests || null,
-        skills: form.skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-        careerGoal: form.careerGoal,
-      });
+        gender: form.gender.toLowerCase(),
+        skills:
+          typeof form.skills === "string"
+            ? form.skills
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : form.skills,
+        others: others, // Preserve extra AI-extracted data
+      };
 
-      toast.success("Profile completed successfully");
-      navigate("/dashboard");
+      await saveStudentProfile(payload);
+
+      toast.success("Profile saved successfully");
+      setHasProfile(true);
+      setIsEditing(false);
     } catch (err) {
-      console.error(err);
-      toast.error(
-        err.response?.data?.message || "Failed to save profile"
-      );
+      toast.error("Failed to save profile");
     }
   };
 
-  // ... (keep your logic as is)
+  if (loading)
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg-light">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
 
-return (
-  <div className="profile-page">
-    <div className="profile-container">
-      <h2>Complete Your Profile</h2>
-      <p className="subtitle">Help us personalize your career recommendations</p>
-      
-      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-        <div className="form-group">
-          <label>Phone Number *</label>
-          <input
-            value={form.phone}
-            placeholder="9876543210"
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          />
-          {errors.phone && <p className="error">{errors.phone}</p>}
-        </div>
-
-        <div className="form-group">
-          <label>Age *</label>
-          <input
-            type="number"
-            value={form.age}
-            placeholder="20"
-            onChange={(e) => setForm({ ...form, age: e.target.value })}
-          />
-          {errors.age && <p className="error">{errors.age}</p>}
-        </div>
-
-        <div className="form-group">
-          <label>Gender *</label>
-          <select
-            value={form.gender}
-            onChange={(e) => setForm({ ...form, gender: e.target.value })}
-          >
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
-          {errors.gender && <p className="error">{errors.gender}</p>}
-        </div>
-
-        <div className="form-group">
-          <label>Education Level *</label>
-          <select
-            value={form.education}
-            onChange={(e) => setForm({ ...form, education: e.target.value, stream: "" })}
-          >
-            <option value="">Select Education</option>
-            <option value="10th">10th</option>
-            <option value="12th">12th</option>
-            <option value="UG">UG</option>
-            <option value="PG">PG</option>
-            <option value="Post PG">Post PG</option>
-          </select>
-          {errors.education && <p className="error">{errors.education}</p>}
-        </div>
-
-        {educationNeedsStream && (
-          <div className="form-group">
-            <label>Stream *</label>
-            <input
-              value={form.stream}
-              placeholder="e.g. Computer Science"
-              onChange={(e) => setForm({ ...form, stream: e.target.value })}
-            />
-            {errors.stream && <p className="error">{errors.stream}</p>}
+  return (
+    <div className="flex min-h-screen bg-bg-light font-sans pt-[72px]">
+      <StudentSidebar />
+      <main className="flex-1 p-4 md:p-8 md:ml-64 max-w-5xl mx-auto w-full">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-primary-dark tracking-tight bg-gradient-to-r from-primary-dark to-indigo-600 bg-clip-text text-transparent">
+              {isEditing ? "Update Your Profile" : "My Profile"}
+            </h1>
+            <p className="text-sm md:text-base text-text-muted mt-1">
+              Manage your personal information and career preferences
+            </p>
           </div>
-        )}
 
-        <div className="form-group">
-          <label>Personality Type</label>
-          <select
-            value={form.personalityType}
-            onChange={(e) => setForm({ ...form, personalityType: e.target.value })}
-          >
-            <option value="">Select Personality</option>
-            <option value="Introvert">Introvert</option>
-            <option value="Extrovert">Extrovert</option>
-            <option value="Ambivert">Ambivert</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-3">
+            {isEditing && (
+              <div className="relative">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                  accept="application/pdf,.docx"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={isParsing}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors border border-indigo-200"
+                >
+                  <FiUpload />
+                  {isParsing ? "AI Parsing..." : "Auto-fill via Biodata"}
+                </button>
+              </div>
+            )}
+
+            {hasProfile && !isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg text-sm hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md"
+              >
+                <FiEdit2 /> Edit Profile
+              </button>
+            )}
+
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 font-semibold rounded-lg text-sm border border-slate-200 hover:bg-slate-50 transition-colors"
+            >
+              <FiArrowLeft /> Dashboard
+            </button>
+          </div>
         </div>
 
-        <div className="form-group">
-          <label>City</label>
-          <input
-            value={form.city}
-            placeholder="City"
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-          />
-        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* VIEW MODE */}
+          {hasProfile && !isEditing ? (
+            <div className="p-6 md:p-8 space-y-8 animate-fade-in">
+              {/* Personal Info Grid */}
+              <section>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <FiUser className="text-lg" /> Personal Details
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  <DetailItem label="Phone" value={form.phone} />
+                  <DetailItem label="Age" value={form.age} />
+                  <DetailItem label="Gender" value={form.gender} capitalize />
+                  <DetailItem
+                    label="Location"
+                    value={`${form.city}, ${form.state}`}
+                  />
+                  <DetailItem
+                    label="Personality"
+                    value={form.personalityType || "Not set"}
+                  />
+                </div>
+              </section>
 
-        <div className="form-group">
-          <label>State</label>
-          <input
-            value={form.state}
-            placeholder="State"
-            onChange={(e) => setForm({ ...form, state: e.target.value })}
-          />
-        </div>
+              <hr className="border-slate-100" />
 
-        <div className="form-group full-width">
-          <label>Skills * (Comma separated)</label>
-          <input
-            value={form.skills}
-            placeholder="React, Python, Public Speaking"
-            onChange={(e) => setForm({ ...form, skills: e.target.value })}
-          />
-          {errors.skills && <p className="error">{errors.skills}</p>}
-        </div>
+              {/* Education Grid */}
+              <section>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <FiBookOpen className="text-lg" /> Education
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <DetailItem label="Level" value={form.education} />
+                  {form.stream && (
+                    <DetailItem label="Stream" value={form.stream} />
+                  )}
+                </div>
+              </section>
 
-        <div className="form-group full-width">
-          <label>Interests & Hobbies</label>
-          <textarea
-            value={form.interests}
-            placeholder="What do you love doing in your free time?"
-            onChange={(e) => setForm({ ...form, interests: e.target.value })}
-          />
-        </div>
+              <hr className="border-slate-100" />
 
-        <div className="form-group full-width">
-          <label>Career Goal *</label>
-          <textarea
-            value={form.careerGoal}
-            placeholder="Where do you see yourself in 5 years?"
-            onChange={(e) => setForm({ ...form, careerGoal: e.target.value })}
-          />
-          {errors.careerGoal && <p className="error">{errors.careerGoal}</p>}
-        </div>
+              {/* Skills & Goals - Full Width */}
+              <section className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <FiActivity className="text-lg" /> Skills & Interests
+                  </h3>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-slate-700 font-medium mb-4">
+                      <span className="text-indigo-600 font-bold">Skills:</span>{" "}
+                      {form.skills}
+                    </p>
+                    <p className="text-slate-700 font-medium">
+                      <span className="text-indigo-600 font-bold">
+                        Interests:
+                      </span>{" "}
+                      {form.interests || "Not specified"}
+                    </p>
+                  </div>
+                </div>
 
-        <button type="submit" className="submit-btn">Save & Continue</button>
-      </form>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <FiTarget className="text-lg" /> Career Objective
+                  </h3>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-slate-700">{form.careerGoal}</p>
+                  </div>
+                </div>
+              </section>
+
+              {/* "Others" Data */}
+              {Object.keys(others).length > 0 && (
+                <>
+                  <hr className="border-slate-100" />
+                  <section>
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                      Additional AI Insights
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(others).map(([key, value]) => (
+                        <div
+                          key={key}
+                          className="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100"
+                        >
+                          <strong className="block text-indigo-900 capitalize text-xs mb-1">
+                            {key.replace(/_/g, " ")}
+                          </strong>
+                          <span className="text-slate-700 text-sm">
+                            {Array.isArray(value)
+                              ? value.join(", ")
+                              : String(value)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </>
+              )}
+            </div>
+          ) : (
+            /* EDIT FORM MODE */
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit();
+              }}
+              className="p-6 md:p-8"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                {/* Phone */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Phone Number *
+                  </label>
+                  <input
+                    value={form.phone}
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    placeholder="9876543210"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  />
+                  {errors.phone && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {errors.phone}
+                    </p>
+                  )}
+                </div>
+
+                {/* Age */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Age *
+                  </label>
+                  <input
+                    type="number"
+                    value={form.age}
+                    onChange={(e) => setForm({ ...form, age: e.target.value })}
+                    placeholder="20"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  />
+                  {errors.age && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {errors.age}
+                    </p>
+                  )}
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Gender *
+                  </label>
+                  <select
+                    value={form.gender.toLowerCase()}
+                    onChange={(e) =>
+                      setForm({ ...form, gender: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                  {errors.gender && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {errors.gender}
+                    </p>
+                  )}
+                </div>
+
+                {/* Personality */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Personality Type
+                  </label>
+                  <select
+                    value={form.personalityType}
+                    onChange={(e) =>
+                      setForm({ ...form, personalityType: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  >
+                    <option value="">Select Personality</option>
+                    <option value="Introvert">Introvert</option>
+                    <option value="Extrovert">Extrovert</option>
+                    <option value="Ambivert">Ambivert</option>
+                  </select>
+                </div>
+
+                {/* Location - City */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    City
+                  </label>
+                  <input
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    placeholder="City"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  />
+                </div>
+
+                {/* Location - State */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    State
+                  </label>
+                  <input
+                    value={form.state}
+                    onChange={(e) =>
+                      setForm({ ...form, state: e.target.value })
+                    }
+                    placeholder="State"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  />
+                </div>
+
+                {/* Education */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Education Level *
+                  </label>
+                  <select
+                    value={form.education}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        education: e.target.value,
+                        stream: "",
+                      })
+                    }
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  >
+                    <option value="">Select Education</option>
+                    <option value="10th">10th</option>
+                    <option value="12th">12th</option>
+                    <option value="UG">UG</option>
+                    <option value="PG">PG</option>
+                    <option value="Post PG">Post PG</option>
+                  </select>
+                  {errors.education && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {errors.education}
+                    </p>
+                  )}
+                </div>
+
+                {/* Stream (Conditional) */}
+                {educationNeedsStream && (
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-slate-700">
+                      Stream *
+                    </label>
+                    <input
+                      value={form.stream}
+                      onChange={(e) =>
+                        setForm({ ...form, stream: e.target.value })
+                      }
+                      placeholder="e.g. Computer Science"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    />
+                    {errors.stream && (
+                      <p className="text-xs text-red-500 font-medium">
+                        {errors.stream}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Full Width Fields */}
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Skills * (Comma separated)
+                  </label>
+                  <input
+                    value={form.skills}
+                    onChange={(e) =>
+                      setForm({ ...form, skills: e.target.value })
+                    }
+                    placeholder="React, Python, Public Speaking"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                  />
+                  {errors.skills && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {errors.skills}
+                    </p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Interests & Hobbies
+                  </label>
+                  <textarea
+                    value={form.interests}
+                    onChange={(e) =>
+                      setForm({ ...form, interests: e.target.value })
+                    }
+                    placeholder="What do you love doing?"
+                    rows={3}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base resize-none"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Career Goal *
+                  </label>
+                  <textarea
+                    value={form.careerGoal}
+                    onChange={(e) =>
+                      setForm({ ...form, careerGoal: e.target.value })
+                    }
+                    placeholder="Where do you see yourself in 5 years?"
+                    rows={3}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base resize-none"
+                  />
+                  {errors.careerGoal && (
+                    <p className="text-xs text-red-500 font-medium">
+                      {errors.careerGoal}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-4 mt-8 pt-6 border-t border-slate-100">
+                <button
+                  type="submit"
+                  disabled={isParsing}
+                  className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+                >
+                  {isParsing ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <FiSave /> Save & Update
+                    </>
+                  )}
+                </button>
+                {hasProfile && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
+        </div>
+      </main>
     </div>
+  );
+};
+
+// Helper Component for View Mode
+const DetailItem = ({ label, value, capitalize = false }) => (
+  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+      {label}
+    </span>
+    <p
+      className={`text-slate-900 font-semibold ${capitalize ? "capitalize" : ""}`}
+    >
+      {value || "—"}
+    </p>
   </div>
 );
-};
 
 export default StudentProfile;

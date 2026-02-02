@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* =========================
    RESET
 ========================= */
@@ -62,7 +66,28 @@ button {
 .page,
 .page-container {
   flex: 1;
-  min-height: calc(100vh - 64px); /* navbar height */
+  min-height: calc(100vh - 64px);
+
+  /* navbar height */
+  /* Custom Scrollbar for better UI */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -71,21 +96,109 @@ button {
 }
 
 /* Card-style pages */
-.page > *,
-.page-container > * {
+.page>*,
+.page-container>* {
   background: #ffffff;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
+/* --- Toastify Custom Overrides --- */
+.Toastify__toast {
+  @apply rounded-xl border border-slate-100 shadow-xl font-sans mb-4 !important;
+}
+
+.Toastify__toast-body {
+  @apply text-sm font-medium text-slate-600 p-1 !important;
+  margin: 0 !important;
+}
+
+.Toastify__progress-bar {
+  @apply h-1 !important;
+}
+
+/* Success */
+.Toastify__toast--success {
+  @apply bg-white border-l-4 border-emerald-500 !important;
+}
+
+.Toastify__toast--success .Toastify__progress-bar {
+  @apply bg-emerald-500 !important;
+}
+
+/* Error */
+.Toastify__toast--error {
+  @apply bg-white border-l-4 border-rose-500 !important;
+}
+
+.Toastify__toast--error .Toastify__progress-bar {
+  @apply bg-rose-500 !important;
+}
+
+/* Warning */
+.Toastify__toast--warning {
+  @apply bg-white border-l-4 border-amber-500 !important;
+}
+
+.Toastify__toast--warning .Toastify__progress-bar {
+  @apply bg-amber-500 !important;
+}
+
+/* Info */
+.Toastify__toast--info {
+  @apply bg-white border-l-4 border-indigo-500 !important;
+}
+
+.Toastify__toast--info .Toastify__progress-bar {
+  @apply bg-indigo-500 !important;
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
 @media (max-width: 768px) {
+
   .page,
   .page-container {
     padding: 16px;
+  }
+}
+
+
+/* ===========================
+  MOBILE TOAST OVERRIDES
+=========================== */
+@media (max-width: 480px) {
+
+  /* Force position to bottom-right (or simply bottom-center/right) on mobile */
+  .Toastify__toast-container {
+    top: auto !important;
+    bottom: 1rem !important;
+    left: auto !important;
+    right: 1rem !important;
+    /* Unset full width default on mobile if we want a "card" look */
+    width: auto !important;
+    max-width: 90vw !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .Toastify__toast {
+    margin-bottom: 0.5rem !important;
+    border-radius: 12px !important;
+    min-height: auto !important;
+    padding: 12px !important;
+    padding-right: 40px !important;
+    /* Space for close btn */
+  }
+
+  /* Adjust close button for smaller touch targets */
+  .Toastify__close-button {
+    right: 8px !important;
+    width: 24px !important;
+    height: 24px !important;
   }
 }
 
@@ -95,7 +208,8 @@ button {
 
 .Toastify__toast {
   position: relative;
-  padding-right: 52px; /* space for close button */
+  padding-right: 52px;
+  /* space for close button */
 }
 
 /* Hard reset close button */
@@ -146,6 +260,3 @@ button {
   bottom: 0;
   left: 0;
 }
-
-
-

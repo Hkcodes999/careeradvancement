@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { 
   FiZap, FiSettings, FiFilePlus, FiUsers, 
-  FiCpu, FiClock, FiBarChart, FiCalendar 
+  FiCpu, FiClock, FiBarChart, FiCalendar, FiShield, FiCheckCircle 
 } from "react-icons/fi"; 
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { fetchBatches } from "../../../services/batchApi";
@@ -10,24 +10,27 @@ import { generateAssessment } from "../../../services/aiApi";
 import LoadingSpinner from "../../common/LoadingSpinner"; 
 import "./AiBuilderTab.css";
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-const AiBuilderTab = ({ institution, currentUser }) => { // Added currentUser for 'createdBy'
+const AiBuilderTab = ({ institution, currentUser }) => {
   const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  // --- 1️⃣ AUTOPILOT STATE (Persistent Policy) ---
+  const [autopilot, setAutopilot] = useState(false);
+  const [autoBatchLimit, setAutoBatchLimit] = useState(500);
+  const [autoTimeLimit, setAutoTimeLimit] = useState(60); 
+  const [autoQuestionsPerCategory, setAutoQuestionsPerCategory] = useState(10);
+  const [autoPrompt, setAutoPrompt] = useState("");
+  const [autoSyllabus, setAutoSyllabus] = useState(null);
+
+  // --- 2️⃣ MANUAL STATE (Existing Logic Preserved) ---
   const [selectedBatchId, setSelectedBatchId] = useState("");
   const [selectedBatch, setSelectedBatch] = useState(null);
-  const [autopilot, setAutopilot] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [aiEducationLevel, setAiEducationLevel] = useState("");
-  const [syllabusFile, setSyllabusFile] = useState(null);
+  const [manualSyllabus, setManualSyllabus] = useState(null);
   const [targetClassName, setTargetClassName] = useState("");
-
-  // --- NEW STATE FOR VALIDATION FIX ---
   const [scheduledDate, setScheduledDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("11:00");
-  // ------------------------------------
-
   const [questionCount, setQuestionCount] = useState(10);
   const [categories, setCategories] = useState({
     logical: true, technical: false, communication: false, problemSolving: false,
@@ -44,235 +47,297 @@ const AiBuilderTab = ({ institution, currentUser }) => { // Added currentUser fo
     "PG": ["technical", "communication", "problemSolving"],
   };
 
+  /* ================= EFFECT: DATA FETCHING & RESTORATION ================= */
   useEffect(() => {
+    // 1. Fetch batches for Manual selection
     fetchBatches().then((res) => setBatches(res.batches || []));
-  }, []);
+
+    // 2. Restore Persistent Policy from Institution DB object
+    if (institution?.autopilot) {
+      setAutopilot(institution.autopilot.active || false);
+      const settings = institution.autopilot.settings || {};
+      if (settings.batchLimit) setAutoBatchLimit(settings.batchLimit);
+      if (settings.timeLimit) setAutoTimeLimit(settings.timeLimit);
+      if (settings.questionsPerCategory) setAutoQuestionsPerCategory(settings.questionsPerCategory);
+      if (settings.prompt) setAutoPrompt(settings.prompt);
+    }
+  }, [institution]);
 
   useEffect(() => {
     const b = batches.find((x) => String(x.batchId) === String(selectedBatchId));
     setSelectedBatch(b || null);
-    if (b && !autopilot) {
+    if (b) {
       setTargetClassName(b.className || "");
+      // Auto-set education level based on batch if available
+      if (b.educationLevel) setAiEducationLevel(b.educationLevel);
     }
-  }, [selectedBatchId, batches, autopilot]);
+  }, [selectedBatchId, batches]);
 
-  const handleAiEducationChange = (level) => {
-    setAiEducationLevel(level);
-    if (!level) return;
-    const allowed = categoryMap[level] || [];
-    const updated = {};
-    Object.keys(categories).forEach((c) => {
-      updated[c] = allowed.includes(c);
-    });
-    setCategories(updated);
-  };
+  /* ================= AUTOPILOT LOGIC ================= */
+  const canEnableAutopilot = autoBatchLimit > 0 && autoTimeLimit > 0 && autoQuestionsPerCategory > 0;
 
-  const handleGenerate = async () => {
-    // 1. Critical Validation
-    if (!institution?._id) return toast.error("Institution context missing");
-    
-    // In Autopilot, we allow targetClassName to be optional if the AI is 
-    // expected to derive it from student profiles, but usually, a 'Class Hint' helps.
-    if (autopilot && !targetClassName) {
-       toast.info("Autopilot will attempt to group students by profile details.");
+  const handleToggleAutopilot = async () => {
+    if (!autopilot && !canEnableAutopilot) {
+      return toast.error("Please fill Batch Limit, Time Limit, and Questions/Category.");
     }
 
-    if (!autopilot) {
-      if (!selectedBatch) return toast.error("Select a batch or enable Autopilot");
-      if (!aiEducationLevel) return toast.error("Select Education Level");
-    }
-
-    const toastId = toast.loading(autopilot ? "AI Analyzing Profiles & Creating Batches..." : "Generating Assessment...");
+    const newState = !autopilot;
     setLoading(true);
-
+    
     try {
-      await sleep(500);
       const formData = new FormData();
-      
-      if (syllabusFile) formData.append("pdf", syllabusFile);
+      if (autoSyllabus) formData.append("pdf", autoSyllabus);
       
       const payload = {
-        mode: autopilot ? "autopilot" : "manual",
+        mode: "autopilot_config",
         institutionId: institution._id,
-        // If autopilot is on, we tell the backend to use the Admin's ID as the creator
-        createdBy: institution.adminId || currentUser?.id, 
-        
-        // Dynamic Slotting: AI creates a default slot if one isn't picked
-        slot: {
-          date: scheduledDate, 
-          startTime: startTime,
-          endTime: endTime,
-        },
-
-        config: {
-          // KEY CHANGE: Signal backend to create a new batch based on profiles
-          batchId: autopilot ? "CREATE_FROM_PROFILES" : selectedBatch.batchId,
-          className: targetClassName || (autopilot ? "AI Generated Class" : selectedBatch?.className),
-          educationLevel: autopilot ? "AUTO_DETECT" : aiEducationLevel,
-          questionCount: Number(questionCount),
-          customPrompt: autopilot 
-            ? `Target student profiles. ${customPrompt}` 
-            : customPrompt,
-          categories: Object.keys(categories).filter((k) => categories[k]),
-          difficulty: autopilot ? "adaptive" : difficulty,
-          timePerQuestion: Number(timePerQuestion),
-          
-          autopilotSettings: {
-            createBatchesIfMissing: autopilot,
-            matchProfileSkills: true, // Tell AI to read StudentProfile.js models
-            source: syllabusFile ? "PDF_REFERENCE" : "PROFILE_MATCHING"
-          }
+        active: newState,
+        settings: {
+          batchLimit: Number(autoBatchLimit),
+          timeLimit: Number(autoTimeLimit),
+          questionsPerCategory: Number(autoQuestionsPerCategory),
+          prompt: autoPrompt,
+          targetDomain: "General" 
         }
       };
 
       formData.append("payload", JSON.stringify(payload));
+      await generateAssessment(formData); 
       
-      // Calls aiApi.js which routes to aiController.js [cite: 4, 6]
-      await generateAssessment(formData);
-      
-      toast.update(toastId, { render: "Autopilot Successful! Batches Created. ✅", type: "success", isLoading: false, autoClose: 3000 });
+      setAutopilot(newState);
+      toast.success(newState ? "AI Policy Saved & Active" : "AI Policy Deactivated");
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || "Autopilot Failed";
-      toast.update(toastId, { render: errorMsg, type: "error", isLoading: false, autoClose: 3000 });
+      toast.error("Failed to sync AI policy");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= MANUAL LOGIC (PRESERVED) ================= */
+  const handleManualGenerate = async () => {
+    if (!selectedBatch || !aiEducationLevel) return toast.error("Select Batch and Level");
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      if (manualSyllabus) formData.append("pdf", manualSyllabus);
+      
+      const payload = {
+        mode: "manual",
+        institutionId: institution._id,
+        createdBy: currentUser?.id,
+        slot: { 
+          date: scheduledDate, 
+          startTime, 
+          endTime 
+        },
+        config: {
+          batchId: selectedBatch.batchId,
+          className: targetClassName,
+          educationLevel: aiEducationLevel,
+          questionCount: Number(questionCount),
+          categories: Object.keys(categories).filter((k) => categories[k]),
+          difficulty,
+          timePerQuestion: Number(timePerQuestion),
+          customPrompt
+        }
+      };
+      
+      formData.append("payload", JSON.stringify(payload));
+      await generateAssessment(formData);
+      toast.success("Manual Assessment Generated Successfully");
+    } catch (err) {
+      toast.error("Manual Generation Failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="action-card wide" style={{ position: 'relative' }}>
-      {loading && <LoadingSpinner message={autopilot ? "Scanning Student Data..." : "Crafting Questions..."} />}
+    <div className="builder-layout-container">
+      {loading && <LoadingSpinner message={autopilot ? "Syncing AI Policy..." : "Generating Assessment..."} />}
 
-      <div className="builder-header">
-        <div className="title-area">
-          <FiCpu className="header-icon" />
-          <h3>AI Assessment Builder</h3>
-        </div>
-        <label className={`autopilot-toggle-chip ${autopilot ? 'active' : ''}`}>
-          <input type="checkbox" checked={autopilot} onChange={() => setAutopilot(!autopilot)} />
-          <div className="chip-content">
-            {autopilot ? <FiZap className="chip-icon" /> : <FiSettings className="chip-icon" />}
-            <span>{autopilot ? "Autopilot" : "Manual"}</span>
-          </div>
-        </label>
-      </div>
-
-      <div className="main-config-grid">
-        {!autopilot ? (
-          <div className="form-group fade-in">
-            <label>Education Level</label>
-            <select value={aiEducationLevel} onChange={(e) => handleAiEducationChange(e.target.value)}>
-              <option value="">-- Select --</option>
-              {Object.keys(categoryMap).map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
-            </select>
-          </div>
-        ) : (
-          <div className="form-group autopilot-info-box fade-in">
-            <label>Education Context</label>
-            <div className="auto-detect-badge">
-              <FiUsers className="badge-icon" /> Auto-Detect
+      {/* 🚀 TOP CONTAINER: AUTOPILOT MODE (Persistent Policy) */}
+      <div className={`autopilot-container-card ${autopilot ? 'is-active' : ''}`}>
+        <div className="card-header">
+          <div className="header-title">
+            <FiZap className={`header-icon ${autopilot ? 'pulse' : ''}`} />
+            <div>
+              <h3>AI Autopilot Policy</h3>
+              <p>Configure how AI should automatically handle incoming students.</p>
             </div>
           </div>
-        )}
+          <button 
+            className={`autopilot-toggle-switch ${autopilot ? 'active' : ''}`}
+            onClick={handleToggleAutopilot}
+          >
+            {autopilot ? "ACTIVE" : "ENABLE"}
+          </button>
+        </div>
 
-        <div className="form-group">
-          <label>Questions</label>
-          <input type="number" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} />
-        </div>
-      </div>
-
-      {/* --- ADDED SCHEDULING SECTION TO RESOLVE VALIDATION ERRORS --- */}
-      <div className="scheduling-grid">
-        <div className="form-group">
-          <label><FiCalendar className="label-icon" /> Exam Date</label>
-          <input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label><FiClock className="label-icon" /> Start Time</label>
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label><FiClock className="label-icon" /> End Time</label>
-          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-        </div>
-      </div>
-      <hr className="divider" />
-
-      <div className="reference-section">
-        {!autopilot && (
+        <div className="autopilot-form-grid">
           <div className="form-group">
-            <label>Target Batch</label>
-            <select value={selectedBatchId} onChange={(e) => setSelectedBatchId(e.target.value)}>
-              <option value="">-- Choose --</option>
-              {batches.map((b) => (
-                <option key={b.batchId} value={b.batchId}>{b.name}</option>
-              ))}
-            </select>
+            <label>Batch Size Limit</label>
+            <input 
+              type="number" 
+              value={autoBatchLimit} 
+              onChange={(e) => setAutoBatchLimit(e.target.value)} 
+            />
+          </div>
+          <div className="form-group">
+            <label>Exam Duration (Mins)</label>
+            <input 
+              type="number" 
+              value={autoTimeLimit} 
+              onChange={(e) => setAutoTimeLimit(e.target.value)} 
+            />
+          </div>
+          <div className="form-group">
+            <label>Questions per Category</label>
+            <input 
+              type="number" 
+              value={autoQuestionsPerCategory} 
+              onChange={(e) => setAutoQuestionsPerCategory(e.target.value)} 
+            />
+          </div>
+        </div>
+
+        <div className="autopilot-footer-row">
+          <div className="form-group text-area-group">
+            <label>Global AI Instructions (Rules)</label>
+            <textarea 
+              value={autoPrompt} 
+              onChange={(e) => setAutoPrompt(e.target.value)}
+              placeholder="e.g. Focus on coding questions for technical sections..."
+              rows={2}
+            />
+          </div>
+          <div className="file-upload-box">
+            <label>Reference Syllabus (Global)</label>
+            <div className="file-drop">
+              <input type="file" onChange={(e) => setAutoSyllabus(e.target.files[0])} />
+              <FiFilePlus />
+              <span>{autoSyllabus ? autoSyllabus.name : "Upload Global PDF"}</span>
+            </div>
+          </div>
+        </div>
+        
+        {autopilot && (
+          <div className="active-status-bar">
+            <FiCheckCircle /> Persistent Mode: AI is auto-generating batches based on these rules.
           </div>
         )}
-
-        <div className="form-group">
-          <label>Class Name</label>
-          <input type="text" placeholder="e.g. B.Tech CS" value={targetClassName} onChange={(e) => setTargetClassName(e.target.value)} />
-        </div>
-
-        <div className="form-group full-width">
-          <label className="file-upload-label">
-            Source PDF (Optional)
-            <div className="file-input-wrapper">
-               <input type="file" accept=".pdf" onChange={(e) => setSyllabusFile(e.target.files[0])} />
-               <div className="file-display">
-                  {syllabusFile ? <IoDocumentTextOutline className="file-icon active" /> : <FiFilePlus className="file-icon" />}
-                  <span className="file-hint">{syllabusFile ? syllabusFile.name : "Upload Reference"}</span>
-               </div>
-            </div>
-          </label>
-        </div>
       </div>
 
-      <div className="prompt-container">
-        <label>Custom Prompt / Custom Questions</label>
-        <textarea 
-          value={customPrompt} 
-          onChange={(e) => setCustomPrompt(e.target.value)} 
-          placeholder="Type specific topics or manually add questions here..."
-          rows={3}
-        />
+      <div className="section-divider">
+        <hr /> <span>Manual Configuration</span> <hr />
       </div>
 
-      {!autopilot && (
-        <div className="advanced-settings fade-in">
-          <hr />
-          <div className="checkbox-group">
-            {Object.keys(categories).map((c) => (
-              <label key={c} className="checkbox">
-                <input type="checkbox" checked={categories[c]} onChange={() => setCategories({ ...categories, [c]: !categories[c] })} />
-                <span className="capitalize">{c}</span>
-              </label>
-            ))}
+      {/* ⚙️ BOTTOM CONTAINER: MANUAL MODE (Existing Logic) */}
+      <div className={`manual-container-card ${autopilot ? 'dimmed' : ''}`}>
+        <div className="card-header">
+          <div className="header-title">
+            <FiSettings className="header-icon" />
+            <h3>Manual Assessment Builder</h3>
           </div>
+        </div>
 
-          <div className="builder-grid">
+        <div className="manual-form-wrapper">
+          <div className="main-config-grid">
             <div className="form-group">
-              <label><FiBarChart className="label-icon" /> Difficulty</label>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
+              <label>Education Level</label>
+              <select value={aiEducationLevel} onChange={(e) => setAiEducationLevel(e.target.value)}>
+                <option value="">-- Select --</option>
+                {Object.keys(categoryMap).map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
               </select>
             </div>
             <div className="form-group">
-                <label><FiClock className="label-icon" /> Sec/Question</label>
-                <input type="number" value={timePerQuestion} onChange={(e) => setTimePerQuestion(e.target.value)} />
+              <label>Total Questions</label>
+              <input type="number" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} />
             </div>
           </div>
-        </div>
-      )}
 
-      <button className="generate-btn" onClick={handleGenerate} disabled={loading}>
-        {autopilot ? <FiZap className="btn-icon" /> : <FiSettings className="btn-icon" />}
-        <span>{autopilot ? "Run AI Autopilot" : "Generate Manual"}</span>
-      </button>
+          <div className="scheduling-grid">
+            <div className="form-group">
+              <label><FiCalendar /> Exam Date</label>
+              <input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label><FiClock /> Start Time</label>
+              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label><FiClock /> End Time</label>
+              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="reference-section">
+            <div className="form-group">
+              <label>Target Batch</label>
+              <select value={selectedBatchId} onChange={(e) => setSelectedBatchId(e.target.value)}>
+                <option value="">-- Choose Batch --</option>
+                {batches.map((b) => <option key={b.batchId} value={b.batchId}>{b.name}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Class Name</label>
+              <input type="text" value={targetClassName} onChange={(e) => setTargetClassName(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="file-label-custom">
+                <input type="file" onChange={(e) => setManualSyllabus(e.target.files[0])} style={{display:'none'}} />
+                <FiFilePlus /> {manualSyllabus ? manualSyllabus.name : "Upload Batch Syllabus"}
+              </label>
+            </div>
+          </div>
+
+          <div className="advanced-settings">
+            <label>Categories (Manual Selection)</label>
+            <div className="checkbox-group">
+              {Object.keys(categories).map((c) => (
+                <label key={c} className="checkbox">
+                  <input 
+                    type="checkbox" 
+                    checked={categories[c]} 
+                    onChange={() => setCategories({ ...categories, [c]: !categories[c] })} 
+                  />
+                  <span className="capitalize">{c}</span>
+                </label>
+              ))}
+            </div>
+            
+            <div className="builder-grid">
+              <div className="form-group">
+                <label><FiBarChart /> Difficulty</label>
+                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+              <div className="form-group">
+                  <label><FiClock /> Seconds/Question</label>
+                  <input type="number" value={timePerQuestion} onChange={(e) => setTimePerQuestion(e.target.value)} />
+              </div>
+            </div>
+
+            <textarea 
+              value={customPrompt} 
+              onChange={(e) => setCustomPrompt(e.target.value)} 
+              placeholder="Additional Instructions for AI..."
+              rows={3}
+            />
+          </div>
+
+          <button 
+            className="manual-generate-btn" 
+            onClick={handleManualGenerate} 
+            disabled={loading || autopilot}
+          >
+            {loading ? "Generating..." : "Generate Manual Assessment"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

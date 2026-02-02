@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Context Provider
-import { AuthProvider, useAuth } from "./context/AuthContext"; 
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
@@ -23,12 +23,11 @@ const AppLayout = ({ children }) => {
   const { loading } = useAuth(); // Access loading state from context
 
   const hideNavbar =
-    location.pathname === "/login" ||
-    location.pathname === "/signup";
+    location.pathname === "/login" || location.pathname === "/signup";
 
   // Prevent UI flicker while checking localStorage/token on refresh
   if (loading) {
-    return <div className="loading-spinner">Loading...</div>; 
+    return <div className="loading-spinner">Loading...</div>;
   }
 
   return (
@@ -42,7 +41,7 @@ const AppLayout = ({ children }) => {
 /* ---------------- App ---------------- */
 function App() {
   return (
-    // 1. AuthProvider must be INSIDE BrowserRouter or OUTSIDE. 
+    // 1. AuthProvider must be INSIDE BrowserRouter or OUTSIDE.
     // Usually, we put it outside or inside main.jsx.
     <AuthProvider>
       <BrowserRouter>
@@ -67,7 +66,9 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={["student", "admin", "superadmin"]}>
+                <ProtectedRoute
+                  allowedRoles={["student", "admin", "superadmin"]}
+                >
                   <Dashboard />
                 </ProtectedRoute>
               }
@@ -98,8 +99,12 @@ function App() {
         <ToastContainer
           position="top-right"
           autoClose={3000}
+          hideProgressBar={false}
           newestOnTop
           closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
           pauseOnHover
           theme="light"
         />

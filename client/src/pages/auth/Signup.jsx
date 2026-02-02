@@ -3,8 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "react-toastify";
 import {
-  FiEye, FiEyeOff, FiAlertTriangle,
-  FiArrowRight, FiMail, FiLock, FiUser
+  FiEye,
+  FiEyeOff,
+  FiAlertTriangle,
+  FiArrowRight,
+  FiMail,
+  FiLock,
+  FiUser,
 } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
@@ -17,12 +22,12 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
-    role: "student"
+    role: "student",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [capsOn, setCapsOn] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Google Role Completion States
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [tempToken, setTempToken] = useState(null);
@@ -40,7 +45,8 @@ const Signup = () => {
     return {
       label: score <= 1 ? "Weak" : score === 2 ? "Medium" : "Strong",
       color: score <= 1 ? "#ef4444" : score === 2 ? "#f59e0b" : "#10b981",
-      width: score === 0 ? "0%" : score <= 1 ? "33%" : score === 2 ? "66%" : "100%"
+      width:
+        score === 0 ? "0%" : score <= 1 ? "33%" : score === 2 ? "66%" : "100%",
     };
   };
 
@@ -52,7 +58,12 @@ const Signup = () => {
   };
 
   const completeSignup = (userData) => {
-    login({ token: userData.token, role: userData.role });
+    login({
+      token: userData.token,
+      role: userData.role,
+      name:
+        userData.name || userData.username || userData.fullName || form.name,
+    });
     toast.success("Account created successfully!");
     navigate("/dashboard");
   };
@@ -82,8 +93,11 @@ const Signup = () => {
           setShowRoleModal(true);
         }
       } else toast.error(res.message || "Google signup failed");
-    } catch (err) { toast.error("Google signup failed"); }
-    finally { setLoading(false); }
+    } catch (err) {
+      toast.error("Google signup failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -97,8 +111,12 @@ const Signup = () => {
         <div className="auth-card">
           <div className="auth-card-inner">
             <header className="auth-header">
-              <h1 className="brand-title">CPRS<span> AI</span></h1>
-              <p className="brand-subtitle">Join the next generation of control</p>
+              <h1 className="brand-title">
+                CPRS<span> AI</span>
+              </h1>
+              <p className="brand-subtitle">
+                Join the next generation of control
+              </p>
             </header>
 
             <form onSubmit={handleSignup} className="auth-form">
@@ -136,7 +154,10 @@ const Signup = () => {
                 <div className="label-row">
                   <label>Create Password</label>
                   {form.password && (
-                    <span className="strength-text" style={{ color: strength.color }}>
+                    <span
+                      className="strength-text"
+                      style={{ color: strength.color }}
+                    >
                       {strength.label}
                     </span>
                   )}
@@ -160,11 +181,14 @@ const Signup = () => {
                     {showPassword ? <FiEyeOff /> : <FiEye />}
                   </button>
                 </div>
-                
+
                 <div className="strength-bar-container">
-                   <div 
-                    className="strength-bar" 
-                    style={{ width: strength.width, backgroundColor: strength.color }}
+                  <div
+                    className="strength-bar"
+                    style={{
+                      width: strength.width,
+                      backgroundColor: strength.color,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -177,7 +201,12 @@ const Signup = () => {
 
               <div className="input-group">
                 <label>Account Type</label>
-                <select className="auth-select" name="role" value={form.role} onChange={handleChange}>
+                <select
+                  className="auth-select"
+                  name="role"
+                  value={form.role}
+                  onChange={handleChange}
+                >
                   <option value="student">Student Portal</option>
                   <option value="admin">Administrator</option>
                   <option value="superadmin">Super Admin</option>
@@ -185,7 +214,13 @@ const Signup = () => {
               </div>
 
               <button className="submit-btn" type="submit" disabled={loading}>
-                {loading ? <span className="loader"></span> : <>Create Account <FiArrowRight /></>}
+                {loading ? (
+                  <span className="loader"></span>
+                ) : (
+                  <>
+                    Create Account <FiArrowRight />
+                  </>
+                )}
               </button>
             </form>
 
@@ -204,7 +239,9 @@ const Signup = () => {
             </div>
 
             <footer className="auth-footer">
-              <p>Already have an account? <Link to="/login">Sign In</Link></p>
+              <p>
+                Already have an account? <Link to="/login">Sign In</Link>
+              </p>
             </footer>
           </div>
         </div>
@@ -215,12 +252,22 @@ const Signup = () => {
             <div className="modal-content glass-effect">
               <h3>Complete Registration</h3>
               <p>Select your role to finish setting up your account.</p>
-              <select className="auth-select" value={form.role} onChange={(e) => setForm({...form, role: e.target.value})}>
+              <select
+                className="auth-select"
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+              >
                 <option value="student">Student</option>
                 <option value="admin">Admin</option>
                 <option value="superadmin">Super Admin</option>
               </select>
-              <button className="submit-btn" onClick={() => {/* Logic to updateRole */}} disabled={loading}>
+              <button
+                className="submit-btn"
+                onClick={() => {
+                  /* Logic to updateRole */
+                }}
+                disabled={loading}
+              >
                 {loading ? "Finalizing..." : "Complete Setup"}
               </button>
             </div>

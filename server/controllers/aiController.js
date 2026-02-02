@@ -1,171 +1,228 @@
 const fs = require("fs");
-const pdfParse = require("pdf-parse");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Assessment = require("../models/Assessment");
 const Batch = require("../models/Batch");
-const StudentProfile = require("../models/StudentProfile");
+const Institution = require("../models/Institution");
+const User = require("../models/User");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /* =========================================================
-   AUTOPILOT CONFIG
+    PDF TEXT EXTRACTION (Node v22 SAFE)
 ========================================================= */
-const AUTOPILOT_MAP = {
-  "10th": { categories: ["logical", "communication"], difficulty: "easy", questionCount: 10, timePerQuestion: 60 },
-  "12th": { categories: ["logical", "problemSolving"], difficulty: "medium", questionCount: 15, timePerQuestion: 60 },
-  "Diploma": { categories: ["technical", "logical"], difficulty: "medium", questionCount: 20, timePerQuestion: 75 },
-  "UG": { categories: ["technical", "logical", "problemSolving"], difficulty: "medium", questionCount: 25, timePerQuestion: 90 },
-  "PG": { categories: ["technical", "logical", "problemSolving", "communication"], difficulty: "hard", questionCount: 30, timePerQuestion: 90 },
+async function extractTextFromPDF(filePath) {
+  try {
+    const dataBuffer = fs.readFileSync(filePath);
+    const pdf = require("pdf-parse-fork");
+    const parse = typeof pdf === 'function' ? pdf : pdf.default;
+    if (typeof parse !== 'function') throw new Error("PDF parser failed.");
+    const data = await parse(dataBuffer);
+    return (data.text || "").replace(/\s+/g, " ").trim().slice(0, 7000);
+  } catch (err) {
+    console.error("Internal PDF Extraction Error:", err.message);
+    throw new Error("Failed to extract text from PDF: " + err.message);
+  }
+}
+
+/* =========================================================
+    AUTOPILOT ENGINE (Fixed for Class 10th & Schema Sync)
+========================================================= */
+exports.runAutopilot = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    // 1. Context validation & NORMALIZATION
+    let contextLevel = req.body.educationLevel || user?.educationLevel || "10th";
+    // Force Class 10 normalization for Batch Enum compatibility
+    if (contextLevel.toString().includes("10")) contextLevel = "10th";
+
+    const targetDomain = req.body.stream || user?.stream || "General Aptitude";
+    const currentStream = req.body.currentStream || user?.profile?.stream || "General";
+
+    if (!user || !user.institutionId) {
+      return res.status(400).json({ message: "User or Institution context missing." });
+    }
+
+    // 2. Fetch Institutional Policy
+    const inst = await Institution.findById(user.institutionId);
+    if (!inst?.autopilot?.active) {
+      return res.status(403).json({ status: "disabled", message: "Autopilot is not active." });
+    }
+
+    const config = inst.autopilot.settings;
+
+    // 3. Batch Management
+    const sanitizedDomain = targetDomain.replace(/[^a-zA-Z0-9]/g, '');
+    let batch = await Batch.findOne({
+      institutionId: user.institutionId,
+      educationLevel: contextLevel,
+      targetDomain: targetDomain,
+      creationType: "autopilot",
+      isActive: true,
+      $expr: { $lt: [{ $size: "$students" }, config.batchLimit || 500] }
+    });
+
+    if (!batch) {
+      batch = await Batch.create({
+        batchId: `AUTO-${contextLevel.toUpperCase()}-${sanitizedDomain}-${Date.now()}`,
+        name: `AI Batch - ${targetDomain} (${contextLevel})`,
+        educationLevel: contextLevel,
+        targetDomain: targetDomain,
+        institutionId: user.institutionId,
+        createdBy: inst.createdBy || userId,
+        creationType: "autopilot",
+        isActive: true,
+        students: [userId],
+        slot: { 
+          date: new Date().toISOString().split('T')[0], 
+          startTime: "00:00", 
+          endTime: "23:59" 
+        }
+      });
+    }
+
+    // 4. Student Sync
+    if (user.batchId !== batch.batchId) {
+      user.batchId = batch.batchId;
+      user.batchRef = batch._id;
+      user.stream = targetDomain;
+      await user.save();
+    }
+
+    if (!batch.students.includes(userId)) {
+      batch.students.push(userId);
+      await batch.save();
+    }
+
+    // 5. Assessment Generation (The Fix)
+    let assessment = await Assessment.findOne({ batchId: batch.batchId });
+
+    if (!assessment) {
+      // Using gemini-2.5-flash as specified for reliability
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash", 
+        generationConfig: { responseMimeType: "application/json" }
+      });
+
+      const categories = ["Technical", "Logic", "Aptitude", "Communication"];
+      const qCount = config.questionsPerCategory || 5;
+      
+      const prompt = `Generate a high-quality assessment JSON for a ${contextLevel} student.
+      CONTEXT: Upgrading from ${currentStream} to ${targetDomain}.
+      REQUIREMENT: Exactly ${qCount} questions for EACH category: ${categories.join(", ")}.
+      FORMAT: [{"question": "string", "options": ["string", "string", "string", "string"], "correctAnswer": "string", "category": "string"}]`;
+
+      const result = await model.generateContent(prompt);
+      let rawQuestions = JSON.parse(result.response.text());
+
+      // SCHEMA GUARD: Ensure exactly 4 options and valid categories for every question
+      const validatedQuestions = rawQuestions.map(q => {
+        let opts = Array.isArray(q.options) ? q.options : [];
+        if (opts.length < 4) while (opts.length < 4) opts.push(`Option ${opts.length + 1}`);
+        return {
+          question: q.question || "Topic Assessment Question",
+          options: opts.slice(0, 4),
+          correctAnswer: q.correctAnswer || opts[0],
+          category: q.category || categories[0]
+        };
+      });
+
+      assessment = await Assessment.create({
+        batchId: batch.batchId,
+        institutionId: user.institutionId,
+        createdBy: inst.createdBy || userId,
+        mode: "autopilot",
+        source: "autopilot", // Required by schema
+        questions: validatedQuestions,
+        difficulty: "medium",
+        categories: categories,
+        timePerQuestion: config.timeLimit ? Math.floor((config.timeLimit * 60) / validatedQuestions.length) : 60,
+        slot: batch.slot // Ensure slot is passed
+      });
+
+      batch.assessmentId = assessment._id;
+      await batch.save();
+
+      return res.json({ status: "waiting", message: "AI is tailoring your assessment questions..." });
+    }
+
+    res.json({ status: "ready", assessment });
+  } catch (err) {
+    console.error("Autopilot Engine Error:", err.message);
+    res.status(500).json({ message: "Internal Autopilot Engine Error: " + err.message });
+  }
 };
 
 /* =========================================================
-   HELPER: GEMINI WITH TIMEOUT
-========================================================= */
-const generateWithTimeout = (promise, ms = 25000) => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("AI response timeout")), ms)
-    ),
-  ]);
-};
-
-/* =========================================================
-   GENERATE & STORE AI ASSESSMENT
+    ADMIN INTERFACE & OTHER UTILITIES
 ========================================================= */
 exports.generateAndStoreAssessment = async (req, res) => {
   try {
-    const payload = req.parsedPayload;
-    if (!payload) return res.status(400).json({ message: "Payload missing" });
+    const payload = req.parsedPayload || req.body;
+    const { mode, institutionId, active, settings, config } = payload;
 
-    const { mode, config, institutionId, slot } = payload;
-    let targetBatch = null;
-    let profileContext = "";
-
-    /* ================= BATCH RESOLUTION (AI AUTOPILOT) ================= */
-    if (mode === "autopilot") {
-      // 1. Find existing batch by class name
-      targetBatch = await Batch.findOne({ 
-        className: config.className, 
-        institutionId: institutionId || req.user.institutionId 
-      });
-
-      // 2. Fetch Student Profiles to build context or create batch
-      const profiles = await StudentProfile.find({ 
-        institutionId: institutionId || req.user.institutionId 
-      }).limit(15);
-
-      if (profiles.length > 0) {
-        profileContext = profiles.map(p => 
-          `Edu: ${p.education}, Stream: ${p.stream}, Skills: ${p.skills.join(",")}, Goal: ${p.careerGoal}`
-        ).join(" | ");
-      }
-
-      // 3. Auto-create batch if it doesn't exist
-      if (!targetBatch && config.autopilotSettings?.createBatchesIfMissing) {
-        const firstProfile = profiles[0];
-        const detectedLevel = firstProfile?.education || "UG";
-        
-        targetBatch = await Batch.create({
-          batchId: `AUTO-${Date.now()}`,
-          name: config.className || `AI Batch - ${firstProfile?.stream || detectedLevel}`,
-          className: config.className || "General",
-          educationLevel: detectedLevel,
-          institutionId: institutionId || req.user.institutionId,
-          createdBy: req.user.id,
-          slot: {
-            date: slot?.date || new Date(),
-            startTime: slot?.startTime || "10:00 AM",
-            endTime: slot?.endTime || "11:00 AM"
-          }
-        });
-      }
-    } else {
-      // Manual Mode
-      targetBatch = await Batch.findOne({ batchId: config.batchId });
+    if (mode === "autopilot_config") {
+      const updated = await Institution.findByIdAndUpdate(
+        institutionId,
+        { $set: { "autopilot.active": active, "autopilot.settings": settings } },
+        { new: true }
+      );
+      return res.json({ message: "Autopilot policy saved", autopilot: updated.autopilot });
     }
 
-    if (!targetBatch) return res.status(404).json({ message: "Batch context not found" });
+    const targetBatch = await Batch.findOne({ batchId: config.batchId });
+    if (!targetBatch) return res.status(404).json({ message: "Batch not found" });
 
-    /* ================= DUPLICATE CHECK ================= */
-    const existing = await Assessment.findOne({ batchId: targetBatch.batchId });
-    if (existing) return res.status(409).json({ message: "Assessment already exists for this batch" });
-
-    /* ================= SOURCE PREPARATION ================= */
     let pdfText = "";
-    const uploadedFile = req.file;
-
-    if (uploadedFile) {
-      const buffer = fs.readFileSync(uploadedFile.path);
-      const pdfData = await pdfParse(buffer);
-      pdfText = pdfData.text.slice(0, 7000); 
-      fs.unlinkSync(uploadedFile.path);
+    if (req.file) {
+      pdfText = await extractTextFromPDF(req.file.path);
+      fs.unlinkSync(req.file.path);
     }
 
-    /* ================= AI PARAMETERS ================= */
-    let categories, difficulty, questionCount, timePerQuestion;
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash", 
+      generationConfig: { responseMimeType: "application/json" } 
+    });
 
-    if (mode === "autopilot") {
-      const eduLevel = targetBatch.educationLevel || "UG";
-      const auto = AUTOPILOT_MAP[eduLevel] || AUTOPILOT_MAP["UG"];
-      categories = auto.categories;
-      difficulty = auto.difficulty;
-      questionCount = Number(config.questionCount) || auto.questionCount;
-      timePerQuestion = auto.timePerQuestion;
-    } else {
-      categories = Array.isArray(config.categories) && config.categories.length
-          ? config.categories.map((c) => c.toLowerCase())
-          : ["logical"];
-      difficulty = config.difficulty || "medium";
-      questionCount = Number(config.questionCount) || 10;
-      timePerQuestion = Number(config.timePerQuestion) || 60;
-    }
-
-    /* ================= AI PROMPT (PROFILE AWARE) ================= */
-    let prompt = `Return ONLY a valid JSON array. No markdown, no prose.
-    [{"question": "","options": ["", "", "", ""],"correctAnswer": "","category": ""}]
-
-    Contextual Rules:
-    - Generate ${questionCount} questions for ${targetBatch.educationLevel} level students.
-    - Focus on categories: ${categories.join(", ")}
-    - Target Difficulty: ${difficulty}
-    ${profileContext ? `- Align questions with these student skills/goals: ${profileContext.slice(0, 1500)}` : ""}
-    ${pdfText ? `- Use this PDF material as the primary source: ${pdfText}` : ""}
-    ${config.customPrompt ? `- Additional logic: ${config.customPrompt}` : ""}
-    `;
-
-    /* ================= AI CALL ================= */
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await generateWithTimeout(model.generateContent(prompt), 25000);
-
-    const raw = result.response.text();
-    const jsonStart = raw.indexOf("[");
-    const jsonEnd = raw.lastIndexOf("]");
-    const questions = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
-
-    /* ================= VALIDATION & SAVE ================= */
+    const prompt = `Generate manual assessment. Count: ${config.questionCount}. Difficulty: ${config.difficulty}. ${pdfText ? `Ref Syllabus: ${pdfText}` : ""}`;
+    const result = await model.generateContent(prompt);
+    
     const assessment = await Assessment.create({
       batchId: targetBatch.batchId,
+      institutionId: targetBatch.institutionId,
       createdBy: req.user.id,
-      mode,
-      categories,
-      difficulty,
-      questionCount,
-      timePerQuestion,
-      questions,
-      source: pdfText ? "PDF_REFERENCE" : (profileContext ? "PROFILE_MATCHING" : "GENERAL_KNOWLEDGE"),
+      mode: "manual",
+      source: "manual",
+      questions: JSON.parse(result.response.text()),
+      difficulty: config.difficulty || "medium",
+      timePerQuestion: config.timePerQuestion || 60,
+      slot: targetBatch.slot
     });
 
-    res.json({
-      message: "AI Autopilot: Batch & Assessment Synced",
-      assessmentId: assessment._id,
-      batchId: targetBatch.batchId,
-      autoCreated: mode === "autopilot"
-    });
-
+    res.json({ message: "Manual Assessment Created", assessmentId: assessment._id });
   } catch (err) {
-    console.error("AI ERROR:", err.message);
-    res.status(500).json({ message: err.message || "Generation failed" });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.parseBiodata = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const resumeText = await extractTextFromPDF(req.file.path);
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash", 
+      generationConfig: { responseMimeType: "application/json" }
+    });
+
+    const prompt = `Extract professional details into JSON: phone, age, gender, education, stream, city, state, skills, interests, careerGoal. Text: ${resumeText}`;
+    const result = await model.generateContent(prompt);
+    res.json({ extractedData: JSON.parse(result.response.text()) });
+  } catch (err) {
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -174,7 +231,7 @@ exports.rollbackAssessment = async (req, res) => {
     const deleted = await Assessment.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Not found" });
     res.json({ message: "Rollback successful" });
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Rollback failed" });
   }
 };

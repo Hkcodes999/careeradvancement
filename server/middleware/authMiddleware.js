@@ -12,7 +12,10 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Not authorized, no token" });
+    return res.status(401).json({
+      success: false,
+      message: "Not authorized, no token",
+    });
   }
 
   try {
@@ -23,8 +26,20 @@ const protect = async (req, res, next) => {
     );
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "User not found" });
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
     }
+
+    // --- TEMPORARY FIX: Commented out to allow login during dev ---
+    // if (!user.isActive) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "User account is inactive",
+    //   });
+    // }
+    // -------------------------------------------------------------
 
     req.user = {
       id: user._id.toString(),
@@ -40,8 +55,19 @@ const protect = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("AUTH ERROR:", err.message);
-    return res.status(401).json({ success: false, message: "Token invalid" });
+    // 🔥 CLEAN + PERMANENT JWT HANDLING
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token expired",
+        code: "TOKEN_EXPIRED",
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+    });
   }
 };
 

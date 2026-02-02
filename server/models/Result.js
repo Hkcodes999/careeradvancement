@@ -25,7 +25,7 @@ const CategoryScoreSchema = new mongoose.Schema(
 
 /* ================= RESULT SCHEMA ================= */
 const ResultSchema = new mongoose.Schema({
-  /* 👤 STUDENT */
+  /* 👤 STUDENT & REFERENCE */
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -33,7 +33,7 @@ const ResultSchema = new mongoose.Schema({
     index: true,
   },
 
-  /* 🧪 BATCH */
+  /* 🧪 BATCH REFERENCE */
   batchId: {
     type: String,
     required: true,
@@ -46,7 +46,18 @@ const ResultSchema = new mongoose.Schema({
     required: true,
   },
 
-  /* 📊 SCORES */
+  /* 🎯 TARGET GOALS (NEW) */
+  targetDomain: {
+    type: String, // e.g., "Computer Science", "Medical"
+    required: true,
+  },
+
+  educationLevel: {
+    type: String, // e.g., "High School", "Undergraduate"
+    required: true,
+  },
+
+  /* 📊 PERFORMANCE DATA */
   categoryScores: {
     type: [CategoryScoreSchema],
     required: true,
@@ -67,13 +78,13 @@ const ResultSchema = new mongoose.Schema({
     required: true,
   },
 
-  /* 🧠 AI OUTPUT — STRENGTHS */
+  /* 🧠 AI ANALYTICS — STRENGTHS */
   strengths: {
     type: [String],
     default: [],
   },
 
-  /* ❌ AI OUTPUT — WEAK AREAS */
+  /* ❌ AI ANALYTICS — WEAK AREAS (Object Structure) */
   weaknesses: {
     type: [
       {
@@ -85,9 +96,25 @@ const ResultSchema = new mongoose.Schema({
     default: [],
   },
 
-  /* 🧠 AI EXPLANATIONS (WHY FIT / NOT FIT) */
-  explanations: {
+  /* 💡 AI SUGGESTIONS (General) */
+  improvementSuggestions: {
     type: [String],
+    default: [],
+  },
+
+  /* 🧐 DOMAIN FITMENT REASONING (UPDATED) */
+  fitReasoning: {
+    type: String, // Detailed explanation: Why you fit the target domain
+    default: "",
+  },
+
+  gapReasoning: {
+    type: String, // Detailed explanation: Gaps for the target domain
+    default: "",
+  },
+
+  explanations: {
+    type: [String], // General AI context
     default: [],
   },
 
@@ -97,26 +124,25 @@ const ResultSchema = new mongoose.Schema({
     default: [],
   },
 
-  /* ⏱ TIME TRACKING (SECONDS) */
+  /* ⏱ TIME TRACKING (In Seconds) */
   timeSpent: {
     type: Number,
     default: 0,
   },
 
-  /* 🔒 HARD LOCK AFTER SUBMISSION */
+  /* 🔒 LOCKING & ATTEMPTS */
   isLocked: {
     type: Boolean,
     default: true,
     index: true,
   },
 
-  /* 🔐 ATTEMPT */
   attempt: {
     type: Number,
     default: 1,
   },
 
-  /* 🕒 META */
+  /* 🕒 TIMESTAMPS */
   createdAt: {
     type: Date,
     default: Date.now,
@@ -125,7 +151,12 @@ const ResultSchema = new mongoose.Schema({
 });
 
 /* ================= INDEXES ================= */
+/**
+ * Ensures a student can only have ONE result per batch.
+ */
 ResultSchema.index({ studentId: 1, batchId: 1 }, { unique: true });
+
+// Facilitates fast lookup for batch-level analytics
 ResultSchema.index({ batchId: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Result", ResultSchema);

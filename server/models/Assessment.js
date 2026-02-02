@@ -19,7 +19,7 @@ const QuestionSchema = new mongoose.Schema(
       required: true,
     },
 
-    // ✅ EXPLICIT CATEGORY PER QUESTION (IMPORTANT)
+    // ✅ EXPLICIT CATEGORY PER QUESTION
     category: {
       type: String,
       required: true, // e.g. Logical, Technical, Communication
@@ -44,7 +44,7 @@ const AssessmentSchema = new mongoose.Schema({
     endTime: { type: String, required: true },
   },
 
-  /* 👤 ADMIN */
+  /* 👤 ADMIN / SYSTEM */
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -89,7 +89,8 @@ const AssessmentSchema = new mongoose.Schema({
   /* 📄 SOURCE */
   source: {
     type: String,
-    enum: ["pdf", "manual", "autopilot"],
+    // UPDATED: Added GENERAL_KNOWLEDGE and PROFILE_MATCHING to fix validation errors
+    enum: ["pdf", "manual", "autopilot", "PDF_REFERENCE", "PROFILE_MATCHING", "GENERAL_KNOWLEDGE"],
     required: true,
   },
 

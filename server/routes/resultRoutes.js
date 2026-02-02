@@ -7,20 +7,24 @@ const {
   submitAssessment,
   getMyResult,
   getBatchAnalytics,
+  resetAssessment, // Import the new controller function
 } = require("../controllers/resultController");
 
 /* =====================================================
-   STUDENT
+    STUDENT
 ===================================================== */
 
-/* 📝 Submit Assessment (1 attempt only) */
+/* 📝 Submit Assessment (Includes Target Domain Logic) */
 router.post("/submit", protect, role("student"), submitAssessment);
 
-/* 📊 Get My Result */
+/* 📊 Get My Result (Sorted by latest) */
 router.get("/my", protect, role("student"), getMyResult);
 
+/* 🔄 Reset/Unlock Assessment (Allows Retake/Domain Change) */
+router.delete("/reset", protect, role("student"), resetAssessment);
+
 /* =====================================================
-   ADMIN / SUPERADMIN
+    ADMIN / SUPERADMIN
 ===================================================== */
 
 /* 📈 Batch Analytics */

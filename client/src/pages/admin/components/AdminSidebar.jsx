@@ -21,7 +21,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
       <div className="sidebar-header">
         {/* The icon now inherits the text-clip gradient from CSS */}
         <span className="logo-icon"><FiCpu /></span>
-        <span className="logo-text">CareerPath AI</span>
+        <span className="logo-text">MentorPath AI</span>
       </div>
 
       <nav className="sidebar-nav">

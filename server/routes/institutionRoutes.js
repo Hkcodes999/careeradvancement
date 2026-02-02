@@ -4,6 +4,7 @@ const protect = require("../middleware/authMiddleware");
 
 const {
   createInstitution,
+  updateInstitution, // Added this
   getMyInstitution,
   getActiveInstitutions,
 } = require("../controllers/institutionController");
@@ -15,6 +16,13 @@ const {
 router.post("/create", protect, createInstitution);
 
 /* ======================================================
+   UPDATE INSTITUTION (ADMIN)
+   PUT /api/institution/update/:id
+====================================================== */
+// This was missing! It matches your frontend call: ${API_BASE}/update/${id}
+router.put("/update/:id", protect, updateInstitution);
+
+/* ======================================================
    GET LOGGED-IN ADMIN INSTITUTION
    GET /api/institution/my
 ====================================================== */
@@ -22,8 +30,9 @@ router.get("/my", protect, getMyInstitution);
 
 /* ======================================================
    GET ACTIVE INSTITUTIONS (STUDENT)
-   GET /api/institution/list
+   GET /api/institution/active
 ====================================================== */
-router.get("/list", getActiveInstitutions);
+// Changed from "/list" to "/active" to match your frontend fetchInstitutions call
+router.get("/active", getActiveInstitutions);
 
 module.exports = router;

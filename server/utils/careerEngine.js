@@ -1,106 +1,113 @@
 /**
- * Advanced Career Engine
+ * Advanced Career Engine - Target Domain Edition
  * - Identifies strengths & weaknesses
- * - Explains why the student IS / IS NOT fit
- * - Gives improvement suggestions
- * - Outputs clean text suitable for UI + PDF
+ * - Analyzes "Fit" vs "Gap" for a specific Target Domain
+ * - Outputs structured data for the Result Model
  */
 
-module.exports = function careerEngine(categoryScores) {
-    const strengths = [];
-    const weaknesses = [];
-    const explanations = [];
-    const improvementSuggestions = [];
-    const careers = new Set();
+module.exports = function careerEngine(categoryScores, studentLevel = "UG", profileOthers = {}, targetDomain = "General") {
+  const strengths = [];
+  const weaknesses = [];
+  const explanations = [];
+  const improvementSuggestions = [];
+  const careers = new Set();
   
-    categoryScores.forEach((c) => {
-      const category = c.category;
-      const score = c.percentage;
-  
-      /* ================= STRONG AREA ================= */
-      if (score >= 70) {
-        strengths.push(category);
-  
-        switch (category.toLowerCase()) {
-          case "logical":
-            explanations.push(
-              "You demonstrate strong logical reasoning and analytical thinking, which is essential for data-driven and research-oriented roles."
-            );
-            careers.add("Data Analyst");
-            careers.add("Business Analyst");
-            careers.add("Research Analyst");
-            break;
-  
-          case "technical":
-            explanations.push(
-              "Your technical skills indicate a solid understanding of systems and problem-solving using technology."
-            );
-            careers.add("Software Engineer");
-            careers.add("AI Engineer");
-            careers.add("System Architect");
-            break;
-  
-          case "communication":
-            explanations.push(
-              "You possess effective communication and interpersonal skills, which are critical for leadership and people-facing roles."
-            );
-            careers.add("HR Specialist");
-            careers.add("Marketing Strategist");
-            careers.add("Public Relations Manager");
-            break;
-  
-          case "problem solving":
-          case "problemsolving":
-            explanations.push(
-              "Your problem-solving ability shows that you can break down complex challenges and find structured solutions."
-            );
-            careers.add("Product Manager");
-            careers.add("Consultant");
-            careers.add("Operations Analyst");
-            break;
-  
-          default:
-            explanations.push(
-              `You performed well in ${category}, indicating a strong aptitude in this area.`
-            );
-            careers.add("General Analyst");
-        }
+  // New specific reasoning fields
+  let fitReasoning = "";
+  let gapReasoning = "";
+
+  const languages = profileOthers.languages || [];
+  const hobbies = profileOthers.hobbies || [];
+  const skills = profileOthers.skills || [];
+
+  /* ================= 1. BASIC SCORE ANALYSIS ================= */
+  categoryScores.forEach((c) => {
+    const category = c.category || "General";
+    const score = c.percentage;
+
+    if (score >= 70) {
+      strengths.push(category);
+      switch (category.toLowerCase()) {
+        case "logical":
+          explanations.push("Strong logical reasoning and analytical thinking observed.");
+          careers.add("Data Scientist");
+          break;
+        case "technical":
+          explanations.push("High capacity for understanding complex technical systems.");
+          careers.add("Software Developer");
+          break;
+        case "communication":
+          explanations.push("Effective interpersonal skills for leadership roles.");
+          careers.add("Project Manager");
+          break;
+        default:
+          explanations.push(`Proficient performance in ${category}.`);
       }
-  
-      /* ================= WEAK AREA ================= */
-      else {
-        weaknesses.push(category);
-  
-        explanations.push(
-          `Your score in ${category} is below the recommended level, indicating that this area may currently limit your suitability for roles heavily dependent on it.`
-        );
-  
-        improvementSuggestions.push(
-          `To improve in ${category}, consider focused practice, guided learning resources, and real-world exercises related to this skill.`
-        );
-      }
-    });
-  
-    /* ================= OVERALL BALANCE ================= */
-    if (!strengths.length) {
-      explanations.push(
-        "Your current performance suggests the need for foundational skill development before specializing in a specific career path."
-      );
-      improvementSuggestions.push(
-        "Start with strengthening core skills such as logical thinking, communication, and basic technical concepts."
-      );
+    } else {
+      weaknesses.push({
+        category: category,
+        reason: `Score of ${score}% is below the professional benchmark.`,
+        improvementTips: [`Focus on foundational concepts in ${category}.`]
+      });
     }
-  
-    if (!careers.size) {
-      careers.add("Skill Development Program");
+  });
+
+  /* ================= 2. TARGET DOMAIN FITMENT LOGIC ================= */
+  // We compare the student's strengths against the requirements of their chosen path
+  const domainLower = targetDomain.toLowerCase();
+
+  // Helper to check if a specific category is strong
+  const isStrong = (cat) => strengths.some(s => s.toLowerCase() === cat.toLowerCase());
+
+  if (domainLower.includes("computer") || domainLower.includes("it") || domainLower.includes("software")) {
+    if (isStrong("technical") && isStrong("logical")) {
+      fitReasoning = `You are a great fit for ${targetDomain} because your technical and logical scores align perfectly with software engineering requirements.`;
+    } else {
+      gapReasoning = `To succeed in ${targetDomain}, you need to significantly improve your ${!isStrong("technical") ? "Technical " : ""}${!isStrong("logical") ? "and Logical " : ""}scores.`;
     }
+  } 
   
-    return {
-      strengths,
-      weaknesses,
-      explanations,
-      improvementSuggestions,
-      careers: [...careers],
-    };
+  else if (domainLower.includes("medical") || domainLower.includes("health")) {
+    if (isStrong("logical") && isStrong("communication")) {
+      fitReasoning = `Your ability to communicate and analyze logically makes you suitable for the high-pressure environment of ${targetDomain}.`;
+    } else {
+      gapReasoning = `Healthcare requires high precision. Focus on sharpening your logical analysis to meet ${targetDomain} standards.`;
+    }
+  }
+
+  else if (domainLower.includes("management") || domainLower.includes("business") || domainLower.includes("finance")) {
+    if (isStrong("communication") && isStrong("logical")) {
+      fitReasoning = `Your combination of articulate communication and data-driven logic fits the profile of a ${targetDomain} professional.`;
+    } else {
+      gapReasoning = `Modern ${targetDomain} roles require a stronger balance of communication and analytical skills than currently demonstrated.`;
+    }
+  }
+
+  else {
+    // Default fallback if domain is unique
+    if (strengths.length >= 2) {
+      fitReasoning = `Your diverse strengths in ${strengths.join(", ")} provide a solid foundation for pursuing ${targetDomain}.`;
+    } else {
+      gapReasoning = `We recommend building a broader skill base in your core categories before specializing in ${targetDomain}.`;
+    }
+  }
+
+  /* ================= 3. CAREER REFINEMENT ================= */
+  const designInterests = hobbies.some(h => h.toLowerCase().includes("design") || h.toLowerCase().includes("art"));
+  if (designInterests && isStrong("Technical")) {
+    careers.add("UX/UI Designer");
+  }
+
+  if (careers.size === 0) careers.add("Junior Associate");
+
+  return {
+    strengths,
+    weaknesses,
+    explanations,
+    improvementSuggestions,
+    fitReasoning, // New field
+    gapReasoning, // New field
+    recommendedCareers: Array.from(careers),
+    generatedAt: new Date().toISOString()
   };
-  
+};

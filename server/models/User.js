@@ -3,15 +3,39 @@ const mongoose = require("mongoose");
 /* ================= PROFILE SUB-SCHEMA ================= */
 const ProfileSchema = new mongoose.Schema(
   {
-    phone: String,
-    age: Number,
+    phone: { type: String, default: "" },
+    age: { type: Number, default: null },
     gender: {
       type: String,
-      enum: ["male", "female", "other"],
+      enum: ["male", "female", "other", ""],
+      default: "",
     },
-    education: String,
-    skills: [String],
-    careerGoal: String,
+    /* UPDATED: Added a setter to normalize education strings. 
+      This ensures "10" becomes "10th" to match Batch enum requirements.
+    */
+    education: { 
+      type: String, 
+      default: "",
+      set: function(v) {
+        if (!v) return v;
+        const val = v.toLowerCase().trim();
+        // Regex to catch "10", "10th", "class 10", "grade 10" etc.
+        if (/\b10\b/.test(val) || val.includes("10th")) return "10th";
+        return v;
+      }
+    }, 
+    stream: { type: String, default: "" },    // Current background
+    city: { type: String, default: "" },
+    state: { type: String, default: "" },
+    personalityType: { type: String, default: "" },
+    skills: { type: [String], default: [] },
+    interests: { type: String, default: "" },
+    careerGoal: { type: String, default: "" },
+    
+    others: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
   { _id: false }
 );
@@ -29,6 +53,8 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true
     },
 
     password: {
@@ -54,7 +80,10 @@ const UserSchema = new mongoose.Schema(
     },
 
     /* ================= STUDENT PROFILE ================= */
-    profile: ProfileSchema,
+    profile: {
+      type: ProfileSchema,
+      default: () => ({}), 
+    },
 
     isProfileComplete: {
       type: Boolean,
@@ -69,8 +98,14 @@ const UserSchema = new mongoose.Schema(
     },
 
     /* ================= BATCH ASSIGNMENT ================= */
+    // Note: 'stream' here acts as the 'Target Domain' once selected
+    stream: {
+      type: String,
+      default: null,
+    },
+
     batchId: {
-      type: String, // e.g. "BATCH-AI-001"
+      type: String, 
       default: null,
     },
 
@@ -83,13 +118,41 @@ const UserSchema = new mongoose.Schema(
     /* ================= STATUS ================= */
     isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   { 
-    // ✅ Built-in timestamps are more efficient for real-time sorting
-    timestamps: true 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
+
+/* ================= VIRTUALS ================= */
+/**
+ * Bridges the gap between the Profile sub-schema and the Autopilot controller requirements.
+ * This ensures user.educationLevel returns user.profile.education.
+ */
+UserSchema.virtual("educationLevel").get(function () {
+  return this.profile?.education || null;
+});
+
+/* ================= CASCADE DELETE LOGIC ================= */
+UserSchema.pre("findOneAndDelete", async function (next) {
+  try {
+    const user = await this.model.findOne(this.getQuery());
+
+    if (user && user.role === "admin") {
+      const Institution = mongoose.model("Institution");
+      await Institution.deleteMany({ createdBy: user._id });
+      
+      const Batch = mongoose.model("Batch");
+      await Batch.deleteMany({ createdBy: user._id });
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = mongoose.model("User", UserSchema);

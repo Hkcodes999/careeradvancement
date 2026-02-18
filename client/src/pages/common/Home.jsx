@@ -8,108 +8,132 @@ import {
   FiTrendingUp,
   FiUsers,
   FiCpu,
+  FiCheck,
+  FiLayers,
+  FiGlobe,
 } from "react-icons/fi";
+import Footer from "../../components/Footer";
 
 const Home = () => {
   return (
-    <div className="relative overflow-x-hidden bg-white text-primary-dark font-sans">
-      {/* Ambient Background Glow */}
-      <div className="absolute -top-[150px] -right-[100px] w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(124,58,237,0.08)_0%,rgba(255,255,255,0)_70%)] z-0 pointer-events-none"></div>
+    <div className="relative bg-surface text-text-main font-sans min-h-screen">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-gradient-to-b from-light to-transparent opacity-60"></div>
+      </div>
 
-      {/* HERO SECTION */}
-      <section className="min-h-fit flex items-center px-[5%] py-20 relative z-10 bg-[linear-gradient(135deg,rgba(223,186,255,0.471)_0%,rgba(255,247,215,0.4)_100%)]">
-        <div className="max-w-[100vw] mx-auto flex items-center gap-10 md:gap-20 w-full h-auto md:h-[85vh] max-[1100px]:flex-col max-[1100px]:text-center max-[1100px]:justify-center">
+      {/* HERO SECTION - LIGHT MODE */}
+      <section className="relative z-10 pt-32 pb-24 lg:pt-40 lg:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-light via-surface to-white">
+        {/* Background Accents */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-secondary/10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24 relative z-10">
           {/* Hero Content */}
-          <div className="flex-[1.2] bg-white p-6 md:p-[30px] rounded-[25px] max-[1100px]:flex max-[1100px]:flex-col max-[1100px]:items-center h-auto md:h-[80vh] w-full">
-            <div className="inline-flex px-4 py-2 bg-[rgba(37,99,235,0.06)] text-accent-blue rounded-full text-sm font-bold mb-6 border border-[rgba(37,99,235,0.1)] tracking-wide">
-              New: AI-Driven Insights 2.0
+          <div className="flex-1 text-center lg:text-left space-y-8 animate-fade-in-up">
+            <div className="inline-flex items-center px-3 py-1 bg-white text-primary rounded-full text-xs font-bold border border-secondary/30 shadow-sm">
+              <span className="w-2 h-2 bg-primary rounded-full mr-2 animate-pulse"></span>
+              v2.0 Now Live: AI Roadmap Generation
             </div>
-            <h1 className="text-3xl md:text-5xl font-black leading-[1.1] mb-6 tracking-tight text-primary-dark">
-              AI-Powered{" "}
-              <span className="bg-gradient-to-br from-accent-blue via-accent-purple to-accent-amber bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient-shift">
-                Career Path Recommendation
-              </span>{" "}
-              Platform
+
+            <h1 className="text-5xl lg:text-7xl font-display font-bold leading-[1.1] tracking-tight text-text-main">
+              Your Future, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-light">
+                Engineered by AI.
+              </span>
             </h1>
-            <p className="text-base text-text-muted leading-relaxed mb-10 max-w-[600px]">
-              Make informed career decisions using intelligent assessments,
-              data-driven insights, and personalized recommendations powered by
-              AI.
+
+            <p className="text-xl text-text-muted leading-relaxed max-w-2xl mx-auto lg:mx-0 font-light">
+              Stop guessing. Start building. We use advanced machine learning to
+              match your unique aptitude profile with high-growth career
+              trajectories.
             </p>
 
-            <div className="flex gap-4 mb-12 max-[600px]:flex-col max-[600px]:w-full max-[1100px]:justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start">
               <Link
                 to="/login"
-                className="px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold no-underline flex items-center justify-center gap-2.5 transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] text-base bg-primary-dark text-white hover:-translate-y-[3px]"
+                className="btn-primary py-4 px-8 text-lg hover:-translate-y-1 shadow-xl shadow-primary/20"
               >
-                Get Started <FiArrowRight />
+                Generate My Roadmap <FiArrowRight />
               </Link>
               <Link
-                to="/login"
-                className="px-6 py-3 md:px-8 md:py-4 rounded-xl font-bold no-underline flex items-center justify-center gap-2.5 transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] bg-white text-primary-dark border border-[rgba(226,232,240,0.8)] hover:bg-bg-light"
+                to="/"
+                className="px-8 py-4 rounded-xl font-bold text-primary bg-white hover:bg-light border border-secondary/30 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
-                Explore Demo
+                View Sample Report
               </Link>
             </div>
 
-            {/* Quick Stats */}
-            <div className="flex gap-4 border-t border-[rgba(226,232,240,0.8)] pt-4 max-[1100px]:justify-center text-base">
-              <div className="stat-item">
-                <strong className="block text-2xl font-black text-primary-dark">
-                  10k+
-                </strong>
-                <span className="text-sm text-text-muted uppercase tracking-wider">
-                  Students
-                </span>
+            <div className="pt-8 flex items-center justify-center lg:justify-start gap-8 text-sm font-medium text-text-light">
+              <div className="flex items-center gap-2">
+                <FiCheck className="text-primary text-lg" /> No Credit Card
+                Required
               </div>
-              <div className="w-[1px] bg-[rgba(226,232,240,0.8)]"></div>
-              <div className="stat-item">
-                <strong className="block text-2xl font-black text-primary-dark">
-                  95%
-                </strong>
-                <span className="text-sm text-text-muted uppercase tracking-wider">
-                  Accuracy
-                </span>
-              </div>
-              <div className="w-[1px] bg-[rgba(226,232,240,0.8)]"></div>
-              <div className="stat-item">
-                <strong className="block text-2xl font-black text-primary-dark">
-                  50+
-                </strong>
-                <span className="text-sm text-text-muted uppercase tracking-wider">
-                  Career Paths
-                </span>
+              <div className="flex items-center gap-2">
+                <FiCheck className="text-primary text-lg" /> 95% Accuracy Rate
               </div>
             </div>
           </div>
 
-          {/* Hero Visual */}
-          <div className="flex-[0.8] flex justify-center relative bg-[radial-gradient(circle,rgba(251,113,133,0.05)_0%,rgba(251,191,36,0.03)_50%,transparent_70%)] max-[1100px]:mt-10 max-[1100px]:scale-90 max-[600px]:hidden">
-            <div className="relative w-[480px] h-[480px] flex items-center justify-center">
-              {/* Nucleus */}
-              <div className="w-[115px] h-[115px] bg-white rounded-[35%_65%_65%_35%/30%_30%_70%_70%] flex items-center justify-center shadow-[0_15px_35px_rgba(15,23,42,0.08),inset_0_0_15px_rgba(251,113,133,0.1)] border border-white z-10 animate-blob hover:animate-pulse-glow">
-                <div className="bg-[radial-gradient(circle,rgba(124,58,237,0.2)_0%,transparent_70%)] opacity-80 animate-pulse"></div>
-                <span className="text-[1.5rem] font-black tracking-tight bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent">
-                  CPRS
-                </span>
-              </div>
+          {/* Hero Visual - Dashboard Mockup */}
+          <div className="flex-1 w-full max-w-[600px] relative perspective-1000">
+            {/* Decorative Elements */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/10 rounded-full blur-3xl -z-10 animate-pulse-slow"></div>
 
-              {/* Orbit Paths */}
-              <div className="absolute border-[1.5px] border-[rgba(123,0,255,0.8)] rounded-full w-[270px] h-[270px] animate-rotate-clockwise">
-                <div className="absolute w-[54px] h-[54px] bg-white/85 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.05)] border border-white text-[#e11d48] text-[1.4rem] transition-all duration-300 -top-[27px] left-1/2 -translate-x-1/2 hover:scale-115 hover:text-amber-600 hover:bg-white hover:shadow-[0_15px_30px_rgba(251,113,133,0.2)]">
-                  <FiBriefcase />
+            <div className="relative bg-white border border-secondary/20 rounded-2xl shadow-soft-2xl p-2 transform rotate-y-[-5deg] rotate-x-[5deg] hover:rotate-0 transition-transform duration-500">
+              <div className="bg-surface rounded-xl overflow-hidden border border-secondary/10">
+                {/* Mock Header */}
+                <div className="h-10 border-b border-secondary/10 bg-white flex items-center px-4 gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+                  </div>
+                  <div className="ml-4 h-4 w-32 bg-secondary/10 rounded-full"></div>
                 </div>
-                <div className="absolute w-[54px] h-[54px] bg-white/85 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.05)] border border-white text-[#e11d48] text-[1.4rem] transition-all duration-300 -bottom-[27px] left-1/2 -translate-x-1/2 hover:scale-115 hover:text-amber-600 hover:bg-white hover:shadow-[0_15px_30px_rgba(251,113,133,0.2)]">
-                  <FiAward />
+                {/* Mock Body */}
+                <div className="p-6 space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-1/3 h-32 bg-white rounded-xl shadow-sm border border-secondary/10 p-4">
+                      <div className="w-8 h-8 rounded-lg bg-secondary/20 mb-3"></div>
+                      <div className="w-16 h-4 bg-secondary/10 rounded mb-2"></div>
+                      <div className="w-24 h-6 bg-secondary/5 rounded"></div>
+                    </div>
+                    <div className="w-1/3 h-32 bg-white rounded-xl shadow-sm border border-secondary/10 p-4">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 mb-3"></div>
+                      <div className="w-16 h-4 bg-secondary/10 rounded mb-2"></div>
+                      <div className="w-24 h-6 bg-secondary/5 rounded"></div>
+                    </div>
+                    <div className="w-1/3 h-32 bg-white rounded-xl shadow-sm border border-secondary/10 p-4">
+                      <div className="w-8 h-8 rounded-lg bg-accent/30 mb-3"></div>
+                      <div className="w-16 h-4 bg-secondary/10 rounded mb-2"></div>
+                      <div className="w-24 h-6 bg-secondary/5 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="h-40 bg-white rounded-xl shadow-sm border border-secondary/10 p-4 flex items-end gap-2">
+                    <div className="w-full bg-secondary/20 rounded-t-lg h-[40%]"></div>
+                    <div className="w-full bg-primary rounded-t-lg h-[80%]"></div>
+                    <div className="w-full bg-secondary/20 rounded-t-lg h-[60%]"></div>
+                    <div className="w-full bg-secondary/20 rounded-t-lg h-[30%]"></div>
+                    <div className="w-full bg-secondary/20 rounded-t-lg h-[50%]"></div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="absolute border-[1.5px] border-[rgba(123,0,255,0.8)] rounded-full border-dashed w-[450px] h-[450px] animate-rotate-counter-clockwise">
-                <div className="absolute w-[54px] h-[54px] bg-white/85 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.05)] border border-white text-[#e11d48] text-[1.4rem] transition-all duration-300 top-1/2 -left-[27px] -translate-y-1/2 hover:scale-115 hover:text-amber-600 hover:bg-white hover:shadow-[0_15px_30px_rgba(251,113,133,0.2)]">
-                  <FiBookOpen />
+            {/* Floating Badge */}
+            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-soft-xl border border-secondary/20 animate-float">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                  <FiTrendingUp size={20} />
                 </div>
-                <div className="absolute w-[54px] h-[54px] bg-white/85 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.05)] border border-white text-[#e11d48] text-[1.4rem] transition-all duration-300 top-1/2 -right-[27px] -translate-y-1/2 hover:scale-115 hover:text-amber-600 hover:bg-white hover:shadow-[0_15px_30px_rgba(251,113,133,0.2)]">
-                  <FiCode />
+                <div>
+                  <p className="text-xs font-bold text-text-muted uppercase">
+                    Career Match
+                  </p>
+                  <p className="text-lg font-bold text-text-main">98.5%</p>
                 </div>
               </div>
             </div>
@@ -117,126 +141,274 @@ const Home = () => {
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
-      <section className="py-[120px] px-[5%] bg-bg-light">
-        <div className="text-center mb-20">
-          <h2 className="text-[2.5rem] font-black mb-4 text-primary-dark">
-            Why Choose CareerPath AI?
-          </h2>
-          <p className="text-text-muted text-[1.2rem] leading-relaxed">
-            Engineered to align your passion with market reality.
+      {/* SOCIAL PROOF - INFINITE MARQUEE */}
+      <section className="py-10 border-y border-secondary/10 bg-light/30 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 text-center mb-8">
+          <p className="text-sm font-bold text-text-light uppercase tracking-widest">
+            Trusted by students from top institutions
           </p>
         </div>
 
-        <div className="max-w-[1200px] mx-auto grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-8">
-          {[
-            {
-              Icon: FiCpu,
-              title: "Intelligent Assessments",
-              text: "Adaptive, AI-generated questions that analyze your aptitude and interests beyond traditional tests.",
-            },
-            {
-              Icon: FiTrendingUp,
-              title: "Personalized Mapping",
-              text: "Receive customized career pathways perfectly aligned with your unique strengths and goals.",
-            },
-            {
-              Icon: FiUsers,
-              title: "Insight-Driven Results",
-              text: "Clear visual analytics that help you understand your potential and long-term career fit.",
-            },
-          ].map((feature, idx) => (
-            <div
-              key={idx}
-              className="p-12 bg-white rounded-3xl border border-[rgba(226,232,240,0.8)] transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-2.5 hover:border-accent-purple hover:shadow-[0_20px_40px_rgba(124,58,237,0.1)]"
-            >
-              <div className="w-16 h-16 bg-[rgba(124,58,237,0.05)] rounded-2xl flex items-center justify-center text-[2rem] text-accent-purple mb-7">
-                <feature.Icon />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-primary-dark">
-                {feature.title}
-              </h3>
-              <p className="text-text-muted leading-relaxed">{feature.text}</p>
-            </div>
-          ))}
+        <div className="relative flex overflow-x-hidden group">
+          <div className="animate-marquee whitespace-nowrap flex gap-16 px-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+            {[
+              "Stanford",
+              "MIT",
+              "Cambridge",
+              "IIT Bombay",
+              "NUS",
+              "Oxford",
+              "Berkeley",
+              "Harvard",
+              "Yale",
+              "Princeton",
+              "Columbia",
+              "Caltech",
+            ].map((brand, i) => (
+              <span
+                key={i}
+                className="text-3xl font-display font-bold text-text-muted hover:text-primary transition-colors cursor-default select-none mx-4"
+              >
+                {brand}
+              </span>
+            ))}
+          </div>
+          <div className="absolute top-0 animate-marquee2 whitespace-nowrap flex gap-16 px-8 items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+            {[
+              "Stanford",
+              "MIT",
+              "Cambridge",
+              "IIT Bombay",
+              "NUS",
+              "Oxford",
+              "Berkeley",
+              "Harvard",
+              "Yale",
+              "Princeton",
+              "Columbia",
+              "Caltech",
+            ].map((brand, i) => (
+              <span
+                key={`clone-${i}`}
+                className="text-3xl font-display font-bold text-text-muted hover:text-primary transition-colors cursor-default select-none mx-4"
+              >
+                {brand}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
-      <footer className="bg-white pt-[100px] px-[5%] pb-10 border-t border-[rgba(226,232,240,0.8)] relative z-10">
-        {/* Pre-Footer Call to Action */}
-        <div className="bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-3xl py-[60px] px-[40px] text-center text-white mx-[5%] mb-20 relative overflow-hidden border border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] max-[768px]:p-8 max-[640px]:rounded-3xl">
-          <div className="absolute -top-[40%] -right-[5%] w-[450px] h-[450px] bg-[radial-gradient(circle,rgba(37,99,235,0.12)_0%,rgba(124,58,237,0.08)_50%,transparent_80%)] blur-[50px] pointer-events-none z-0"></div>
-          <h2 className="relative z-10 text-[clamp(1.8rem,3.5vw,2.4rem)] font-extrabold mb-4 tracking-tight text-slate-50">
-            Ready to define your future?
-          </h2>
-          <p className="relative z-10 text-slate-400 text-[1.1rem] mb-8 max-w-[520px] mx-auto leading-relaxed">
-            Join 10,000+ students making data-backed career moves with CPRS AI.
-          </p>
-          <Link
-            to="/login"
-            className="relative z-10 bg-white text-slate-900 px-8 py-3.5 rounded-xl font-bold text-[0.95rem] inline-flex items-center gap-2 transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-[0_8px_20px_rgba(0,0,0,0.2)]"
-          >
-            Start Free Assessment <FiArrowRight className="text-[1.1rem]" />
-          </Link>
-        </div>
-
-        <div className="max-w-[1240px] mx-auto flex justify-between gap-20 pb-[60px] max-[1024px]:flex-col max-[1024px]:gap-[60px]">
-          <div className="flex-[1.2] max-[1024px]:text-center max-[1024px]:flex max-[1024px]:flex-col max-[1024px]:items-center">
-            <div className="mb-6">
-              <div className="inline-flex items-center gap-2">
-                {/* Logo placeholder if needed, using text for now as per original */}
-                <span className="font-black text-2xl tracking-tighter text-primary-dark">
-                  CPRS <span className="text-accent-blue">AI</span>
-                </span>
-              </div>
-            </div>
-            <p className="text-text-muted leading-relaxed text-[0.95rem] max-w-[320px]">
-              Precision career pathing powered by advanced machine learning and
-              industry data.
+      {/* FEATURES GRID */}
+      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-white relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl font-display font-bold text-text-main mb-6">
+              Science-Based Career Architecture
+            </h2>
+            <p className="text-xl text-text-muted leading-relaxed font-light">
+              We don't just give you a job title. We architect a complete
+              educational and professional pathway based on 50+ data points.
             </p>
           </div>
 
-          <div className="flex-[2] grid grid-cols-3 gap-10 max-[640px]:grid-cols-2 max-[640px]:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
-                header: "Platform",
-                links: ["AI Assessments", "Career Mapping", "Skill Analysis"],
+                icon: FiCpu,
+                title: "AI Aptitude Engine",
+                desc: "Our proprietary algorithm analyzes your cognitive strengths against thousands of career profiles.",
+                color: "text-primary",
+                bg: "bg-primary/10",
               },
               {
-                header: "Resources",
-                links: ["Documentation", "Market Trends", "Success Stories"],
+                icon: FiGlobe,
+                title: "Real-Time Market Data",
+                desc: "We pull live data on salary trends, job demand, and skill gaps to ensure your path is future-proof.",
+                color: "text-primary-hover",
+                bg: "bg-secondary/20",
               },
               {
-                header: "Legal",
-                links: ["Privacy Policy", "Terms of Service", "Data Security"],
+                icon: FiLayers,
+                title: "Personalized Skill Stack",
+                desc: "Get a custom curriculum of skills you need to acquire to reach your target role.",
+                color: "text-text-main",
+                bg: "bg-light",
               },
-            ].map((col, idx) => (
-              <div key={idx} className="flex flex-col gap-3.5">
-                <h4 className="text-[0.85rem] font-extrabold uppercase text-primary-dark mb-4 tracking-widest">
-                  {col.header}
-                </h4>
-                {col.links.map((link, lIdx) => (
-                  <Link
-                    key={lIdx}
-                    to="/"
-                    className="text-text-muted no-underline text-[0.95rem] font-medium transition-all duration-400 hover:text-accent-purple hover:translate-x-1.5 block"
-                  >
-                    {link}
-                  </Link>
-                ))}
+            ].map((feature, i) => (
+              <div
+                key={i}
+                className="p-8 rounded-2xl bg-white border border-secondary/10 shadow-lg shadow-gray-100/50 hover:shadow-soft-xl hover:-translate-y-1 transition-all duration-300"
+              >
+                <div
+                  className={`w-14 h-14 ${feature.bg} ${feature.color} rounded-xl flex items-center justify-center text-2xl mb-6`}
+                >
+                  <feature.icon />
+                </div>
+                <h3 className="text-xl font-bold text-text-main mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-text-muted leading-relaxed">
+                  {feature.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className="max-w-[1240px] mx-auto pt-10 border-t border-[rgba(226,232,240,0.8)] flex justify-between items-center text-text-muted text-[0.9rem] max-[640px]:flex-col max-[640px]:gap-6 max-[640px]:text-center">
-          <p>© 2026 Career Path AI · Built with Science & Soul</p>
-          <div className="flex items-center gap-2.5 bg-bg-light px-3.5 py-1.5 rounded-full font-semibold text-xs border border-[rgba(226,232,240,0.8)]">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-status-pulse"></span>
-            AI Systems Operational
+      {/* ALTERNATING SECTION */}
+      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-light/50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
+          <div className="flex-1 order-2 lg:order-1 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-light to-primary/20 rounded-3xl blur-3xl opacity-50 transform -rotate-3"></div>
+            <img
+              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+              alt="Students collaborating"
+              className="relative rounded-2xl shadow-soft-2xl border-4 border-white transform rotate-2 hover:rotate-0 transition-all duration-500"
+            />
+
+            <div className="absolute -bottom-10 -right-10 bg-white p-6 rounded-xl shadow-soft-xl max-w-xs border border-secondary/20 hidden md:block">
+              <p className="text-text-muted text-sm mb-4">
+                "CareerAdvancement clarified my confusion in 10 minutes. I went
+                from 'undecided' to enrollment in Data Science."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-secondary/30 rounded-full"></div>
+                <div>
+                  <p className="font-bold text-text-main text-sm">
+                    Sarah Jenkins
+                  </p>
+                  <p className="text-xs text-text-light">
+                    Student, Class of '25
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 order-1 lg:order-2">
+            <h2 className="text-3xl md:text-5xl font-display font-bold text-text-main mb-6">
+              Designed for the Modern Student
+            </h2>
+            <p className="text-lg text-text-muted mb-8 leading-relaxed">
+              Traditional counseling is slow and biased. We provide instant,
+              unbiased, data-backed guidance that adapts as you grow.
+            </p>
+            <ul className="space-y-4">
+              {[
+                "Compare multiple career paths side-by-side",
+                "View projected salary growth over 20 years",
+                "Connect with university programs directly",
+              ].map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 text-text-main font-medium"
+                >
+                  <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                    <FiCheck size={14} />
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-10">
+              <Link
+                to="/signup"
+                className="text-primary font-bold hover:text-primary-hover flex items-center gap-2 group"
+              >
+                Learn more about our methods{" "}
+                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* CTA SECTION */}
+      <section className="py-15 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto bg-primary rounded-[3rem] p-10 md:p-5 text-center relative overflow-hidden shadow-2xl shadow-primary/20">
+          <div className="absolute top-0 left-0 w-60 h-60 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/20 rounded-full blur-[100px]"></div>
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/20 rounded-full blur-[100px]"></div>
+
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-3xl font-display font-bold text-white mb-8 tracking-tight">
+              Stop Guessing. <br /> Start Knowing.
+            </h2>
+            <p className="text-white/80 text-sm mb-12 max-w-2xl mx-auto font-light">
+              Join 50,000+ students who found their true calling with our AI
+              assessment. It takes less than 15 minutes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/signup"
+                className="px-5 py-5 bg-white text-primary rounded-xl font-bold text-lg hover:bg-light transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+              >
+                Start Free Assessment
+              </Link>
+              <Link
+                to="/"
+                className="px-10 py-5 bg-transparent border border-white/30 text-white rounded-xl font-bold text-lg hover:bg-white/10 transition-all"
+              >
+                View Demo
+              </Link>
+            </div>
+            <p className="mt-8 text-white/60 text-sm">
+              No credit card required · Free for students
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ SECTION */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-secondary/10">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-center text-text-main mb-12">
+            Frequently Asked Questions
+          </h2>
+          <div className="space-y-6">
+            {[
+              {
+                q: "How accurate is the AI assessment?",
+                a: "Our model is trained on over 10 million career data points and boasts a 95% accuracy rate in predicting job satisfaction.",
+              },
+              {
+                q: "Is this free for students?",
+                a: "Yes! The core assessment and basic roadmap are 100% free for verified students.",
+              },
+              {
+                q: "Can I use this for college applications?",
+                a: "Absolutely. We provide a detailed report that you can include in your statement of purpose or counselor discussions.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="p-6 rounded-2xl bg-light/30 border border-light hover:bg-white hover:shadow-soft-xl transition-all cursor-pointer group"
+              >
+                <h3 className="text-lg font-bold text-text-main mb-2 flex justify-between items-center">
+                  {item.q}
+                  <FiArrowRight className="text-text-light group-hover:text-primary transition-transform group-hover:rotate-90" />
+                </h3>
+                <p className="text-text-muted leading-relaxed border-t border-secondary/10 pt-2 mt-2 hidden group-hover:block transition-all animate-fade-in-up">
+                  {item.a}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary-hover transition-all duration-300 z-50 hover:-translate-y-1 group"
+        aria-label="Scroll to top"
+      >
+        <FiArrowRight className="-rotate-90 group-hover:-translate-y-1 transition-transform" />
+      </button>
     </div>
   );
 };

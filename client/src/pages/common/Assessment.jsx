@@ -8,7 +8,6 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiCheckCircle,
-  FiCircle,
   FiHelpCircle,
 } from "react-icons/fi";
 
@@ -172,7 +171,12 @@ const Assessment = () => {
   if (loading)
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg-light">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-seaside-300 border-t-primary rounded-full animate-spin mb-4"></div>
+          <p className="text-primary font-medium animate-pulse">
+            Loading Assessment...
+          </p>
+        </div>
       </div>
     );
 
@@ -183,34 +187,39 @@ const Assessment = () => {
   // Helper for Palette Styling
   const getPaletteColor = (i) => {
     if (i === currentQ)
-      return "bg-indigo-600 text-white ring-2 ring-indigo-300 ring-offset-2 scale-110 z-10";
+      return "bg-primary text-white scale-110 z-10 shadow-lg shadow-primary/30 ring-2 ring-seaside-300";
     if (answers[i] !== null)
-      return "bg-emerald-500 text-white border-emerald-500";
-    if (visited[i]) return "bg-amber-400 text-white border-amber-400";
-    return "bg-white text-slate-600 border-slate-200 hover:border-indigo-300";
+      return "bg-seaside-500 text-white border-seaside-500";
+    if (visited[i])
+      return "bg-seaside-200 text-primary-dark border-seaside-300";
+    return "bg-white text-text-muted border-seaside-200 hover:border-primary/50 hover:text-primary";
   };
 
   return (
-    <div className="min-h-screen bg-bg-light pt-20 font-sans pb-10">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-        {/* HEADER */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 border-b border-slate-200 pb-6">
+    <div className="h-screen bg-bg-light pt-20 font-sans flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 h-full min-h-0 pb-4">
+        {/* HEADER (Fixed) */}
+        <header className="flex-none flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 pt-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-display font-black text-primary-dark">
               AI-Managed Assessment
             </h1>
-            <p className="text-slate-500 font-medium mt-1">
-              Batch ID:{" "}
-              <span className="text-indigo-600 font-mono bg-indigo-50 px-2 py-0.5 rounded">
+            <p className="text-text-muted font-medium mt-1 flex items-center gap-2">
+              Batch ID:
+              <span className="text-primary font-mono bg-seaside-100 px-2 py-0.5 rounded text-sm">
                 {assessment.batchId || "Active Session"}
               </span>
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-lg shadow-slate-200">
-            <FiClock className="text-xl text-indigo-400" />
+          <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl shadow-soft-xl border border-seaside-100">
+            <FiClock className="text-xl text-primary" />
             <span
-              className={`font-mono text-xl font-bold ${timeLeft < 60 ? "text-rose-400 animate-pulse" : ""}`}
+              className={`font-mono text-xl font-bold ${
+                timeLeft < 60
+                  ? "text-accent-coral animate-pulse"
+                  : "text-primary-dark"
+              }`}
             >
               {Math.floor(timeLeft / 60)}:
               {(timeLeft % 60).toString().padStart(2, "0")}
@@ -218,141 +227,160 @@ const Assessment = () => {
           </div>
         </header>
 
-        {/* MAIN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* LEFT: QUESTION AREA */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-10 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600"></div>
+        {/* MAIN GRID (Fills remaining space) */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0">
+          {/* LEFT: QUESTION AREA (Scrollable internal) */}
+          <div className="lg:col-span-3 flex flex-col h-full min-h-0">
+            <div className="card flex-1 flex flex-col overflow-hidden relative p-0 bg-white border border-secondary/20 shadow-sm rounded-2xl">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-seaside-400 to-primary z-20"></div>
 
-              <div className="flex justify-between items-start mb-6">
-                <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-                  Question {currentQ + 1} of {assessment.questions.length}
-                </span>
-                <span className="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                  {question.category}
-                </span>
-              </div>
+              {/* Scrollable Question Content */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-6 custom-scrollbar">
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-sm font-bold text-text-light uppercase tracking-wider">
+                    Question {currentQ + 1} of {assessment.questions.length}
+                  </span>
+                  <span className="bg-seaside-100 text-primary-dark text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                    {question.category}
+                  </span>
+                </div>
 
-              <h2 className="text-xl md:text-2xl font-bold text-slate-900 leading-relaxed mb-8">
-                {question.question}
-              </h2>
+                <h2 className="text-xl md:text-2xl font-bold text-primary-dark leading-relaxed mb-5">
+                  {question.question}
+                </h2>
 
-              <div className="space-y-3">
-                {question.options.map((opt, idx) => (
-                  <label
-                    key={idx}
-                    className={`
-                      flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 group
-                      ${
-                        answers[currentQ] === opt
-                          ? "border-indigo-600 bg-indigo-50/50 shadow-[0_0_0_1px_rgba(79,70,229,0.1)]"
-                          : "border-slate-100 bg-slate-50 hover:bg-white hover:border-indigo-200 hover:shadow-sm"
-                      }
-                    `}
-                  >
-                    <div className="relative flex items-center justify-center">
-                      <input
-                        type="radio"
-                        name="answer"
-                        checked={answers[currentQ] === opt}
-                        onChange={() => handleSelect(opt)}
-                        className="peer sr-only"
-                      />
-                      <div
-                        className={`
-                        w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
-                        ${answers[currentQ] === opt ? "border-indigo-600 bg-indigo-600" : "border-slate-300 group-hover:border-indigo-400"}
+                <div className="space-y-4">
+                  {question.options.map((opt, idx) => (
+                    <label
+                      key={idx}
+                      className={`
+                        flex items-center gap-4 p-3 rounded-xl border-2 cursor-pointer transition-all duration-300 group
+                        ${
+                          answers[currentQ] === opt
+                            ? "border-primary bg-seaside-50/50 shadow-md transform scale-[1.01]"
+                            : "border-seaside-100 bg-white hover:bg-seaside-50 hover:border-seaside-300"
+                        }
                       `}
-                      >
-                        {answers[currentQ] === opt && (
-                          <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                        )}
+                    >
+                      <div className="relative flex items-center justify-center">
+                        <input
+                          type="radio"
+                          name="answer"
+                          checked={answers[currentQ] === opt}
+                          onChange={() => handleSelect(opt)}
+                          className="peer sr-only"
+                        />
+                        <div
+                          className={`
+                          w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300
+                          ${
+                            answers[currentQ] === opt
+                              ? "border-primary bg-primary scale-110"
+                              : "border-seaside-200 group-hover:border-primary/50"
+                          }
+                        `}
+                        >
+                          {answers[currentQ] === opt && (
+                            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" />
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex-1">
-                      <span
-                        className={`font-bold mr-3 ${answers[currentQ] === opt ? "text-indigo-700" : "text-slate-400"}`}
-                      >
-                        {String.fromCharCode(65 + idx)}
-                      </span>
-                      <span
-                        className={`font-medium ${answers[currentQ] === opt ? "text-slate-900" : "text-slate-700"}`}
-                      >
-                        {opt}
-                      </span>
-                    </div>
-                  </label>
-                ))}
+                      <div className="flex-1">
+                        <span
+                          className={`font-bold mr-3 ${
+                            answers[currentQ] === opt
+                              ? "text-primary"
+                              : "text-text-light"
+                          }`}
+                        >
+                          {String.fromCharCode(65 + idx)}
+                        </span>
+                        <span
+                          className={`font-medium text-lg ${
+                            answers[currentQ] === opt
+                              ? "text-primary-dark"
+                              : "text-text-muted"
+                          }`}
+                        >
+                          {opt}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between items-center gap-4">
-              <button
-                onClick={() => setCurrentQ((q) => q - 1)}
-                disabled={currentQ === 0}
-                className="px-6 py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-              >
-                <FiChevronLeft /> Previous
-              </button>
+              {/* Fixed Navigation Footer */}
+              <div className="flex-none p-4 border-t border-secondary/10 bg-white z-10 flex justify-between items-center gap-4">
+                <button
+                  onClick={() => setCurrentQ((q) => q - 1)}
+                  disabled={currentQ === 0}
+                  className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed px-6 py-2.5"
+                >
+                  <FiChevronLeft /> Previous
+                </button>
 
-              {currentQ < assessment.questions.length - 1 ? (
-                <button
-                  onClick={() => setCurrentQ((q) => q + 1)}
-                  className="px-6 py-3 rounded-xl font-bold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  Next <FiChevronRight />
-                </button>
-              ) : (
-                <button
-                  onClick={() => submit(false)}
-                  className="px-8 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-200 hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2"
-                >
-                  <FiCheckCircle /> Final Submit
-                </button>
-              )}
+                {currentQ < assessment.questions.length - 1 ? (
+                  <button
+                    onClick={() => setCurrentQ((q) => q + 1)}
+                    className="btn-primary px-6 py-2.5"
+                  >
+                    Next <FiChevronRight />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => submit(false)}
+                    className="bg-accent-ocean hover:bg-sky-600 text-white font-medium py-2.5 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+                  >
+                    <FiCheckCircle /> Final Submit
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: PALETTE SIDEBAR */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24">
-              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <FiHelpCircle className="text-indigo-500" /> Question Palette
-              </h3>
-
-              <div className="grid grid-cols-5 gap-2 mb-6">
-                {assessment.questions.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentQ(i)}
-                    className={`
-                      w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold border transition-all duration-200
-                      ${getPaletteColor(i)}
-                    `}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+          {/* RIGHT: PALETTE SIDEBAR (Scrollable internal) */}
+          <div className="lg:col-span-1 h-full min-h-0 hidden lg:block">
+            <div className="card h-full flex flex-col overflow-hidden p-0 bg-white border border-secondary/20 shadow-sm rounded-2xl">
+              <div className="flex-none p-4 border-b border-seaside-100">
+                <h3 className="font-bold text-primary-dark flex items-center gap-2">
+                  <FiHelpCircle className="text-primary" /> Question Palette
+                </h3>
               </div>
 
-              <div className="space-y-3 pt-6 border-t border-slate-100 text-xs font-semibold text-slate-600">
+              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div className="grid grid-cols-5 gap-2">
+                  {assessment.questions.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentQ(i)}
+                      className={`
+                        w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold border transition-all duration-300 hover:scale-105 active:scale-95
+                        ${getPaletteColor(i)}
+                      `}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex-none p-4 border-t border-seaside-100 bg-white space-y-3 text-xs font-semibold text-text-muted">
                 <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500"></span>{" "}
+                  <span className="w-3 h-3 rounded-full bg-seaside-500"></span>{" "}
                   Answered
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-amber-400"></span>{" "}
+                  <span className="w-3 h-3 rounded-full bg-seaside-200 border border-seaside-300"></span>{" "}
                   Visited
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-slate-200 border border-slate-300"></span>{" "}
+                  <span className="w-3 h-3 rounded-full bg-white border border-seaside-200"></span>{" "}
                   Not Visited
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-indigo-600 ring-2 ring-indigo-200"></span>{" "}
+                  <span className="w-3 h-3 rounded-full bg-primary ring-2 ring-seaside-200"></span>{" "}
                   Current
                 </div>
               </div>

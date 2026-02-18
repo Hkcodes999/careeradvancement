@@ -5,65 +5,90 @@ export default {
     extend: {
       colors: {
         primary: {
-          dark: "#0f172a", // slate-900
-          DEFAULT: "#0f172a",
+          DEFAULT: "#6B9080", // Sage - Primary Brand
+          hover: "#557265",
+          light: "#82A394",
         },
-        accent: {
-          blue: "#2563eb",
-          purple: "#7c3aed",
-          amber: "#f59e0b",
+        secondary: "#A4C3B2", // Light Sage
+        accent: "#CCE3DE", // Mint
+        light: "#EAF4F4", // Light Mint (Section BGs)
+        surface: "#F6FFF8", // Off-White (Main BG)
+        navy: {
+          // Keep for backward compat, mapped to dark sage/slate
+          900: "#2C423B", // Very Dark Sage - Text/Headings
+          800: "#3A554C",
+          700: "#49695E",
         },
+        platinum: "#EAF4F4", // Mapped to Light Mint
+        dark: "#1A2824", // Almost Black Sage
+        white: "#FFFFFF",
         text: {
-          main: "#1e293b",
-          muted: "#64748b",
+          main: "#2C423B", // Dark Sage
+          muted: "#5C756D", // Muted Sage
+          light: "#8DA399",
+          inverted: "#FFFFFF",
         },
         bg: {
-          light: "#f8fafc",
+          light: "#EAF4F4",
+          white: "#FFFFFF",
+          navy: "#2C423B", // Dark Sage
+          surface: "#F6FFF8",
         },
       },
       fontFamily: {
-        sans: ["Inter", "-apple-system", "sans-serif"],
+        sans: ["'Plus Jakarta Sans'", "sans-serif"],
+        display: ["'Plus Jakarta Sans'", "sans-serif"],
+      },
+      backgroundImage: {
+        "sage-gradient": "linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%)",
+        "mint-gradient": "linear-gradient(135deg, #CCE3DE 0%, #EAF4F4 100%)",
+        "soft-gradient": "linear-gradient(180deg, #F6FFF8 0%, #EAF4F4 100%)",
       },
       animation: {
-        "gradient-shift": "gradientShift 6s ease infinite",
-        blob: "blob 8s ease-in-out infinite",
-        "pulse-glow": "pulseGlow 4s ease-in-out infinite",
-        "rotate-clockwise": "rotateClockwise 30s linear infinite",
-        "rotate-counter-clockwise":
-          "rotateCounterClockwise 50s linear infinite",
-        "status-pulse": "statusPulse 2s infinite",
+        float: "float 6s ease-in-out infinite",
+        "float-delayed": "float 6s ease-in-out 3s infinite",
+        blob: "blob 7s infinite",
+        "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        marquee: "marquee 25s linear infinite",
+        marquee2: "marquee2 25s linear infinite",
       },
       keyframes: {
-        gradientShift: {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
+        marquee2: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0%)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-20px)" },
         },
         blob: {
-          "0%, 100%": { borderRadius: "35% 65% 65% 35% / 30% 30% 70% 70%" },
-          "50%": { borderRadius: "50% 50% 30% 70% / 50% 60% 40% 50%" },
-        },
-        pulseGlow: {
-          "0%, 100%": {
-            boxShadow:
-              "0 15px 35px rgba(15, 23, 42, 0.08), 0 0 15px rgba(251, 113, 133, 0.1)",
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
           },
-          "50%": {
-            boxShadow:
-              "0 15px 35px rgba(15, 23, 42, 0.08), 0 0 30px rgba(251, 191, 36, 0.2)",
+          "33%": {
+            transform: "translate(30px, -50px) scale(1.1)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) scale(1)",
           },
         },
-        rotateClockwise: {
-          from: { transform: "rotate(0deg)" },
-          to: { transform: "rotate(360deg)" },
+        fadeInUp: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
-        rotateCounterClockwise: {
-          from: { transform: "rotate(0deg)" },
-          to: { transform: "rotate(-360deg)" },
-        },
-        statusPulse: {
-          "0%, 100%": { transform: "scale(1)", opacity: "1" },
-          "50%": { transform: "scale(1.2)", opacity: "0.6" },
-        },
+      },
+      boxShadow: {
+        "soft-xl": "0 20px 40px -10px rgba(0, 0, 0, 0.05)",
+        "soft-2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.08)",
+        glass: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
       },
     },
   },

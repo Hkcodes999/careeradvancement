@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -39,7 +40,25 @@ const AppLayout = ({ children }) => {
 };
 
 /* ---------------- App ---------------- */
-function App() {
+const App = () => {
+  const [toastPosition, setToastPosition] = useState("bottom-right");
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setToastPosition("top-center");
+      } else {
+        setToastPosition("bottom-right");
+      }
+    };
+
+    // Set initial position
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     // 1. AuthProvider must be INSIDE BrowserRouter or OUTSIDE.
     // Usually, we put it outside or inside main.jsx.
@@ -97,7 +116,7 @@ function App() {
         </AppLayout>
 
         <ToastContainer
-          position="top-right"
+          position={toastPosition}
           autoClose={3000}
           hideProgressBar={false}
           newestOnTop
@@ -111,6 +130,6 @@ function App() {
       </BrowserRouter>
     </AuthProvider>
   );
-}
+};
 
 export default App;

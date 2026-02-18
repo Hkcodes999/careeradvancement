@@ -2,261 +2,142 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =========================
-   RESET
-========================= */
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* =========================
-   ROOT & BODY
-========================= */
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100vh;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Avenir, Helvetica, Arial, sans-serif;
-  background: #f5f7fb;
-  color: #1f2937;
-  overflow-x: hidden;
-}
-
-/* Improve font rendering */
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* =========================
-   LINKS
-========================= */
-a {
-  font-weight: 500;
-  color: #4f46e5;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-a:hover {
-  color: #4338ca;
-}
-
-/* =========================
-   BUTTON BASE
-========================= */
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: none;
-}
-
-/* =========================
-   GLOBAL PAGE CONTAINER
-========================= */
-/* Use this INSIDE layout */
-.page,
-.page-container {
-  flex: 1;
-  min-height: calc(100vh - 64px);
-
-  /* navbar height */
-  /* Custom Scrollbar for better UI */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    scroll-behavior: smooth;
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
+  body {
+    @apply bg-surface text-text-main antialiased selection:bg-primary selection:text-white;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 999px;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-bold tracking-tight text-text-main;
   }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 24px 32px;
-  box-sizing: border-box;
 }
 
-/* Card-style pages */
-.page>*,
-.page-container>* {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+@layer components {
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)];
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-soft-xl border border-secondary/20 transition-all duration-300 hover:shadow-soft-2xl hover:-translate-y-1;
+  }
+
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-md border border-white/60 shadow-soft-2xl rounded-2xl;
+  }
+
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-white hover:bg-light text-primary font-bold py-3 px-6 rounded-lg border border-secondary/30 transition-all duration-300 hover:shadow-md active:scale-95 flex items-center justify-center gap-2;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-lg border border-secondary/30 bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all duration-200 placeholder:text-text-light text-text-main font-medium;
+  }
 }
 
-/* --- Toastify Custom Overrides --- */
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-secondary/50 rounded-full hover:bg-primary/70 transition-colors;
+}
+
+/* Toastify Overrides */
+.Toastify__toast-container {
+  padding: 0 !important;
+}
+
 .Toastify__toast {
-  @apply rounded-xl border border-slate-100 shadow-xl font-sans mb-4 !important;
+  @apply rounded-xl border border-white/50 shadow-2xl font-sans m-3 md:m-4 bg-white/90 backdrop-blur-xl overflow-hidden !important;
+  padding: 16px !important;
+}
+
+@media (max-width: 480px) {
+  .Toastify__toast {
+    @apply m-2 rounded-xl !important;
+    margin-bottom: 8px !important;
+  }
 }
 
 .Toastify__toast-body {
-  @apply text-sm font-medium text-slate-600 p-1 !important;
-  margin: 0 !important;
+  @apply text-sm font-bold text-text-main p-0 m-0 !important;
+  align-items: center !important;
 }
 
 .Toastify__progress-bar {
-  @apply h-1 !important;
+  @apply h-1 bg-gradient-to-r from-primary to-accent !important;
 }
 
-/* Success */
-.Toastify__toast--success {
-  @apply bg-white border-l-4 border-emerald-500 !important;
+.Toastify__progress-bar--success {
+  @apply bg-primary !important;
 }
 
-.Toastify__toast--success .Toastify__progress-bar {
-  @apply bg-emerald-500 !important;
+.Toastify__progress-bar--error {
+  @apply bg-red-500 !important;
 }
 
-/* Error */
-.Toastify__toast--error {
-  @apply bg-white border-l-4 border-rose-500 !important;
-}
-
-.Toastify__toast--error .Toastify__progress-bar {
-  @apply bg-rose-500 !important;
-}
-
-/* Warning */
-.Toastify__toast--warning {
-  @apply bg-white border-l-4 border-amber-500 !important;
-}
-
-.Toastify__toast--warning .Toastify__progress-bar {
+.Toastify__progress-bar--warning {
   @apply bg-amber-500 !important;
 }
 
-/* Info */
-.Toastify__toast--info {
-  @apply bg-white border-l-4 border-indigo-500 !important;
-}
-
-.Toastify__toast--info .Toastify__progress-bar {
-  @apply bg-indigo-500 !important;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-@media (max-width: 768px) {
-
-  .page,
-  .page-container {
-    padding: 16px;
-  }
-}
-
-
-/* ===========================
-  MOBILE TOAST OVERRIDES
-=========================== */
-@media (max-width: 480px) {
-
-  /* Force position to bottom-right (or simply bottom-center/right) on mobile */
-  .Toastify__toast-container {
-    top: auto !important;
-    bottom: 1rem !important;
-    left: auto !important;
-    right: 1rem !important;
-    /* Unset full width default on mobile if we want a "card" look */
-    width: auto !important;
-    max-width: 90vw !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    transform: none !important;
-  }
-
-  .Toastify__toast {
-    margin-bottom: 0.5rem !important;
-    border-radius: 12px !important;
-    min-height: auto !important;
-    padding: 12px !important;
-    padding-right: 40px !important;
-    /* Space for close btn */
-  }
-
-  /* Adjust close button for smaller touch targets */
-  .Toastify__close-button {
-    right: 8px !important;
-    width: 24px !important;
-    height: 24px !important;
-  }
-}
-
-/* ===============================
-   FINAL FIX: TOAST CLOSE (X)
-================================ */
-
-.Toastify__toast {
-  position: relative;
-  padding-right: 52px;
-  /* space for close button */
-}
-
-/* Hard reset close button */
 .Toastify__close-button {
-  position: absolute !important;
-  top: 50% !important;
-  right: 14px !important;
-  transform: translateY(-50%) !important;
-
-  width: 28px !important;
-  height: 28px !important;
-
-  padding: 0 !important;
-  margin: 0 !important;
-  border-radius: 50% !important;
-
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  line-height: 0 !important;
-  font-size: 0 !important;
-
-  background: transparent !important;
-  color: rgb(0, 0, 0) !important;
-
-  z-index: 10 !important;
-  cursor: pointer;
+  @apply text-secondary hover:text-primary transition-colors opacity-60 hover:opacity-100 !important;
+  align-self: center !important;
 }
 
-/* SVG X icon fix */
-.Toastify__close-button svg {
-  width: 14px !important;
-  height: 14px !important;
-  display: block !important;
-  pointer-events: none;
+.Toastify__toast-icon {
+  @apply w-6 h-6 mr-3 !important;
 }
 
-/* Clean hover */
-.Toastify__close-button:hover {
-  background: rgba(255, 255, 255, 0.18) !important;
-  color: #000000 !important;
+/* Type Specifics */
+.Toastify__toast--success {
+  @apply border-primary/30 !important;
 }
 
-/* Prevent progress bar overlap */
-.Toastify__progress-bar {
-  position: absolute !important;
-  bottom: 0;
-  left: 0;
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: theme("colors.primary.DEFAULT") !important;
+}
+
+.Toastify__toast--error {
+  @apply border-red-100 bg-red-50/50 !important;
+}
+
+.Toastify__toast--error .Toastify__toast-icon svg {
+  fill: theme("colors.red.500") !important;
+}
+
+.Toastify__toast--warning {
+  @apply border-amber-100 bg-amber-50/50 !important;
+}
+
+.Toastify__toast--warning .Toastify__toast-icon svg {
+  fill: theme("colors.amber.500") !important;
+}
+
+.Toastify__toast--info {
+  @apply border-blue-100 bg-blue-50/50 !important;
+}
+
+.Toastify__toast--info .Toastify__toast-icon svg {
+  fill: theme("colors.blue.500") !important;
 }

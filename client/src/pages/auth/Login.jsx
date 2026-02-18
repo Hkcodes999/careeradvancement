@@ -5,13 +5,14 @@ import { toast } from "react-toastify";
 import {
   FiEye,
   FiEyeOff,
-  FiInfo,
   FiAlertTriangle,
   FiArrowLeft,
   FiArrowRight,
   FiMail,
   FiPhone,
   FiLock,
+  FiBriefcase,
+  FiCheckCircle,
 } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
@@ -22,7 +23,6 @@ import {
   forgotPassword,
   resetPassword,
 } from "../../services/authApi";
-import "./Login.css";
 
 const Login = () => {
   /* ---------------- STATE ---------------- */
@@ -31,7 +31,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("student");
   const [remember, setRemember] = useState(false);
-  const [showRules, setShowRules] = useState(false);
   const [capsOn, setCapsOn] = useState(false);
 
   const [showForgot, setShowForgot] = useState(false);
@@ -58,7 +57,12 @@ const Login = () => {
     if (/[^A-Za-z0-9]/.test(pwd)) score++;
     return {
       label: score <= 1 ? "Weak" : score === 2 ? "Medium" : "Strong",
-      color: score <= 1 ? "#ef4444" : score === 2 ? "#f59e0b" : "#10b981",
+      color:
+        score <= 1
+          ? "text-red-500"
+          : score === 2
+            ? "text-amber-500"
+            : "text-primary",
     };
   };
 
@@ -130,11 +134,10 @@ const Login = () => {
   const handleRequestOTP = async () => {
     setLoading(true);
     try {
-      // Send only the selected method to the backend
       const payload =
         forgotMethod === "email"
           ? { email: forgotEmail }
-          : { phone: phone, email: forgotEmail }; // Keeping email as secondary identifier if needed by your controller
+          : { phone: phone, email: forgotEmail };
 
       const res = await forgotPassword(payload);
       if (res.success) {
@@ -165,29 +168,35 @@ const Login = () => {
   };
 
   return (
-    <div className="cprs-login-scope">
-      <div className="auth-container">
-        <div className="auth-visual-bg">
-          <div className="blob blob-1"></div>
-          <div className="blob blob-2"></div>
-        </div>
+    <div className="min-h-screen w-full flex bg-surface font-sans text-text-main">
+      {/* --- LEFT SIDE: FORM --- */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 lg:p-12 overflow-y-auto">
+        <div className="w-full max-w-md space-y-8">
+          <header className="mb-10 text-center lg:text-left">
+            <Link to="/" className="inline-block group mb-8">
+              <span className="font-display font-bold text-3xl tracking-tight text-text-main group-hover:text-primary transition-colors">
+                Career <span className="text-primary">Advancement</span>
+              </span>
+            </Link>
+            <h1 className="text-4xl font-display font-bold text-text-main mb-2">
+              Welcome back
+            </h1>
+            <p className="text-text-muted text-lg">
+              Please enter your details to sign in.
+            </p>
+          </header>
 
-        <div className="auth-card">
-          <div className="auth-card-inner">
-            <header className="auth-header">
-              <h1 className="brand-title">
-                CPRS<span> AI</span>
-              </h1>
-              <p className="brand-subtitle">Login to your control panel</p>
-            </header>
-
-            <form onSubmit={handleLogin} className="auth-form">
-              <div className="input-group">
-                <label>Email Address</label>
-                <div className="input-field">
-                  <FiMail className="field-icon" />
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-5">
+              <div className="relative group">
+                <label className="text-sm font-semibold text-text-main ml-1 mb-1 block">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light group-focus-within:text-primary transition-colors text-lg" />
                   <input
                     type="email"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-secondary/30 rounded-xl text-text-main placeholder-text-light/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all shadow-sm"
                     placeholder="name@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -196,22 +205,24 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="input-group">
-                <div className="label-row">
-                  <label>Password</label>
+              <div className="relative group">
+                <div className="flex justify-between items-end mb-1">
+                  <label className="text-sm font-semibold text-text-main ml-1">
+                    Password
+                  </label>
                   {password && (
                     <span
-                      className="strength-text"
-                      style={{ color: strength.color }}
+                      className={`text-xs font-bold uppercase ${strength.color}`}
                     >
                       {strength.label}
                     </span>
                   )}
                 </div>
-                <div className="input-field">
-                  <FiLock className="field-icon" />
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light group-focus-within:text-primary transition-colors text-lg" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    className="w-full pl-12 pr-12 py-3 bg-white border border-secondary/30 rounded-xl text-text-main placeholder-text-light/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all shadow-sm"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -221,7 +232,7 @@ const Login = () => {
                   />
                   <button
                     type="button"
-                    className="visibility-toggle"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-text-light hover:text-primary transition-colors rounded-lg hover:bg-surface"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <FiEyeOff /> : <FiEye />}
@@ -230,94 +241,162 @@ const Login = () => {
               </div>
 
               {capsOn && (
-                <div className="auth-alert warning">
-                  <FiAlertTriangle /> <span>Caps Lock is Active</span>
+                <div className="flex items-center gap-2 p-3 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium border border-amber-500/20">
+                  <FiAlertTriangle /> <span>Caps Lock is active</span>
                 </div>
               )}
 
-              <div className="input-group">
-                <label>Account Type</label>
-                <select
-                  className="auth-select"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  <option value="student">Student Portal</option>
-                  <option value="admin">Administrator</option>
-                  <option value="superadmin">Super Admin</option>
-                </select>
+              <div className="relative group">
+                <label className="text-sm font-semibold text-text-main ml-1 mb-1 block">
+                  I am a...
+                </label>
+                <div className="relative">
+                  <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light text-lg z-10" />
+                  <select
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-secondary/30 rounded-xl text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all appearance-none cursor-pointer shadow-sm"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                  >
+                    <option value="student">Student</option>
+                    <option value="admin">Administrator</option>
+                    <option value="superadmin">Super Admin</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-light">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
-              <div className="auth-options">
-                <label className="checkbox-container">
+              <div className="flex items-center justify-between pt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
+                    className="w-4 h-4 text-primary rounded border-secondary/30 bg-white focus:ring-primary/25"
                     checked={remember}
                     onChange={() => setRemember(!remember)}
                   />
-                  <span className="checkmark"></span>
-                  <span className="label-text">Keep me logged in</span>
+                  <span className="text-sm font-medium text-text-muted group-hover:text-primary transition-colors">
+                    Keep me logged in
+                  </span>
                 </label>
                 <button
                   type="button"
-                  className="auth-link"
+                  className="text-sm font-bold text-primary hover:text-primary-hover transition-colors hover:underline"
                   onClick={() => setShowForgot(true)}
                 >
                   Forgot Password?
                 </button>
               </div>
-
-              <button className="submit-btn" type="submit" disabled={loading}>
-                {loading ? (
-                  <span className="loader"></span>
-                ) : (
-                  <>
-                    Sign In <FiArrowRight />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="auth-divider">
-              <span>Or continue with</span>
             </div>
 
-            <div className="social-auth">
+            <button
+              className="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-primary/30 hover:-translate-y-1 transition-all disabled:opacity-70 disabled:translate-y-0 flex items-center justify-center gap-2"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
+              ) : (
+                <>
+                  Sign In <FiArrowRight className="text-xl" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="relative py-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-secondary/20"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-surface px-4 text-sm font-semibold text-text-muted uppercase tracking-widest">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="w-full">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                theme="filled_blue"
+                theme="outline"
                 shape="pill"
                 text="continue_with"
                 width="100%"
               />
             </div>
-
-            <footer className="auth-footer">
-              <p>
-                Don't have an account?{" "}
-                <Link to="/signup">Create one for free</Link>
-              </p>
-            </footer>
           </div>
-        </div>
 
-        {/* --- ROLE COMPLETION MODAL --- */}
-        {showRoleModal && (
-          <div className="modal-overlay">
-            <div className="modal-content glass-effect">
-              <h3>Finalize Profile</h3>
-              <p>Please select your intended role to complete registration.</p>
-              <select
-                className="auth-select"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="student">Student</option>
-                <option value="admin">Admin</option>
-                <option value="superadmin">Super Admin</option>
-              </select>
+          <p className="text-center text-text-muted">
+            Don't have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-bold text-primary hover:text-primary-hover transition-colors hover:underline"
+            >
+              Create an account
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {/* --- RIGHT SIDE: VISUAL --- */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary to-secondary relative justify-center items-center overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2301&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/50 to-primary/30"></div>
+
+        <div className="relative z-10 max-w-lg text-white p-12">
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-white/20">
+            <FiBriefcase size={32} className="text-white" />
+          </div>
+          <h2 className="text-4xl font-display font-bold leading-tight mb-6 text-white">
+            Your gateway to <br />
+            <span className="text-light">career excellence.</span>
+          </h2>
+          <p className="text-lg text-white/80 leading-relaxed mb-8">
+            Access personalized career insights, market trends, and a roadmap
+            tailored just for you.
+          </p>
+        </div>
+      </div>
+
+      {/* --- ROLE COMPLETION MODAL --- */}
+      {showRoleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-surface rounded-3xl shadow-2xl p-8 max-w-sm w-full animate-slide-up relative overflow-hidden border border-secondary/20">
+            <h3 className="text-2xl font-bold text-text-main mb-2">
+              Finalize Profile
+            </h3>
+            <p className="text-text-muted mb-6">
+              Please select your intended role to complete registration.
+            </p>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light z-10" />
+                <select
+                  className="w-full pl-12 pr-4 py-3 bg-white border border-secondary/30 rounded-xl text-text-main focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all appearance-none"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="student">Student</option>
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Super Admin</option>
+                </select>
+              </div>
               <button
-                className="submit-btn"
+                className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-hover transition-all"
                 onClick={submitGoogleRole}
                 disabled={loading}
               >
@@ -325,118 +404,139 @@ const Login = () => {
               </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* --- DYNAMIC FORGOT PASSWORD MODAL --- */}
-        {showForgot && (
-          <div className="modal-overlay">
-            <div className="modal-content glass-effect">
-              <header className="modal-header">
-                <h3>Account Recovery</h3>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowForgot(false)}
-                >
-                  &times;
-                </button>
-              </header>
+      {/* --- FORGOT PASSWORD MODAL --- */}
+      {showForgot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-surface rounded-2xl shadow-2xl p-8 max-w-sm w-full animate-slide-up relative border border-secondary/20">
+            <header className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-text-main">
+                Account Recovery
+              </h3>
+              <button
+                className="p-2 text-text-muted hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
+                onClick={() => setShowForgot(false)}
+              >
+                <span className="text-2xl leading-none">&times;</span>
+              </button>
+            </header>
 
-              {forgotStep === 1 ? (
-                <div className="modal-body">
-                  <div className="tab-switcher">
-                    <button
-                      className={forgotMethod === "email" ? "active" : ""}
-                      onClick={() => setForgotMethod("email")}
-                    >
+            {forgotStep === 1 ? (
+              <div className="space-y-6">
+                <div className="flex bg-light p-1 rounded-xl border border-secondary/20">
+                  <button
+                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                      forgotMethod === "email"
+                        ? "bg-white text-primary shadow-sm"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                    onClick={() => setForgotMethod("email")}
+                  >
+                    <div className="flex items-center justify-center gap-2">
                       <FiMail /> Email
-                    </button>
-                    <button
-                      className={forgotMethod === "whatsapp" ? "active" : ""}
-                      onClick={() => setForgotMethod("whatsapp")}
-                    >
+                    </div>
+                  </button>
+                  <button
+                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
+                      forgotMethod === "whatsapp"
+                        ? "bg-white text-primary shadow-sm"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                    onClick={() => setForgotMethod("whatsapp")}
+                  >
+                    <div className="flex items-center justify-center gap-2">
                       <FiPhone /> WhatsApp
-                    </button>
-                  </div>
-
-                  <p className="modal-hint">
-                    {forgotMethod === "email"
-                      ? "Enter your email to receive a secure OTP code."
-                      : "Enter your phone number linked to WhatsApp."}
-                  </p>
-
-                  {/* Logic updated to show ONLY one field based on selection */}
-                  {forgotMethod === "email" ? (
-                    <div className="input-field">
-                      <FiMail className="field-icon" />
-                      <input
-                        placeholder="Email Address"
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        required
-                      />
                     </div>
-                  ) : (
-                    <div className="input-field">
-                      <FiPhone className="field-icon" />
-                      <input
-                        placeholder="+91 XXXXX XXXXX"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                      />
-                    </div>
-                  )}
-
-                  <button
-                    className="submit-btn"
-                    onClick={handleRequestOTP}
-                    disabled={loading}
-                  >
-                    Request OTP
                   </button>
                 </div>
-              ) : (
-                <div className="modal-body">
-                  <p className="modal-hint">
-                    A 6-digit code was sent to your {forgotMethod}.
-                  </p>
-                  <div className="input-field">
+
+                <p className="text-sm text-text-muted text-center">
+                  {forgotMethod === "email"
+                    ? "Enter your email to receive a secure OTP code."
+                    : "Enter your phone number linked to WhatsApp."}
+                </p>
+
+                {forgotMethod === "email" ? (
+                  <div className="relative">
+                    <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light text-lg" />
                     <input
-                      className="otp-input"
-                      placeholder="0 0 0 0 0 0"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      maxLength={6}
+                      type="email"
+                      className="w-full pl-12 pr-4 py-3 bg-white border border-secondary/30 rounded-xl text-text-main placeholder-text-light focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                      placeholder="Email Address"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
                     />
                   </div>
-                  <div className="input-field">
-                    <FiLock className="field-icon" />
+                ) : (
+                  <div className="relative">
+                    <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light text-lg" />
                     <input
-                      type="password"
-                      placeholder="New Password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      type="tel"
+                      className="w-full pl-12 pr-4 py-3 bg-white border border-secondary/30 rounded-xl text-text-main placeholder-text-light focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                      placeholder="+91 XXXXX XXXXX"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
                     />
                   </div>
-                  <button
-                    className="submit-btn"
-                    onClick={handleResetPassword}
-                    disabled={loading}
-                  >
-                    Update Credentials
-                  </button>
-                  <button
-                    className="back-link"
-                    onClick={() => setForgotStep(1)}
-                  >
-                    <FiArrowLeft /> Try another method
-                  </button>
+                )}
+
+                <button
+                  className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-hover transition-all"
+                  onClick={handleRequestOTP}
+                  disabled={loading}
+                >
+                  Request OTP
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <p className="text-sm text-text-muted text-center bg-light p-3 rounded-lg border border-secondary/20">
+                  A 6-digit code was sent to your{" "}
+                  <strong>{forgotMethod}</strong>.
+                </p>
+
+                <input
+                  className="w-full text-center text-2xl tracking-[0.5em] font-mono font-bold bg-white border border-secondary/30 rounded-xl text-text-main py-3 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="000000"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  maxLength={6}
+                />
+
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-light text-lg" />
+                  <input
+                    type="password"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-secondary/30 rounded-xl text-text-main placeholder-text-light focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all"
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
                 </div>
-              )}
-            </div>
+
+                <button
+                  className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-hover transition-all"
+                  onClick={handleResetPassword}
+                  disabled={loading}
+                >
+                  Update Credentials
+                </button>
+
+                <button
+                  className="w-full text-sm font-bold text-text-muted hover:text-primary transition-colors flex items-center justify-center gap-2 mt-2"
+                  onClick={() => setForgotStep(1)}
+                >
+                  <FiArrowLeft /> Try another method
+                </button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

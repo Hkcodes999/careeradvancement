@@ -182,22 +182,22 @@ const StudentProfile = () => {
 
   if (loading)
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg-light">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
 
   return (
-    <div className="flex min-h-screen bg-bg-light font-sans pt-[72px]">
+    <div className="flex min-h-screen bg-surface font-sans pt-[72px]">
       <StudentSidebar />
-      <main className="flex-1 p-4 md:p-8 md:ml-64 max-w-5xl mx-auto w-full">
+      <main className="flex-1 p-8 md:p-10 md:ml-72 max-w-5xl mx-auto w-full">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-primary-dark tracking-tight bg-gradient-to-r from-primary-dark to-indigo-600 bg-clip-text text-transparent">
-              {isEditing ? "Update Your Profile" : "My Profile"}
+            <h1 className="text-2xl md:text-3xl font-display font-bold text-text-main tracking-tight mb-1">
+              {isEditing ? "Update Candidate Profile" : "My Profile"}
             </h1>
-            <p className="text-sm md:text-base text-text-muted mt-1">
+            <p className="text-sm md:text-base text-text-muted">
               Manage your personal information and career preferences
             </p>
           </div>
@@ -216,7 +216,7 @@ const StudentProfile = () => {
                   type="button"
                   onClick={() => fileInputRef.current.click()}
                   disabled={isParsing}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors border border-indigo-200"
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-primary font-bold rounded-xl text-sm hover:bg-light transition-colors border border-primary/20 shadow-sm"
                 >
                   <FiUpload />
                   {isParsing ? "AI Parsing..." : "Auto-fill via Biodata"}
@@ -227,7 +227,7 @@ const StudentProfile = () => {
             {hasProfile && !isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg text-sm hover:bg-indigo-700 shadow-sm transition-all hover:shadow-md"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold rounded-xl text-sm hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
                 <FiEdit2 /> Edit Profile
               </button>
@@ -235,21 +235,21 @@ const StudentProfile = () => {
 
             <button
               onClick={() => navigate("/dashboard")}
-              className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 font-semibold rounded-lg text-sm border border-slate-200 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-text-muted font-bold rounded-xl text-sm border border-secondary/20 hover:bg-light transition-colors"
             >
               <FiArrowLeft /> Dashboard
             </button>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-soft border border-secondary/10 overflow-hidden">
           {/* VIEW MODE */}
           {hasProfile && !isEditing ? (
             <div className="p-6 md:p-8 space-y-8 animate-fade-in">
               {/* Personal Info Grid */}
               <section>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <FiUser className="text-lg" /> Personal Details
+                <h3 className="text-xs font-bold text-text-light uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <FiUser className="text-lg text-primary" /> Personal Details
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   <DetailItem label="Phone" value={form.phone} />
@@ -266,12 +266,12 @@ const StudentProfile = () => {
                 </div>
               </section>
 
-              <hr className="border-slate-100" />
+              <hr className="border-secondary/10" />
 
               {/* Education Grid */}
               <section>
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <FiBookOpen className="text-lg" /> Education
+                <h3 className="text-xs font-bold text-text-light uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <FiBookOpen className="text-lg text-primary" /> Education
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <DetailItem label="Level" value={form.education} />
@@ -281,34 +281,36 @@ const StudentProfile = () => {
                 </div>
               </section>
 
-              <hr className="border-slate-100" />
+              <hr className="border-secondary/10" />
 
               {/* Skills & Goals - Full Width */}
               <section className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <FiActivity className="text-lg" /> Skills & Interests
+                  <h3 className="text-xs font-bold text-text-light uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <FiActivity className="text-lg text-primary" /> Skills &
+                    Interests
                   </h3>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p className="text-slate-700 font-medium mb-4">
-                      <span className="text-indigo-600 font-bold">Skills:</span>{" "}
+                  <div className="bg-surface p-5 rounded-xl border border-secondary/10">
+                    <p className="text-text-main font-medium mb-4 leading-relaxed">
+                      <span className="text-primary font-bold">Skills:</span>{" "}
                       {form.skills}
                     </p>
-                    <p className="text-slate-700 font-medium">
-                      <span className="text-indigo-600 font-bold">
-                        Interests:
-                      </span>{" "}
+                    <p className="text-text-main font-medium leading-relaxed">
+                      <span className="text-primary font-bold">Interests:</span>{" "}
                       {form.interests || "Not specified"}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <FiTarget className="text-lg" /> Career Objective
+                  <h3 className="text-xs font-bold text-text-light uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <FiTarget className="text-lg text-primary" /> Career
+                    Objective
                   </h3>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p className="text-slate-700">{form.careerGoal}</p>
+                  <div className="bg-surface p-5 rounded-xl border border-secondary/10">
+                    <p className="text-text-main leading-relaxed">
+                      {form.careerGoal}
+                    </p>
                   </div>
                 </div>
               </section>
@@ -316,21 +318,21 @@ const StudentProfile = () => {
               {/* "Others" Data */}
               {Object.keys(others).length > 0 && (
                 <>
-                  <hr className="border-slate-100" />
+                  <hr className="border-secondary/10" />
                   <section>
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                    <h3 className="text-xs font-bold text-text-light uppercase tracking-wider mb-4 border-l-4 border-primary pl-3">
                       Additional AI Insights
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {Object.entries(others).map(([key, value]) => (
                         <div
                           key={key}
-                          className="bg-indigo-50/50 p-3 rounded-lg border border-indigo-100"
+                          className="bg-light/50 p-4 rounded-xl border border-primary/10"
                         >
-                          <strong className="block text-indigo-900 capitalize text-xs mb-1">
+                          <strong className="block text-primary-dark capitalize text-xs mb-1">
                             {key.replace(/_/g, " ")}
                           </strong>
-                          <span className="text-slate-700 text-sm">
+                          <span className="text-text-main text-sm font-medium">
                             {Array.isArray(value)
                               ? value.join(", ")
                               : String(value)}
@@ -354,7 +356,7 @@ const StudentProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Phone Number *
                   </label>
                   <input
@@ -363,10 +365,10 @@ const StudentProfile = () => {
                       setForm({ ...form, phone: e.target.value })
                     }
                     placeholder="9876543210"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50"
                   />
                   {errors.phone && (
-                    <p className="text-xs text-red-500 font-medium">
+                    <p className="text-xs text-red-500 font-bold mt-1">
                       {errors.phone}
                     </p>
                   )}
@@ -374,7 +376,7 @@ const StudentProfile = () => {
 
                 {/* Age */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Age *
                   </label>
                   <input
@@ -382,10 +384,10 @@ const StudentProfile = () => {
                     value={form.age}
                     onChange={(e) => setForm({ ...form, age: e.target.value })}
                     placeholder="20"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50"
                   />
                   {errors.age && (
-                    <p className="text-xs text-red-500 font-medium">
+                    <p className="text-xs text-red-500 font-bold mt-1">
                       {errors.age}
                     </p>
                   )}
@@ -393,7 +395,7 @@ const StudentProfile = () => {
 
                 {/* Gender */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Gender *
                   </label>
                   <select
@@ -401,7 +403,7 @@ const StudentProfile = () => {
                     onChange={(e) =>
                       setForm({ ...form, gender: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main appearance-none cursor-pointer"
                   >
                     <option value="">Select Gender</option>
                     <option value="male">Male</option>
@@ -409,7 +411,7 @@ const StudentProfile = () => {
                     <option value="other">Other</option>
                   </select>
                   {errors.gender && (
-                    <p className="text-xs text-red-500 font-medium">
+                    <p className="text-xs text-red-500 font-bold mt-1">
                       {errors.gender}
                     </p>
                   )}
@@ -417,7 +419,7 @@ const StudentProfile = () => {
 
                 {/* Personality */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Personality Type
                   </label>
                   <select
@@ -425,7 +427,7 @@ const StudentProfile = () => {
                     onChange={(e) =>
                       setForm({ ...form, personalityType: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main appearance-none cursor-pointer"
                   >
                     <option value="">Select Personality</option>
                     <option value="Introvert">Introvert</option>
@@ -436,20 +438,20 @@ const StudentProfile = () => {
 
                 {/* Location - City */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     City
                   </label>
                   <input
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="City"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50"
                   />
                 </div>
 
                 {/* Location - State */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     State
                   </label>
                   <input
@@ -458,13 +460,13 @@ const StudentProfile = () => {
                       setForm({ ...form, state: e.target.value })
                     }
                     placeholder="State"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50"
                   />
                 </div>
 
                 {/* Education */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Education Level *
                   </label>
                   <select
@@ -476,7 +478,7 @@ const StudentProfile = () => {
                         stream: "",
                       })
                     }
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main appearance-none cursor-pointer"
                   >
                     <option value="">Select Education</option>
                     <option value="10th">10th</option>
@@ -486,7 +488,7 @@ const StudentProfile = () => {
                     <option value="Post PG">Post PG</option>
                   </select>
                   {errors.education && (
-                    <p className="text-xs text-red-500 font-medium">
+                    <p className="text-xs text-red-500 font-bold mt-1">
                       {errors.education}
                     </p>
                   )}
@@ -495,7 +497,7 @@ const StudentProfile = () => {
                 {/* Stream (Conditional) */}
                 {educationNeedsStream && (
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700">
+                    <label className="text-sm font-bold text-text-main">
                       Stream *
                     </label>
                     <input
@@ -504,10 +506,10 @@ const StudentProfile = () => {
                         setForm({ ...form, stream: e.target.value })
                       }
                       placeholder="e.g. Computer Science"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                      className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50"
                     />
                     {errors.stream && (
-                      <p className="text-xs text-red-500 font-medium">
+                      <p className="text-xs text-red-500 font-bold mt-1">
                         {errors.stream}
                       </p>
                     )}
@@ -516,7 +518,7 @@ const StudentProfile = () => {
 
                 {/* Full Width Fields */}
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Skills * (Comma separated)
                   </label>
                   <input
@@ -525,17 +527,17 @@ const StudentProfile = () => {
                       setForm({ ...form, skills: e.target.value })
                     }
                     placeholder="React, Python, Public Speaking"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50"
                   />
                   {errors.skills && (
-                    <p className="text-xs text-red-500 font-medium">
+                    <p className="text-xs text-red-500 font-bold mt-1">
                       {errors.skills}
                     </p>
                   )}
                 </div>
 
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Interests & Hobbies
                   </label>
                   <textarea
@@ -545,12 +547,12 @@ const StudentProfile = () => {
                     }
                     placeholder="What do you love doing?"
                     rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base resize-none"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50 resize-none"
                   />
                 </div>
 
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-bold text-text-main">
                     Career Goal *
                   </label>
                   <textarea
@@ -560,10 +562,10 @@ const StudentProfile = () => {
                     }
                     placeholder="Where do you see yourself in 5 years?"
                     rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm md:text-base resize-none"
+                    className="w-full px-4 py-3 bg-surface border border-secondary/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm md:text-base font-medium text-text-main placeholder:text-text-muted/50 resize-none"
                   />
                   {errors.careerGoal && (
-                    <p className="text-xs text-red-500 font-medium">
+                    <p className="text-xs text-red-500 font-bold mt-1">
                       {errors.careerGoal}
                     </p>
                   )}
@@ -571,11 +573,11 @@ const StudentProfile = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-4 mt-8 pt-6 border-t border-slate-100">
+              <div className="flex items-center gap-4 mt-8 pt-6 border-t border-secondary/10">
                 <button
                   type="submit"
                   disabled={isParsing}
-                  className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+                  className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
                 >
                   {isParsing ? (
                     "Processing..."
@@ -589,7 +591,7 @@ const StudentProfile = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
+                    className="px-6 py-3 text-text-muted font-bold hover:bg-surface rounded-xl transition-colors border border-transparent hover:border-secondary/20"
                   >
                     Cancel
                   </button>
@@ -605,13 +607,11 @@ const StudentProfile = () => {
 
 // Helper Component for View Mode
 const DetailItem = ({ label, value, capitalize = false }) => (
-  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-    <span className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+  <div className="p-4 bg-surface rounded-xl border border-secondary/10">
+    <span className="block text-xs font-bold text-text-light uppercase tracking-wide mb-1">
       {label}
     </span>
-    <p
-      className={`text-slate-900 font-semibold ${capitalize ? "capitalize" : ""}`}
-    >
+    <p className={`text-text-main font-bold ${capitalize ? "capitalize" : ""}`}>
       {value || "—"}
     </p>
   </div>

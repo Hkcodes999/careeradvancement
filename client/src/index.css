@@ -5,11 +5,10 @@
 @layer base {
   html {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-surface text-text-main antialiased selection:bg-primary selection:text-white;
+    @apply bg-[#FFFFFF] dark:bg-[#00171F] text-[#00171F] dark:text-white antialiased selection:bg-[#00A8E8]/30 selection:text-white overflow-x-hidden transition-colors duration-300;
   }
 
   h1,
@@ -18,7 +17,7 @@
   h4,
   h5,
   h6 {
-    @apply font-display font-bold tracking-tight text-text-main;
+    @apply font-display font-bold tracking-tight text-[#00171F] dark:text-white;
   }
 }
 
@@ -28,23 +27,23 @@
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-soft-xl border border-secondary/20 transition-all duration-300 hover:shadow-soft-2xl hover:-translate-y-1;
+    @apply bg-white/70 dark:bg-light/50 backdrop-blur-md rounded-2xl border border-black/[0.05] dark:border-white/5 transition-all duration-300 hover:border-[#00A8E8]/30 hover:shadow-soft-2xl;
   }
 
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-md border border-white/60 shadow-soft-2xl rounded-2xl;
+    @apply bg-white/60 dark:bg-[#00171F]/60 backdrop-blur-xl border border-black/[0.05] dark:border-white/10 shadow-soft-2xl rounded-2xl;
   }
 
   .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 flex items-center justify-center gap-2;
+    @apply bg-gradient-to-r from-[#00A8E8] to-[#007EA7] hover:opacity-90 text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-[#00A8E8]/30 hover:shadow-xl hover:shadow-[#00A8E8]/50 active:scale-95 flex items-center justify-center gap-2 border border-white/20 dark:border-white/10;
   }
 
   .btn-secondary {
-    @apply bg-white hover:bg-light text-primary font-bold py-3 px-6 rounded-lg border border-secondary/30 transition-all duration-300 hover:shadow-md active:scale-95 flex items-center justify-center gap-2;
+    @apply bg-[#003459]/5 dark:bg-white/5 hover:bg-[#003459]/10 dark:hover:bg-white/10 text-[#00171F] dark:text-white font-bold py-3.5 px-6 rounded-xl border border-[#003459]/10 dark:border-white/10 transition-all duration-300 hover:border-[#003459]/20 dark:hover:border-white/20 active:scale-95 flex items-center justify-center gap-2 backdrop-blur-md;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-lg border border-secondary/30 bg-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all duration-200 placeholder:text-text-light text-text-main font-medium;
+    @apply w-full px-4 py-3 rounded-xl border border-[#003459]/10 dark:border-white/10 bg-white/50 dark:bg-[#00171F]/50 focus:border-[#00A8E8] focus:ring-1 focus:ring-[#00A8E8] outline-none transition-all duration-200 placeholder:text-[#003459]/70 dark:placeholder:text-text-muted text-[#00171F] dark:text-white font-medium backdrop-blur-sm;
   }
 }
 
@@ -55,11 +54,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  @apply bg-surface;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-secondary/50 rounded-full hover:bg-primary/70 transition-colors;
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
 }
 
 /* Toastify Overrides */
@@ -85,11 +84,11 @@
 }
 
 .Toastify__progress-bar {
-  @apply h-1 bg-gradient-to-r from-primary to-accent !important;
+  @apply h-1 bg-gradient-to-r from-[#00A8E8] to-[#00A8E8] !important;
 }
 
 .Toastify__progress-bar--success {
-  @apply bg-primary !important;
+  @apply bg-[#00A8E8] !important;
 }
 
 .Toastify__progress-bar--error {
@@ -101,7 +100,7 @@
 }
 
 .Toastify__close-button {
-  @apply text-secondary hover:text-primary transition-colors opacity-60 hover:opacity-100 !important;
+  @apply text-[#007EA7] hover:text-[#00A8E8] transition-colors opacity-60 hover:opacity-100 !important;
   align-self: center !important;
 }
 
@@ -111,7 +110,7 @@
 
 /* Type Specifics */
 .Toastify__toast--success {
-  @apply border-primary/30 !important;
+  @apply border-[#00A8E8]/30 !important;
 }
 
 .Toastify__toast--success .Toastify__toast-icon svg {

@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/student/StudentProfile";
 import Results from "./pages/common/Results";
 import Assessment from "./pages/common/Assessment";
+import SmoothScroll from "./components/SmoothScroll";
 
 /* ---------------- App Layout ---------------- */
 const AppLayout = ({ children }) => {
@@ -32,10 +33,10 @@ const AppLayout = ({ children }) => {
   }
 
   return (
-    <>
+    <SmoothScroll>
       {!hideNavbar && <Navbar />}
       {!hideNavbar ? <Layout>{children}</Layout> : children}
-    </>
+    </SmoothScroll>
   );
 };
 

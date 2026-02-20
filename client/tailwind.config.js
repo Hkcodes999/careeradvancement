@@ -1,38 +1,38 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#6B9080", // Sage - Primary Brand
-          hover: "#557265",
-          light: "#82A394",
+          DEFAULT: "#00A8E8", // Light Cyan
+          hover: "#007EA7",
+          light: "#E0F7FA",
         },
-        secondary: "#A4C3B2", // Light Sage
-        accent: "#CCE3DE", // Mint
-        light: "#EAF4F4", // Light Mint (Section BGs)
-        surface: "#F6FFF8", // Off-White (Main BG)
+        secondary: "#007EA7", // Cerulean
+        accent: "#00A8E8", // Match primary for accents
+        light: "#003459", // Section BGs in Dark Mode
+        surface: "#00171F", // Main BG in Dark Mode
         navy: {
-          // Keep for backward compat, mapped to dark sage/slate
-          900: "#2C423B", // Very Dark Sage - Text/Headings
-          800: "#3A554C",
-          700: "#49695E",
+          900: "#00171F",
+          800: "#003459",
+          700: "#007EA7",
         },
-        platinum: "#EAF4F4", // Mapped to Light Mint
-        dark: "#1A2824", // Almost Black Sage
+        platinum: "#334155",
+        dark: "#000000",
         white: "#FFFFFF",
         text: {
-          main: "#2C423B", // Dark Sage
-          muted: "#5C756D", // Muted Sage
-          light: "#8DA399",
-          inverted: "#FFFFFF",
+          main: "#f8fafc",
+          muted: "#94a3b8",
+          light: "#e2e8f0",
+          inverted: "#00171F",
         },
         bg: {
-          light: "#EAF4F4",
-          white: "#FFFFFF",
-          navy: "#2C423B", // Dark Sage
-          surface: "#F6FFF8",
+          light: "#003459",
+          white: "#ffffff",
+          navy: "#00171F",
+          surface: "#00171F",
         },
       },
       fontFamily: {
@@ -40,9 +40,11 @@ export default {
         display: ["'Plus Jakarta Sans'", "sans-serif"],
       },
       backgroundImage: {
-        "sage-gradient": "linear-gradient(135deg, #6B9080 0%, #A4C3B2 100%)",
-        "mint-gradient": "linear-gradient(135deg, #CCE3DE 0%, #EAF4F4 100%)",
-        "soft-gradient": "linear-gradient(180deg, #F6FFF8 0%, #EAF4F4 100%)",
+        "primary-gradient": "linear-gradient(135deg, #00A8E8 0%, #007EA7 100%)",
+        "mesh-gradient":
+          "radial-gradient(at 40% 20%, hsla(263,73%,38%,0.15) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(234,73%,48%,0.15) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(189,73%,48%,0.1) 0px, transparent 50%)",
+        "glass-gradient":
+          "linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.7) 100%)",
       },
       animation: {
         float: "float 6s ease-in-out infinite",

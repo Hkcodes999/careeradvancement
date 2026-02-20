@@ -9,6 +9,8 @@ import {
   FiClipboard,
   FiUser,
   FiPieChart,
+  FiSun,
+  FiMoon,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 
@@ -19,8 +21,20 @@ const Navbar = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
 
   const closeMenu = () => setIsMobileMenuOpen(false);
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -44,8 +58,8 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b ${
         scrolled
-          ? "h-16 bg-primary/95 backdrop-blur-md border-primary/20 shadow-soft-xl"
-          : "h-20 bg-primary border-transparent"
+          ? "h-16 bg-[#FFFFFF]/90 dark:bg-[#FFFFFF] dark:bg-[#00171F]/80 backdrop-blur-lg border-black/[0.05] dark:border-white/5 shadow-soft-xl"
+          : "h-20 bg-transparent border-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
@@ -55,32 +69,34 @@ const Navbar = () => {
           onClick={closeMenu}
           className="flex items-center gap-3 group"
         >
-          <div className="relative flex items-center justify-center w-10 h-10 bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform">
-            <span className="text-primary font-extrabold text-xl">C</span>
+          <div className="relative flex items-center justify-center w-10 h-10 bg-[#00171F] dark:bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform">
+            <span className="text-[#00A8E8] font-extrabold text-xl">C</span>
           </div>
           <div className="flex flex-col">
-            <span className="font-display font-bold text-2xl leading-none text-white tracking-tight">
-              Career <span className="text-accent">Advancement</span>
+            <span className="font-display font-bold text-2xl leading-none text-[#00171F] dark:text-white tracking-tight">
+              Career <span className="text-[#00A8E8]">Advancement</span>
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation - Centered */}
         <div className="hidden md:flex flex-1 justify-center">
-          <div className="flex items-center gap-8 bg-white/10 px-8 py-2.5 rounded-full backdrop-blur-md border border-white/10 shadow-lg">
+          <div className="flex items-center gap-8 bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 px-8 py-2.5 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/10 shadow-lg">
             {!user ? (
               <div className="flex items-center gap-6">
                 <Link
                   to="/"
-                  className={`text-sm font-bold transition-colors hover:text-white ${
-                    isActive("/") ? "text-white" : "text-white/70"
+                  className={`text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                    isActive("/")
+                      ? "text-[#00171F] dark:text-white"
+                      : "text-[#00171F] dark:text-white/70"
                   }`}
                 >
                   Home
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-white text-primary hover:bg-light hover:text-primary-hover font-bold py-2 px-5 rounded-full shadow-md transition-all hover:shadow-lg text-sm"
+                  className="bg-[#00171F] dark:bg-white text-[#00A8E8] hover:bg-light hover:text-[#00A8E8]-hover font-bold py-2 px-5 rounded-full shadow-md transition-all hover:shadow-lg text-sm"
                 >
                   Sign In
                 </Link>
@@ -89,8 +105,10 @@ const Navbar = () => {
               <div className="flex items-center gap-6">
                 <Link
                   to="/dashboard"
-                  className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-white ${
-                    isActive("/dashboard") ? "text-white" : "text-white/70"
+                  className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                    isActive("/dashboard")
+                      ? "text-[#00171F] dark:text-white"
+                      : "text-[#00171F] dark:text-white/70"
                   }`}
                 >
                   <FiHome className="text-lg" />
@@ -100,8 +118,10 @@ const Navbar = () => {
                 {user.role === "student" && (
                   <Link
                     to="/assessment"
-                    className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-white ${
-                      isActive("/assessment") ? "text-white" : "text-white/70"
+                    className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                      isActive("/assessment")
+                        ? "text-[#00171F] dark:text-white"
+                        : "text-[#00171F] dark:text-white/70"
                     }`}
                   >
                     <FiClipboard className="text-lg" />
@@ -112,8 +132,10 @@ const Navbar = () => {
                 {(user.role === "admin" || user.role === "superadmin") && (
                   <Link
                     to="/admin"
-                    className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-white ${
-                      isActive("/admin") ? "text-white" : "text-white/70"
+                    className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                      isActive("/admin")
+                        ? "text-[#00171F] dark:text-white"
+                        : "text-[#00171F] dark:text-white/70"
                     }`}
                   >
                     <FiShield className="text-lg" />
@@ -127,24 +149,32 @@ const Navbar = () => {
 
         {/* Right Side - Profile (Desktop) */}
         <div className="hidden md:flex items-center gap-4">
+          <button
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-full bg-black/[0.05] dark:bg-white/10 hover:bg-black/[0.1] dark:hover:bg-white/20 text-[#00171F] dark:text-white transition-all flex items-center justify-center"
+            title="Toggle Theme"
+          >
+            {theme === "dark" ? <FiSun size={18} /> : <FiMoon size={18} />}
+          </button>
+
           {user && (
             <>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden lg:block">
-                  <p className="text-xs font-bold text-white/90">
+                  <p className="text-xs font-bold text-[#00171F] dark:text-white/90">
                     {user.name || "User"}
                   </p>
-                  <p className="text-[10px] uppercase font-bold text-white/60 tracking-wider">
+                  <p className="text-[10px] uppercase font-bold text-[#00171F] dark:text-white/60 tracking-wider">
                     {user.role === "student" ? "Candidate" : user.role}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-sm ring-2 ring-white/10 hover:bg-white hover:text-primary transition-colors cursor-pointer">
+                <div className="w-10 h-10 rounded-full bg-[#00171F] dark:bg-white/20 border border-white/30 flex items-center justify-center text-[#00171F] dark:text-white font-bold text-sm ring-2 ring-white/10 hover:bg-[#00171F] dark:bg-white hover:text-[#00A8E8] transition-colors cursor-pointer">
                   {user.role?.charAt(0).toUpperCase()}
                 </div>
               </div>
               <button
                 onClick={handleLogout}
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-red-500/80 text-white/70 hover:text-white transition-all flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 hover:bg-red-500/80 text-[#00171F] dark:text-white/70 hover:text-[#00171F] dark:text-white transition-all flex items-center justify-center"
                 title="Logout"
               >
                 <FiLogOut size={18} />
@@ -155,7 +185,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          className="md:hidden p-2 text-[#00171F] dark:text-white hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 rounded-lg transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -164,7 +194,7 @@ const Navbar = () => {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-x-0 top-[64px] bg-primary/95 backdrop-blur-xl border-b border-primary/20 transition-all duration-300 overflow-hidden md:hidden ${
+        className={`fixed inset-x-0 top-[64px] bg-[#00A8E8]/95 backdrop-blur-xl border-b border-[#00A8E8]/20 transition-all duration-300 overflow-hidden md:hidden ${
           isMobileMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
         }`}
       >
@@ -176,8 +206,8 @@ const Navbar = () => {
                 onClick={closeMenu}
                 className={`p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${
                   isActive("/")
-                    ? "bg-white/20 text-white"
-                    : "text-white/70 hover:bg-white/10"
+                    ? "bg-[#00171F] dark:bg-white/20 text-[#00171F] dark:text-white"
+                    : "text-[#00171F] dark:text-white/70 hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10"
                 }`}
               >
                 <FiHome /> Home
@@ -185,22 +215,22 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={closeMenu}
-                className="mt-2 w-full bg-white text-primary font-bold py-3 rounded-lg flex items-center justify-center hover:bg-light transition-colors"
+                className="mt-2 w-full bg-[#00171F] dark:bg-white text-[#00A8E8] font-bold py-3 rounded-lg flex items-center justify-center hover:bg-light transition-colors"
               >
                 Sign In
               </Link>
             </>
           ) : (
             <>
-              <div className="flex items-center gap-3 p-3 mb-2 bg-white/10 rounded-lg border border-white/10">
-                <div className="w-10 h-10 rounded-full bg-white text-primary flex items-center justify-center font-bold">
+              <div className="flex items-center gap-3 p-3 mb-2 bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 rounded-lg border border-black/[0.08] dark:border-white/10">
+                <div className="w-10 h-10 rounded-full bg-[#00171F] dark:bg-white text-[#00A8E8] flex items-center justify-center font-bold">
                   {user.role?.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-bold text-white">
+                  <p className="font-bold text-[#00171F] dark:text-white">
                     Hello, {user.name || "Candidate"}
                   </p>
-                  <p className="text-xs text-white/70 uppercase tracking-wider font-semibold">
+                  <p className="text-xs text-[#00171F] dark:text-white/70 uppercase tracking-wider font-semibold">
                     {user.role === "student" ? "Candidate" : user.role}
                   </p>
                 </div>
@@ -211,8 +241,8 @@ const Navbar = () => {
                 onClick={closeMenu}
                 className={`p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${
                   isActive("/dashboard")
-                    ? "bg-white/20 text-white"
-                    : "text-white/70 hover:bg-white/10"
+                    ? "bg-[#00171F] dark:bg-white/20 text-[#00171F] dark:text-white"
+                    : "text-[#00171F] dark:text-white/70 hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10"
                 }`}
               >
                 <FiHome /> Dashboard
@@ -225,8 +255,8 @@ const Navbar = () => {
                     onClick={closeMenu}
                     className={`p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${
                       isActive("/profile")
-                        ? "bg-white/20 text-white"
-                        : "text-white/70 hover:bg-white/10"
+                        ? "bg-[#00171F] dark:bg-white/20 text-[#00171F] dark:text-white"
+                        : "text-[#00171F] dark:text-white/70 hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10"
                     }`}
                   >
                     <FiUser /> My Profile
@@ -236,8 +266,8 @@ const Navbar = () => {
                     onClick={closeMenu}
                     className={`p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${
                       isActive("/assessment")
-                        ? "bg-white/20 text-white"
-                        : "text-white/70 hover:bg-white/10"
+                        ? "bg-[#00171F] dark:bg-white/20 text-[#00171F] dark:text-white"
+                        : "text-[#00171F] dark:text-white/70 hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10"
                     }`}
                   >
                     <FiClipboard /> Assessment
@@ -247,8 +277,8 @@ const Navbar = () => {
                     onClick={closeMenu}
                     className={`p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${
                       isActive("/results")
-                        ? "bg-white/20 text-white"
-                        : "text-white/70 hover:bg-white/10"
+                        ? "bg-[#00171F] dark:bg-white/20 text-[#00171F] dark:text-white"
+                        : "text-[#00171F] dark:text-white/70 hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10"
                     }`}
                   >
                     <FiPieChart /> Global Results
@@ -262,8 +292,8 @@ const Navbar = () => {
                   onClick={closeMenu}
                   className={`p-3 rounded-lg flex items-center gap-3 font-bold transition-colors ${
                     isActive("/admin")
-                      ? "bg-white/20 text-white"
-                      : "text-white/70 hover:bg-white/10"
+                      ? "bg-[#00171F] dark:bg-white/20 text-[#00171F] dark:text-white"
+                      : "text-[#00171F] dark:text-white/70 hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10"
                   }`}
                 >
                   <FiShield /> Admin Panel
@@ -272,12 +302,20 @@ const Navbar = () => {
 
               <button
                 onClick={handleLogout}
-                className="mt-2 w-full p-3 rounded-lg flex items-center justify-center gap-2 font-bold bg-white/10 text-white hover:bg-white/20 transition-colors"
+                className="mt-2 w-full p-3 rounded-lg flex items-center justify-center gap-2 font-bold bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 text-[#00171F] dark:text-white hover:bg-[#00171F] dark:bg-white/20 transition-colors"
               >
                 <FiLogOut /> Logout
               </button>
             </>
           )}
+
+          <button
+            onClick={toggleTheme}
+            className="mt-2 w-full p-3 rounded-lg flex items-center justify-center gap-2 font-bold bg-black/[0.05] dark:bg-white/10 text-[#00171F] dark:text-white hover:bg-black/[0.1] dark:hover:bg-white/20 transition-colors"
+          >
+            {theme === "dark" ? <FiSun /> : <FiMoon />}{" "}
+            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+          </button>
         </div>
       </div>
     </nav>

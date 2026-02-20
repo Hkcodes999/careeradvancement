@@ -6,7 +6,8 @@ const {
   forgotPassword, 
   resetPassword, 
   googleAuth, 
-  updateRole 
+  updateRole,
+  verifySignupOTP 
 } = require("../controllers/authController");
 
 // Import your existing auth middleware
@@ -16,6 +17,7 @@ const protect = require("../middleware/authMiddleware");
 
 // Standard Authentication
 router.post("/signup", signup);
+router.post("/verify-email", verifySignupOTP);
 router.post("/login", login);
 
 // Google Authentication

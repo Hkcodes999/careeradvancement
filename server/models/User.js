@@ -71,12 +71,18 @@ const UserSchema = new mongoose.Schema(
     /* ================= OTP RESET FIELDS ================= */
     resetOTP: {
       type: String,
-      default: null,
     },
 
     resetOTPExpires: {
       type: Date,
-      default: null,
+    },
+
+    /* ================= OTP VERIFICATION (SIGNUP EMAIL) ================= */
+    verificationOTP: {
+      type: String,
+    },
+    verificationOTPExpires: {
+      type: Date,
     },
 
     /* ================= STUDENT PROFILE ================= */
@@ -118,7 +124,7 @@ const UserSchema = new mongoose.Schema(
     /* ================= STATUS ================= */
     isActive: {
       type: Boolean,
-      default: true,
+      default: false, // Changed: require OTP verification for email signups to become active
     },
   },
   { 

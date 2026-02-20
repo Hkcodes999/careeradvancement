@@ -29,6 +29,22 @@ export const signupUser = async (data) => {
   }
 };
 
+/* ================= VERIFY EMAIL OTP ================= */
+export const verifyEmailOTP = async (data) => {
+  try {
+    const res = await fetch(`${API_URL}/verify-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    const result = await handleResponse(res);
+    return { success: true, message: result.message, data: result };
+  } catch (error) {
+    return { success: false, message: error.message || "Server not reachable" };
+  }
+};
+
 /* ================= LOGIN ================= */
 export const loginUser = async (data) => {
   try {

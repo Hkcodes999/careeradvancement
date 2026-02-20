@@ -37,7 +37,7 @@ const Login = () => {
   const [forgotMethod, setForgotMethod] = useState("email"); // "email" or "whatsapp"
   const [forgotEmail, setForgotEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState(new Array(6).fill(""));
   const [newPassword, setNewPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -112,6 +112,26 @@ const Login = () => {
     }
   };
 
+  const handleOtpChange = (element, index) => {
+    if (isNaN(element.value)) return false;
+    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+
+    if (element.nextSibling && element.value) {
+      element.nextSibling.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e, index) => {
+    if (e.key === "Backspace") {
+      if (!otp[index] && e.target.previousSibling) {
+        setOtp([...otp.map((d, idx) => (idx === index - 1 ? "" : d))]);
+        e.target.previousSibling.focus();
+      } else {
+        setOtp([...otp.map((d, idx) => (idx === index ? "" : d))]);
+      }
+    }
+  };
+
   const handleRequestOTP = async () => {
     setLoading(true);
     try {
@@ -133,13 +153,21 @@ const Login = () => {
   };
 
   const handleResetPassword = async () => {
+    const otpValue = otp.join("");
+    if (otpValue.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await resetPassword({ email: forgotEmail, otp, newPassword });
+      const res = await resetPassword({ email: forgotEmail, otp: otpValue, newPassword });
       if (res.success) {
         toast.success("Password Updated!");
         setShowForgot(false);
         setForgotStep(1);
+        setOtp(new Array(6).fill(""));
+        setNewPassword("");
       } else toast.error(res.message);
     } catch {
       toast.error("Reset failed");
@@ -319,7 +347,7 @@ const Login = () => {
         </div>
 
         <div className="flex justify-center w-full">
-          <div className="w-full">
+          <div className="w-full flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               theme="outline"
@@ -440,22 +468,29 @@ const Login = () => {
                   Verification Code
                 </h2>
                 <p className="text-sm text-[#475569] text-center mb-8 px-2 font-medium leading-relaxed">
-                  Enter the 6-digit code sent to <strong className="text-[#0F172A]">{forgotEmail}</strong>.
+                  Enter the 6-digit code sent to <br className="hidden sm:block" />
+                  <strong className="text-[#0F172A] break-words inline-block max-w-[280px] align-top">{forgotEmail}</strong>.
                 </p>
 
                 <div className="space-y-6">
-                  <div className="space-y-2 group">
+                  <div className="space-y-3 group">
                     <label className="block text-[13px] font-bold text-[#334155] ml-1 transition-colors group-focus-within:text-[#00A8E8]">
                       Verification Code
                     </label>
-                    <input
-                      type="text"
-                      className="w-full text-center text-3xl tracking-[0.4em] font-mono font-bold bg-white border border-[#E2E8F0] rounded-[1rem] py-4 focus:outline-none focus:border-[#00A8E8] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-[#CBD5E1]"
-                      placeholder="000000"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      maxLength={6}
-                    />
+                    <div className="flex justify-between gap-1 sm:gap-2 w-full px-1">
+                      {otp.map((data, index) => (
+                        <input
+                          key={index}
+                          type="text"
+                          maxLength="1"
+                          className="w-10 h-12 sm:w-[48px] sm:h-[56px] text-center text-xl sm:text-2xl font-bold bg-white border border-[#E2E8F0] rounded-[1rem] focus:outline-none focus:border-[#00A8E8] focus:bg-[#f8fafc] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-gray-300 shadow-sm"
+                          value={data}
+                          onChange={(e) => handleOtpChange(e.target, index)}
+                          onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                          onFocus={(e) => e.target.select()}
+                        />
+                      ))}
+                    </div>
                   </div>
 
                   <div className="space-y-2 group">

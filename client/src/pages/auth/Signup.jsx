@@ -10,9 +10,10 @@ import {
   FiMail,
   FiLock,
   FiBriefcase,
+  FiArrowLeft,
 } from "react-icons/fi";
 
-import { signupUser, googleLogin, updateRole } from "../../services/authApi";
+import { signupUser, googleLogin, verifyEmailOTP } from "../../services/authApi";
 import { useAuth } from "../../context/AuthContext";
 
 const Signup = () => {
@@ -28,6 +29,9 @@ const Signup = () => {
   const [capsOn, setCapsOn] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [tempToken, setTempToken] = useState(null);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -77,7 +81,10 @@ const Signup = () => {
     setLoading(true);
     try {
       const res = await signupUser(form);
-      if (res.success) completeSignup(res.data);
+      if (res.success) {
+        setVerificationEmail(res.data?.email || form.email);
+        setShowVerificationModal(true);
+      }
       else toast.error(res.message || "Registration failed");
     } catch {
       toast.error("Connection error. Please try again.");
@@ -85,6 +92,46 @@ const Signup = () => {
       setLoading(false);
     }
   };
+
+  const handleOtpChange = (element, index) => {
+    if (isNaN(element.value)) return false;
+
+    setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
+
+    // Focus next input
+    if (element.nextSibling && element.value !== "") {
+      element.nextSibling.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !otp[index] && e.target.previousSibling) {
+      e.target.previousSibling.focus();
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    const otpValue = otp.join("");
+    if (otpValue.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await verifyEmailOTP({ email: verificationEmail, otp: otpValue });
+      if (res.success) {
+        completeSignup(res.data);
+      } else {
+        toast.error(res.message || "Invalid verification code");
+      }
+    } catch {
+      toast.error("Connection error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }; 
+
 
   const handleGoogleSuccess = async (cred) => {
     setLoading(true);
@@ -289,7 +336,7 @@ const Signup = () => {
         </div>
 
         <div className="flex justify-center w-full">
-          <div className="w-full">
+          <div className="w-full flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               theme="outline"
@@ -354,6 +401,71 @@ const Signup = () => {
               >
                 {loading ? "Finalizing..." : "Complete Setup"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- EMAIL VERIFICATION MODAL --- */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 animate-fade-in backdrop-blur-sm">
+          <div className="bg-white border border-gray-100 rounded-[1.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] p-6 sm:p-10 max-w-[460px] w-full animate-slide-up relative overflow-hidden flex flex-col items-center">
+            
+            <button
+              onClick={() => setShowVerificationModal(false)}
+              className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <FiArrowLeft size={22} />
+            </button>
+            
+            <h2 className="text-[26px] font-bold text-gray-900 text-center mb-2 tracking-tight mt-2">
+              Verify your email
+            </h2>
+            <p className="text-[14px] text-gray-500 text-center mb-6 font-medium leading-relaxed w-full px-4">
+              We sent a verification code to <span className="text-gray-900 font-bold break-words inline-block max-w-[280px] align-top">{verificationEmail}</span><br/>
+              <span className="block mt-1">Check your spam folder or junk email folder for code</span>
+            </p>
+
+            <div className="w-full space-y-5">
+              <label className="block text-xs font-semibold text-gray-600 mb-2 whitespace-normal">
+                Verification Code
+              </label>
+              
+              <div className="flex justify-between gap-2 sm:gap-3 w-full">
+                {otp.map((data, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    maxLength="1"
+                    className="w-11 h-12 sm:w-[52px] sm:h-14 text-center text-xl sm:text-2xl font-bold bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:border-[#00A8E8] focus:bg-white focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder-gray-300"
+                    value={data}
+                    onChange={(e) => handleOtpChange(e.target, index)}
+                    onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                    onFocus={(e) => e.target.select()}
+                  />
+                ))}
+              </div>
+
+              <button
+                className="w-full py-3.5 mt-4 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] text-white text-sm font-bold rounded-xl shadow-[0_4px_12px_rgba(0,168,232,0.25)] hover:shadow-[0_6px_16px_rgba(0,168,232,0.35)] hover:-translate-y-[1px] transition-all duration-300 disabled:opacity-70 flex items-center justify-center"
+                onClick={handleVerifyOTP}
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  "Verify Email"
+                )}
+              </button>
+
+              <div className="text-center mt-6">
+                <span className="text-[13px] font-medium text-gray-500">
+                  Didn't receive code?{" "}
+                  <button className="text-[#00A8E8] hover:text-[#007EA7] font-bold transition-colors">
+                    Resend
+                  </button>
+                </span>
+              </div>
             </div>
           </div>
         </div>

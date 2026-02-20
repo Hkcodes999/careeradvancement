@@ -19,10 +19,6 @@ const resultRoutes = require("./routes/resultRoutes");
 const superAdminRoutes = require("./routes/superAdminRoutes");
 
 const app = express();
-
-/* =========================
-   Database (MongoDB Atlas)
-========================= */
 connectDB();
 
 /* =========================
@@ -32,7 +28,9 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://cprs-psi.vercel.app"
+      "https://cprs-psi.vercel.app",
+      "https://careeradvancement.in",
+      "https://www.careeradvancement.in"
     ],
     credentials: true,
   })
@@ -63,7 +61,9 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:5173",
-      "https://cprs-psi.vercel.app"
+      "https://cprs-psi.vercel.app",
+      "https://careeradvancement.in",
+      "https://www.careeradvancement.in"
     ],
     methods: ["GET", "POST"],
   },

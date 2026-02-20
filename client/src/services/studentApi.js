@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api/student";
+const API_BASE = `${import.meta.env.VITE_API_URL}/student`;
 
 /* ==================================================
     AUTH TOKEN HELPER
@@ -40,13 +40,13 @@ const apiFetch = async (url, options = {}) => {
 
   if (!res.ok || (data && data.success === false)) {
     const errorMsg = data?.message || `Request failed (${res.status})`;
-    
+
     if (res.status === 401) {
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
       window.location.href = "/login";
     }
-    
+
     throw new Error(errorMsg);
   }
 
@@ -101,7 +101,7 @@ export const fetchStudentBatchStatus = async () => {
 };
 
 /**
- * UPDATED: Now supports passing a target domain (stream) 
+ * UPDATED: Now supports passing a target domain (stream)
  * so the backend can record the student's upgrade choice.
  */
 export const selectInstitution = async (institutionId, targetStream = null) => {
@@ -131,7 +131,7 @@ export const joinBatch = async (batchId) => {
 export const fetchAssessment = async (config = {}) => {
   try {
     const { targetDomain, educationLevel } = config;
-    
+
     const queryParams = new URLSearchParams();
     if (targetDomain) queryParams.append("targetDomain", targetDomain);
     if (educationLevel) queryParams.append("educationLevel", educationLevel);

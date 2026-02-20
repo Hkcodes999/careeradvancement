@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000/api/ai";
+const BASE_URL = `${import.meta.env.VITE_API_URL}/ai`;
 
 const getToken = () =>
   localStorage.getItem("token") || sessionStorage.getItem("token");

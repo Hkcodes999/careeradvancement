@@ -23,7 +23,7 @@ const generateToken = (user) => {
 
 /* ---------------- SIGNUP ---------------- */
 exports.signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     let user = await User.findOne({ email });
@@ -39,7 +39,7 @@ exports.signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: "student",
+      role: role && ["student", "admin", "superadmin"].includes(role) ? role : "student",
       isActive: true, // ✅ FIX
     });
 

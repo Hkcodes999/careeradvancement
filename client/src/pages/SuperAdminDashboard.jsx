@@ -60,7 +60,7 @@ const SuperAdminDashboard = () => {
   const fetchProfile = async () => {
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/api/superadmin/profile", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -78,7 +78,7 @@ const SuperAdminDashboard = () => {
   const fetchStats = async () => {
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/api/superadmin/stats", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -99,7 +99,7 @@ const SuperAdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/api/superadmin/users", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -122,7 +122,7 @@ const SuperAdminDashboard = () => {
 
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:5000/api/superadmin/users", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +154,7 @@ const SuperAdminDashboard = () => {
 
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/api/superadmin/users/${userId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/users/${userId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

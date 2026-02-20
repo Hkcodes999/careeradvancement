@@ -102,6 +102,6 @@ const AssessmentSchema = new mongoose.Schema({
 });
 
 /* ===================== INDEXES ===================== */
-AssessmentSchema.index({ batchId: 1 });
+
 
 module.exports = mongoose.model("Assessment", AssessmentSchema);

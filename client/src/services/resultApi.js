@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api/results";
+const API_BASE = `${import.meta.env.VITE_API_URL}/results`;
 
 const getToken = () =>
   localStorage.getItem("token") || sessionStorage.getItem("token");

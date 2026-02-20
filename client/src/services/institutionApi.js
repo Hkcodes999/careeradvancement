@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5000/api/institution";
+const API_BASE = `${import.meta.env.VITE_API_URL}/institution`;
 
 /* ===============================
    Auth token helper
@@ -93,7 +93,7 @@ export const fetchInstitutions = async () => {
 ===================================================== */
 export const selectInstitution = async (institutionId, stream) => {
   const res = await fetch(
-    "http://localhost:5000/api/student/select-institution",
+    `${import.meta.env.VITE_API_URL}/student/select-institution`,
     {
       method: "POST",
       headers: {

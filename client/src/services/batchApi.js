@@ -1,4 +1,4 @@
-const BASE = "http://localhost:5000/api/admin/batch";
+const BASE = `${import.meta.env.VITE_API_URL}/admin/batch`;
 
 const getToken = () =>
   localStorage.getItem("token") || sessionStorage.getItem("token");

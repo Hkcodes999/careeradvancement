@@ -25,7 +25,12 @@ const AppLayout = ({ children }) => {
   const { loading } = useAuth(); // Access loading state from context
 
   const hideNavbar =
-    location.pathname === "/login" || location.pathname === "/signup";
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname.startsWith("/dashboard") ||
+    location.pathname.startsWith("/profile") ||
+    location.pathname.startsWith("/assessment") ||
+    location.pathname.startsWith("/results");
 
   // Prevent UI flicker while checking localStorage/token on refresh
   if (loading) {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import logo from "../../assets/logo.png";
 import { toast } from "react-toastify";
 import {
   FiEye,
@@ -161,7 +162,11 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const res = await resetPassword({ email: forgotEmail, otp: otpValue, newPassword });
+      const res = await resetPassword({
+        email: forgotEmail,
+        otp: otpValue,
+        newPassword,
+      });
       if (res.success) {
         toast.success("Password Updated!");
         setShowForgot(false);
@@ -185,8 +190,8 @@ const Login = () => {
       {/* Top Left Logo (Aligned exactly like Navbar) */}
       <div className="absolute top-0 left-0 w-full h-20 px-4 sm:px-6 lg:px-8 flex items-center z-20">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center w-10 h-10 bg-[#00171F] rounded-lg shadow-lg group-hover:scale-105 transition-transform">
-            <span className="text-[#00A8E8] font-extrabold text-xl">C</span>
+          <div className="relative flex items-center justify-center w-fit h-full group-hover:scale-105 transition-transform  rounded-xl">
+            <img src={logo} alt="Logo" className="w-15 h-12" />
           </div>
           <div className="hidden sm:flex flex-col">
             <span className="font-display font-bold text-2xl leading-none text-gray-900 tracking-tight">
@@ -197,10 +202,9 @@ const Login = () => {
       </div>
 
       {/* --- CENTERED CARD (LIGHT) --- */}
-      <div className="w-full max-w-[420px] bg-white border border-gray-100 rounded-[1.5rem] p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10 animate-fade-in-up mt-10">
-        
+      <div className="w-full max-w-[420px] bg-white border border-gray-100 rounded-[1.5rem] p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10 animate-fade-in-up mt-10">
         <header className="mb-6 text-center">
-          <h1 className="text-[26px] font-bold text-gray-900 mb-1.5 tracking-tight">
+          <h1 className="text-[26px] font-bold text-[#00A8E8] mb-1.5 tracking-tight">
             Welcome back
           </h1>
           <p className="text-gray-500 text-sm font-medium">
@@ -234,7 +238,7 @@ const Login = () => {
           {/* TOP-ALIGNED LABEL INPUT: PASSWORD */}
           <div className="space-y-1.5 group">
             <div className="flex justify-between items-end ml-1 mr-1">
-               <label
+              <label
                 htmlFor="password"
                 className="block text-xs font-semibold text-gray-600 transition-colors group-focus-within:text-[#00A8E8]"
               >
@@ -272,7 +276,7 @@ const Login = () => {
 
           {/* SELECT ROLE */}
           <div className="space-y-1.5 group pt-1">
-             <label
+            <label
               htmlFor="role"
               className="block text-xs font-semibold text-gray-600 ml-1 transition-colors group-focus-within:text-[#00A8E8]"
             >
@@ -291,8 +295,18 @@ const Login = () => {
                 <option value="superadmin">Super Admin</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -397,8 +411,18 @@ const Login = () => {
                   <option value="superadmin">Super Admin</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -418,14 +442,14 @@ const Login = () => {
       {showForgot && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 animate-fade-in backdrop-blur-sm">
           <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] p-8 sm:p-10 max-w-[420px] w-full animate-slide-up relative">
-            
             {forgotStep === 1 ? (
               <>
                 <h2 className="text-3xl font-bold text-[#0F172A] text-center mb-3 tracking-tight">
                   Forgot Password
                 </h2>
                 <p className="text-sm text-[#475569] text-center mb-8 px-2 font-medium leading-relaxed">
-                  Enter your email address and we'll send you a code to reset your password.
+                  Enter your email address and we'll send you a code to reset
+                  your password.
                 </p>
 
                 <div className="space-y-6">
@@ -454,7 +478,10 @@ const Login = () => {
                   <div className="text-center mt-6">
                     <button
                       className="text-[14px] font-semibold text-[#00A8E8] hover:text-[#007EA7] transition-colors"
-                      onClick={() => { setShowForgot(false); setForgotStep(1); }}
+                      onClick={() => {
+                        setShowForgot(false);
+                        setForgotStep(1);
+                      }}
                     >
                       Back to Sign in
                     </button>
@@ -468,8 +495,12 @@ const Login = () => {
                   Verification Code
                 </h2>
                 <p className="text-sm text-[#475569] text-center mb-8 px-2 font-medium leading-relaxed">
-                  Enter the 6-digit code sent to <br className="hidden sm:block" />
-                  <strong className="text-[#0F172A] break-words inline-block max-w-[280px] align-top">{forgotEmail}</strong>.
+                  Enter the 6-digit code sent to{" "}
+                  <br className="hidden sm:block" />
+                  <strong className="text-[#0F172A] break-words inline-block max-w-[280px] align-top">
+                    {forgotEmail}
+                  </strong>
+                  .
                 </p>
 
                 <div className="space-y-6">

@@ -188,7 +188,7 @@ const StudentProfile = () => {
     );
 
   return (
-    <div className="flex min-h-screen bg-surface font-sans pt-[72px]">
+    <div className="flex min-h-screen bg-surface font-sans">
       <StudentSidebar />
       <main className="flex-1 p-8 md:p-10 md:ml-72 max-w-5xl mx-auto w-full">
         {/* Header Section */}

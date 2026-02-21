@@ -196,7 +196,7 @@ const Assessment = () => {
   };
 
   return (
-    <div className="h-screen bg-bg-light pt-20 font-sans flex flex-col overflow-hidden">
+    <div className="h-screen bg-bg-light pt-4 font-sans flex flex-col overflow-hidden">
       <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 h-full min-h-0 pb-4">
         {/* HEADER (Fixed) */}
         <header className="flex-none flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 pt-4">

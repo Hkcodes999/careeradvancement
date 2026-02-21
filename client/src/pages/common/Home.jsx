@@ -39,172 +39,95 @@ const Home = () => {
       </div>
 
       {/* HERO SECTION */}
-      <section className="relative z-10 pt-32 pb-20 lg:pt-48 lg:pb-32 px-4 sm:px-6 lg:px-8">
+      <section className="relative z-10 pt-22 pb-20 lg:pt-28 lg:pb-22 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
           {/* Hero Content */}
           <div className="flex-1 text-center lg:text-left space-y-8 animate-fade-in-up">
-            <div className="inline-flex items-center px-4 py-1.5 bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 backdrop-blur-md text-[#003459] dark:text-white/90 rounded-full text-xs font-bold border border-black/[0.08] dark:border-white/10 shadow-sm transition-all hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 cursor-default">
-              <span className="w-2 h-2 bg-[#00A8E8] rounded-full mr-2 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></span>
+            <div className="inline-flex items-center px-4 py-1.5 bg-[#F8F9FA] dark:bg-white/5 text-[#1C1E21] dark:text-white/90 rounded-full text-xs font-bold border border-black/[0.08] dark:border-white/10 shadow-sm cursor-default">
+              <span className="w-2 h-2 bg-[#00A8E8] rounded-full mr-2"></span>
               v2.0 Now Live: AI Roadmap Generation
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-display font-extrabold leading-[1.1] tracking-tight text-[#00171F] dark:text-white drop-shadow-sm">
+            <h1 className="text-5xl lg:text-7xl font-display font-extrabold leading-[1.1] tracking-tight text-[#1C1E21] dark:text-white drop-shadow-sm">
               Your Future, <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00A8E8] via-[#007EA7] to-[#00A8E8] animate-pulse-slow">
-                Engineered by AI.
-              </span>
+              <span className="text-[#00A8E8]">Engineered by AI.</span>
             </h1>
 
-            <p className="text-lg lg:text-xl text-[#003459] dark:text-white/70 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
+            <p className="text-lg lg:text-xl text-[#4B5563] dark:text-white/70 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium">
               Stop guessing. Start building. We use advanced machine learning to
               match your unique aptitude profile with high-growth career
               trajectories.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start pt-4 relative z-20">
               <Link to="/login" className="btn-primary py-4 px-8 text-lg group">
                 Generate My Roadmap{" "}
                 <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/" className="btn-secondary py-4 px-8 text-lg">
+              <Link to="/reports" className="btn-secondary py-4 px-8 text-lg">
                 View Sample Report
               </Link>
-            </div>
-
-            <div className="pt-6 flex flex-wrap items-center justify-center lg:justify-start gap-6 lg:gap-8 text-sm font-bold text-[#003459] dark:text-white/70">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-[#00A8E8]/20 flex flex-col items-center justify-center border border-[#00A8E8]/30">
-                  <FiCheck className="text-[#00A8E8] text-xs" />
-                </div>{" "}
-                No Credit Card
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-[#007EA7]/20 flex flex-col items-center justify-center border border-[#007EA7]/30">
-                  <FiCheck className="text-[#007EA7] text-xs" />
-                </div>{" "}
-                95% Accuracy
-              </div>
             </div>
           </div>
 
           {/* Hero Visual - Dashboard Mockup */}
-          <div className="flex-1 w-full max-w-[600px] relative perspective-1000">
-            <div className="relative glass-panel p-2 transform -rotate-2 hover:rotate-0 transition-all duration-700 ease-out group">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00A8E8]/20 via-transparent to-[#007EA7]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-2xl"></div>
-
-              <div className="bg-[#00171F] dark:bg-white dark:bg-[#FFFFFF] dark:bg-[#00171F]-light rounded-xl overflow-hidden border border-black/[0.05] dark:border-white/5 relative z-10">
+          <div className="flex-1 w-full max-w-[600px] relative perspective-1000 mt-12 lg:mt-0">
+            <div className="relative glass-panel p-2 transform -rotate-1 hover:rotate-0 transition-all duration-700 ease-out shadow-2xl bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-3xl">
+              <div className="bg-[#0D1117] dark:bg-white rounded-2xl overflow-hidden relative z-10 shadow-inner">
                 {/* Mock Header */}
-                <div className="h-10 border-b border-black/[0.05] dark:border-white/5 bg-[#FFFFFF] dark:bg-[#00171F] flex items-center px-4 gap-2">
+                <div className="h-10 bg-[#161B22] dark:bg-[#F6F8FA] border-b border-gray-800 dark:border-gray-200 flex items-center px-4 gap-2">
                   <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                    <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                    <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
                   </div>
-                  <div className="ml-4 h-4 w-32 bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded-full"></div>
                 </div>
                 {/* Mock Body */}
-                <div className="p-6 space-y-6">
+                <div className="p-6 md:p-8 space-y-6 bg-[#0D1117] dark:bg-white">
                   <div className="flex gap-4">
-                    <div className="w-1/3 h-28 bg-[#FFFFFF] dark:bg-[#00171F] rounded-xl border border-black/[0.05] dark:border-white/5 p-4 transition-transform hover:-translate-y-1 duration-300">
-                      <div className="w-8 h-8 rounded-lg bg-[#00A8E8]/20 mb-3 border border-[#00A8E8]/20"></div>
-                      <div className="w-16 h-4 bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded mb-2"></div>
-                      <div className="w-20 h-6 bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 rounded"></div>
+                    <div className="w-1/3 h-24 bg-[#161B22] dark:bg-[#F8F9FA] rounded-xl border border-gray-800 dark:border-gray-100 p-4 transition-transform hover:-translate-y-1 duration-300 flex flex-col items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-[#00A8E8]/20 dark:bg-[#E0F2FE] mb-2 flex-shrink-0 border border-[#00A8E8]/30 dark:border-transparent"></div>
+                      <div className="w-16 h-2 bg-gray-700 dark:bg-gray-200 rounded-full mb-2"></div>
+                      <div className="w-12 h-2 bg-gray-800 dark:bg-gray-100 rounded-full"></div>
                     </div>
-                    <div className="w-1/3 h-28 bg-[#FFFFFF] dark:bg-[#00171F] rounded-xl border border-black/[0.05] dark:border-white/5 p-4 transition-transform hover:-translate-y-1 duration-300">
-                      <div className="w-8 h-8 rounded-lg bg-[#007EA7]/20 mb-3 border border-[#007EA7]/20"></div>
-                      <div className="w-16 h-4 bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded mb-2"></div>
-                      <div className="w-20 h-6 bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 rounded"></div>
+                    <div className="w-1/3 h-24 bg-[#161B22] dark:bg-[#F8F9FA] rounded-xl border border-gray-800 dark:border-gray-100 p-4 transition-transform hover:-translate-y-1 duration-300 flex flex-col items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-[#00A8E8]/20 dark:bg-[#E0F2FE] mb-2 flex-shrink-0 border border-[#00A8E8]/30 dark:border-transparent"></div>
+                      <div className="w-16 h-2 bg-gray-700 dark:bg-gray-200 rounded-full mb-2"></div>
+                      <div className="w-12 h-2 bg-gray-800 dark:bg-gray-100 rounded-full"></div>
                     </div>
-                    <div className="w-1/3 h-28 bg-[#FFFFFF] dark:bg-[#00171F] rounded-xl border border-black/[0.05] dark:border-white/5 p-4 transition-transform hover:-translate-y-1 duration-300">
-                      <div className="w-8 h-8 rounded-lg bg-[#00A8E8]/20 mb-3 border border-[#00A8E8]/20"></div>
-                      <div className="w-16 h-4 bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded mb-2"></div>
-                      <div className="w-20 h-6 bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 rounded"></div>
+                    <div className="w-1/3 h-24 bg-[#161B22] dark:bg-[#F8F9FA] rounded-xl border border-gray-800 dark:border-gray-100 p-4 transition-transform hover:-translate-y-1 duration-300 flex flex-col items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-[#00A8E8]/20 dark:bg-[#E0F2FE] mb-2 flex-shrink-0 border border-[#00A8E8]/30 dark:border-transparent"></div>
+                      <div className="w-16 h-2 bg-gray-700 dark:bg-gray-200 rounded-full mb-2"></div>
+                      <div className="w-12 h-2 bg-gray-800 dark:bg-gray-100 rounded-full"></div>
                     </div>
                   </div>
-                  <div className="h-40 bg-[#FFFFFF] dark:bg-[#00171F] rounded-xl border border-black/[0.05] dark:border-white/5 p-4 flex items-end gap-2 px-6">
-                    <div className="w-full bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded-t-lg h-[40%] transition-all hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
-                    <div className="w-full bg-[#00A8E8]-gradient rounded-t-lg h-[80%] transition-all hover:brightness-110 shadow-[0_0_20px_rgba(99,102,241,0.2)]"></div>
-                    <div className="w-full bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded-t-lg h-[60%] transition-all hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
-                    <div className="w-full bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded-t-lg h-[30%] transition-all hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
-                    <div className="w-full bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 rounded-t-lg h-[50%] transition-all hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
+
+                  {/* Bar Chart Area */}
+                  <div className="h-48 bg-[#161B22] dark:bg-[#F8F9FA] rounded-xl border border-gray-800 dark:border-gray-100 p-4 flex items-end justify-between gap-3 px-6 pb-0">
+                    <div className="w-full bg-[#21262D] dark:bg-[#F3F4F6] rounded-t-lg h-[40%]"></div>
+                    <div className="w-full bg-white dark:bg-white border-2 border-transparent dark:border-gray-200 rounded-t-lg h-[75%] shadow-[0_0_15px_rgba(255,255,255,0.4)] dark:shadow-sm z-10 relative left-2"></div>
+                    <div className="w-full bg-[#21262D] dark:bg-[#F3F4F6] rounded-t-lg h-[50%] relative top-2"></div>
+                    <div className="w-full bg-[#21262D] dark:bg-[#F3F4F6] rounded-t-lg h-[30%]"></div>
+                    <div className="w-full bg-[#21262D] dark:bg-[#F3F4F6] rounded-t-lg h-[45%]"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Floating Badge */}
-            <div className="absolute -bottom-6 -left-6 glass-panel p-4 z-20 transition-transform hover:-translate-y-2 duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-[#00A8E8]/10 text-[#00A8E8] rounded-full flex items-center justify-center border border-[#00A8E8]/20 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                  <FiTrendingUp size={24} />
+            <div className="absolute -bottom-8 left-8 bg-[#E6F3FB] rounded-2xl p-4 pr-12 z-20 shadow-lg border border-[#D0E8F7] backdrop-blur-sm animate-bounce-slow">
+              <div className="flex flex-col">
+                <div className="w-8 h-8 rounded-full mb-2 bg-[#CCE7F6] text-[#00A8E8] flex items-center justify-center">
+                  <FiTrendingUp size={16} />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-[#003459] dark:text-white/70 uppercase tracking-wider">
-                    Career Match
-                  </p>
-                  <p className="text-xl font-extrabold text-[#00171F] dark:text-white">98.5%</p>
-                </div>
+                <p className="text-[10px] font-bold text-[#003459] uppercase tracking-wider mb-0.5">
+                  Career Match
+                </p>
+                <p className="text-2xl font-extrabold text-[#1C1E21] leading-none">
+                  98.5%
+                </p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SOCIAL PROOF - INFINITE MARQUEE */}
-      <section className="py-12 border-y border-black/[0.05] dark:border-white/5 bg-[#003459]/5 dark:bg-[#FFFFFF] dark:bg-[#00171F]-dark overflow-hidden relative">
-        <div className="max-w-7xl mx-auto px-6 text-center mb-10">
-          <p className="text-xs font-bold text-[#003459] dark:text-white/70 uppercase tracking-widest">
-            Trusted by extraordinary students worldwide
-          </p>
-        </div>
-
-        <div className="relative flex overflow-x-hidden group">
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-[#F5F9FC] dark:from-[#FFFFFF] dark:from-[#00171F] via-transparent to-[#F5F9FC] dark:to-[#FFFFFF] dark:to-[#00171F] w-full"></div>
-          <div className="animate-marquee whitespace-nowrap flex gap-16 px-8 items-center text-black/[0.05] dark:text-[#00171F] dark:text-white/10 font-display font-bold text-3xl">
-            {[
-              "Stanford",
-              "MIT",
-              "Cambridge",
-              "IIT Bombay",
-              "NUS",
-              "Oxford",
-              "Berkeley",
-              "Harvard",
-              "Yale",
-              "Princeton",
-              "Columbia",
-              "Caltech",
-            ].map((brand, i) => (
-              <span
-                key={i}
-                className="hover:text-black/[0.2] dark:text-[#00171F] dark:text-white/40 transition-colors cursor-default select-none mx-4"
-              >
-                {brand}
-              </span>
-            ))}
-          </div>
-          <div className="absolute top-0 animate-marquee2 whitespace-nowrap flex gap-16 px-8 items-center text-black/[0.05] dark:text-[#00171F] dark:text-white/10 font-display font-bold text-3xl">
-            {[
-              "Stanford",
-              "MIT",
-              "Cambridge",
-              "IIT Bombay",
-              "NUS",
-              "Oxford",
-              "Berkeley",
-              "Harvard",
-              "Yale",
-              "Princeton",
-              "Columbia",
-              "Caltech",
-            ].map((brand, i) => (
-              <span
-                key={`clone-${i}`}
-                className="hover:text-black/[0.2] dark:text-[#00171F] dark:text-white/40 transition-colors cursor-default select-none mx-4"
-              >
-                {brand}
-              </span>
-            ))}
           </div>
         </div>
       </section>
@@ -274,7 +197,7 @@ const Home = () => {
       </section>
 
       {/* ALTERNATING SECTION */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#003459]/5 dark:bg-[#FFFFFF] dark:bg-[#00171F]-dark relative border-t border-black/[0.05] dark:border-white/5">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#003459]/5 dark:bg-white/5 relative border-t border-black/[0.05] dark:border-white/5">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
           <div className="flex-1 order-2 lg:order-1 relative">
             <div className="absolute inset-0 bg-[#00A8E8]-gradient rounded-3xl blur-[80px] opacity-20 transform rotate-6"></div>
@@ -301,7 +224,9 @@ const Home = () => {
                   SJ
                 </div>
                 <div>
-                  <p className="font-bold text-[#00171F] dark:text-white text-sm">Sarah Jenkins</p>
+                  <p className="font-bold text-[#00171F] dark:text-white text-sm">
+                    Sarah Jenkins
+                  </p>
                   <p className="text-xs text-[#003459] dark:text-white/70 font-bold tracking-wide">
                     STUDENT, '25
                   </p>
@@ -314,13 +239,11 @@ const Home = () => {
             <div className="inline-flex items-center px-4 py-1.5 bg-[#00A8E8]/10 text-[#00A8E8] rounded-full text-xs font-bold border border-[#00A8E8]/20 mb-6">
               Why Choose Us
             </div>
-            <h2 className="text-4xl md:text-5xl font-display font-extrabold text-[#00171F] dark:text-white mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-display font-extrabold text-[#1C1E21] dark:text-white mb-6 leading-tight">
               Designed for the <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00A8E8] to-[#00A8E8]">
-                Modern Student
-              </span>
+              <span className="text-[#00A8E8]">Modern Student</span>
             </h2>
-            <p className="text-lg text-[#003459] dark:text-white/70 mb-8 leading-relaxed font-medium">
+            <p className="text-lg text-[#4B5563] dark:text-gray-300 mb-8 leading-relaxed font-medium">
               Traditional counseling is slow and biased. We provide instant,
               unbiased, data-backed guidance that adapts as you grow.
             </p>
@@ -332,7 +255,7 @@ const Home = () => {
               ].map((item, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-4 text-[#003459] dark:text-white/90 font-bold text-lg"
+                  className="flex items-start gap-4 text-[#1C1E21] dark:text-white font-bold text-lg"
                 >
                   <div className="w-6 h-6 rounded-full bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 text-[#00A8E8] flex items-center justify-center flex-shrink-0 mt-0.5 border border-black/[0.08] dark:border-white/10">
                     <FiCheck size={14} />
@@ -344,10 +267,10 @@ const Home = () => {
             <div className="mt-10">
               <Link
                 to="/signup"
-                className="text-[#00171F] dark:text-white font-bold text-lg hover:text-[#00A8E8] flex items-center gap-2 group transition-colors"
+                className="text-[#1C1E21] dark:text-white font-bold text-lg hover:text-[#00A8E8] dark:hover:text-[#00A8E8] flex items-center gap-2 group transition-colors"
               >
                 Learn more about our methods{" "}
-                <span className="w-8 h-8 rounded-full bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 border border-black/[0.08] dark:border-white/10 flex items-center justify-center group-hover:bg-[#00A8E8]/20 group-hover:border-[#00A8E8]/40 group-hover:text-[#00A8E8] transition-all">
+                <span className="w-8 h-8 rounded-full bg-[#1C1E21]/5 dark:bg-white/10 border border-[#1C1E21]/10 dark:border-white/20 flex items-center justify-center group-hover:bg-[#00A8E8]/20 group-hover:border-[#00A8E8]/40 group-hover:text-[#00A8E8] transition-all">
                   <FiArrowRight className="transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
@@ -387,7 +310,7 @@ const Home = () => {
       </section>
 
       {/* FAQ SECTION */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#003459]/5 dark:bg-[#FFFFFF] dark:bg-[#00171F]-dark border-t border-black/[0.05] dark:border-white/5">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-[#003459]/5 dark:bg-white/5 border-t border-black/[0.05] dark:border-white/5">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-display font-extrabold text-[#00171F] dark:text-white mb-4">
@@ -419,7 +342,7 @@ const Home = () => {
               >
                 <summary className="text-xl font-bold text-[#00171F] dark:text-white flex justify-between items-center list-none outline-none">
                   {item.q}
-                  <span className="w-8 h-8 rounded-full bg-black/[0.03] dark:bg-[#00171F] dark:bg-white/5 flex items-center justify-center text-[#003459] dark:text-white/70 group-open:rotate-45 group-hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 group-hover:text-[#00171F] dark:text-white transition-all">
+                  <span className="w-8 h-8 rounded-full bg-black/[0.03] dark:bg-white/5 flex items-center justify-center text-[#003459] dark:text-white/70 group-open:rotate-45 group-hover:bg-black/[0.05] dark:bg-white/10 group-hover:text-[#00171F] dark:text-white transition-all">
                     <svg
                       width="14"
                       height="14"
@@ -452,6 +375,7 @@ const Home = () => {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className="fixed bottom-8 right-8 glass-panel text-[#00171F] dark:text-white p-4 rounded-full shadow-xl hover:bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 transition-all duration-300 z-50 hover:-translate-y-2 group border border-black/[0.15] dark:border-white/20"
+        h
         aria-label="Scroll to top"
       >
         <FiArrowRight

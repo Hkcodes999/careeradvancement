@@ -9,16 +9,14 @@ const twilio = require("twilio");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const twilioClient = twilio(
   process.env.TWILIO_SID,
-  process.env.TWILIO_AUTH_TOKEN
+  process.env.TWILIO_AUTH_TOKEN,
 );
 
 // 🔐 Centralized token generator
 const generateToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
 /* ---------------- SIGNUP ---------------- */
@@ -30,10 +28,10 @@ exports.signup = async (req, res) => {
     if (user) {
       // If user exists but is not active, we can resend OTP. But let's keep it simple and just do User exists for now.
       if (!user.isActive) {
-         // Optionally, logic to resend could go here, but per requirements we just return "User already exists".
-         // The user will need to use a resend endpoint if provided, or we can just update it here.
-         // Let's just delete the unverified user if they sign up again to reset the flow cleanly:
-         await User.deleteOne({ _id: user._id });
+        // Optionally, logic to resend could go here, but per requirements we just return "User already exists".
+        // The user will need to use a resend endpoint if provided, or we can just update it here.
+        // Let's just delete the unverified user if they sign up again to reset the flow cleanly:
+        await User.deleteOne({ _id: user._id });
       } else {
         return res
           .status(400)
@@ -48,7 +46,10 @@ exports.signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: role && ["student", "admin", "superadmin"].includes(role) ? role : "student",
+      role:
+        role && ["student", "admin", "superadmin"].includes(role)
+          ? role
+          : "student",
       isActive: false, // Must verify OTP to activate
       verificationOTP: otp,
       verificationOTPExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
@@ -71,14 +72,17 @@ exports.signup = async (req, res) => {
       : {
           service: "smtp",
           auth: {
-             user: process.env.EMAIL_USER,
-             pass: process.env.EMAIL_PASS,
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
           },
         };
 
     const transporter = nodemailer.createTransport(transporterConfig);
     const fromName = process.env.FROM_NAME || "Career Advancement";
-    const fromEmail = process.env.FROM_EMAIL || process.env.EMAIL_USER || "noreply@careeradvancement.in";
+    const fromEmail =
+      process.env.FROM_EMAIL ||
+      process.env.EMAIL_USER ||
+      "noreply@careeradvancement.in";
 
     await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,
@@ -100,7 +104,7 @@ exports.signup = async (req, res) => {
     res.json({
       success: true,
       message: "Verification code sent to email",
-      email: user.email // pass back so frontend knows what to verify
+      email: user.email, // pass back so frontend knows what to verify
     });
   } catch (err) {
     console.error("SIGNUP ERROR:", err);
@@ -120,7 +124,12 @@ exports.verifySignupOTP = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired verification code" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Invalid or expired verification code",
+        });
     }
 
     user.isActive = true;
@@ -139,7 +148,9 @@ exports.verifySignupOTP = async (req, res) => {
     });
   } catch (err) {
     console.error("VERIFY OTP ERROR:", err);
-    res.status(500).json({ success: false, message: "Server error during verification" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during verification" });
   }
 };
 
@@ -155,9 +166,7 @@ exports.login = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
 
     if (user.role !== role)
-      return res
-        .status(403)
-        .json({ success: false, message: "Role mismatch" });
+      return res.status(403).json({ success: false, message: "Role mismatch" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
@@ -177,6 +186,7 @@ exports.login = async (req, res) => {
       success: true,
       token,
       role: user.role,
+      name: user.name,
       message: "Login successful",
     });
   } catch (err) {
@@ -213,6 +223,7 @@ exports.googleAuth = async (req, res) => {
       success: true,
       token,
       role: user.role, // may be null → frontend role modal
+      name: user.name,
     });
   } catch (err) {
     console.error("GOOGLE AUTH ERROR:", err);
@@ -231,7 +242,7 @@ exports.updateRole = async (req, res) => {
         role: req.body.role,
         isActive: true, // ✅ FIX: activate user after role selection
       },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -300,15 +311,18 @@ exports.forgotPassword = async (req, res) => {
       : {
           service: "smtp",
           auth: {
-             user: process.env.EMAIL_USER,
-             pass: process.env.EMAIL_PASS,
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
           },
         };
 
     const transporter = nodemailer.createTransport(transporterConfig);
 
     const fromName = process.env.FROM_NAME || "Career Advancement";
-    const fromEmail = process.env.FROM_EMAIL || process.env.EMAIL_USER || "noreply@careeradvancement.in";
+    const fromEmail =
+      process.env.FROM_EMAIL ||
+      process.env.EMAIL_USER ||
+      "noreply@careeradvancement.in";
 
     await transporter.sendMail({
       from: `"${fromName}" <${fromEmail}>`,
@@ -317,7 +331,7 @@ exports.forgotPassword = async (req, res) => {
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
           <h2 style="color: #0F172A; margin-bottom: 20px; text-align: center;">Reset Your Password</h2>
-          <p style="color: #475569; font-size: 16px; line-height: 1.5; text-align: center;">Hi ${user.name || 'there'},</p>
+          <p style="color: #475569; font-size: 16px; line-height: 1.5; text-align: center;">Hi ${user.name || "there"},</p>
           <p style="color: #475569; font-size: 16px; line-height: 1.5; text-align: center;">We received a request to reset your password. Enter the 6-digit code below to proceed.</p>
           <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; margin: 30px 0; border: 1px solid #e2e8f0;">
             <span style="font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #00A8E8; display: block; margin-left: 12px;">${otp}</span>
@@ -333,7 +347,9 @@ exports.forgotPassword = async (req, res) => {
     });
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
-    res.status(500).json({ success: false, message: "Failed to process request" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to process request" });
   }
 };
 

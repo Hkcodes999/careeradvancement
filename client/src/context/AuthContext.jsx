@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { fetchStudentProfile } from "../services/studentApi";
+import { fetchStudentBatchStatus } from "../services/studentApi";
 
 const AuthContext = createContext();
 
@@ -23,17 +23,13 @@ export const AuthProvider = ({ children }) => {
           // 🔄 If name is missing, try to fetch it
           if (!parsedUser.name && parsedUser.role === "student") {
             try {
-              const profileRes = await fetchStudentProfile();
-              // Assuming profileRes returns { success: true, profile: { name: "..." }, user: { name: "..." } }
-              // OR directly the profile object. Let's assume it returns the user object or profile.
-              // Based on StudentProfile.jsx logic, fetchStudentBatchStatus returned { profile: ... }
-              // But fetchStudentProfile calls /profile which typically returns user profile data.
-              // Let's attempt to get name from the response.
-              // We will blindly trust if we find a name field.
+              const statusRes = await fetchStudentBatchStatus();
+
               const fetchedName =
-                profileRes.name ||
-                profileRes.user?.name ||
-                profileRes.profile?.name;
+                statusRes.userName ||
+                statusRes.name ||
+                statusRes.user?.name ||
+                statusRes.profile?.name;
 
               if (fetchedName) {
                 const updatedUser = { ...parsedUser, name: fetchedName };

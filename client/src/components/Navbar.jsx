@@ -13,6 +13,7 @@ import {
   FiMoon,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -56,10 +57,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b ${
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b border-[#65B1CA]/10 ${
         scrolled
-          ? "h-16 bg-[#FFFFFF]/90 dark:bg-[#FFFFFF] dark:bg-[#00171F]/80 backdrop-blur-lg border-black/[0.05] dark:border-white/5 shadow-soft-xl"
-          : "h-20 bg-transparent border-transparent"
+          ? "h-20 bg-[#FFFFFF]/90 dark:bg-[#00171F]/90 backdrop-blur-lg border-black/[0.05] dark:border-white/5 shadow-soft-xl"
+          : "h-20 bg-[#FFFFFF] dark:bg-[#00171F] border-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex justify-between items-center">
@@ -69,8 +70,8 @@ const Navbar = () => {
           onClick={closeMenu}
           className="flex items-center gap-3 group"
         >
-          <div className="relative flex items-center justify-center w-10 h-10 bg-[#00171F] dark:bg-white rounded-lg shadow-lg group-hover:scale-105 transition-transform">
-            <span className="text-[#00A8E8] font-extrabold text-xl">C</span>
+          <div className="relative flex items-center justify-center w-fit h-full group-hover:scale-105 transition-transform bg-white rounded-xl">
+            <img src={logo} alt="Logo" className="w-15 h-12" />
           </div>
           <div className="flex flex-col">
             <span className="font-display font-bold text-2xl leading-none text-[#00171F] dark:text-white tracking-tight">
@@ -79,36 +80,36 @@ const Navbar = () => {
           </div>
         </Link>
 
-        {/* Desktop Navigation - Centered */}
+        {/* Desktop Navigation - Centered Pill */}
         <div className="hidden md:flex flex-1 justify-center">
-          <div className="flex items-center gap-8 bg-black/[0.05] dark:bg-[#00171F] dark:bg-white/10 px-8 py-2.5 rounded-full backdrop-blur-md border border-black/[0.08] dark:border-white/10 shadow-lg">
+          <div className="flex items-center gap-4 bg-[#F2F4F7] dark:bg-[#0270956a] px-4 py-2 rounded-full shadow-sm">
             {!user ? (
-              <div className="flex items-center gap-6">
+              <>
                 <Link
                   to="/"
-                  className={`text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                  className={`text-sm font-bold px-4 py-2 rounded-full transition-colors ${
                     isActive("/")
-                      ? "text-[#00171F] dark:text-white"
-                      : "text-[#00171F] dark:text-white/70"
+                      ? "text-[#1C1E21] dark:text-[#1C1E21] bg-white shadow-sm"
+                      : "text-[#4B5563] dark:text-white/70 hover:text-[#1C1E21] dark:hover:text-white"
                   }`}
                 >
                   Home
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-[#00171F] dark:bg-white text-[#00A8E8] hover:bg-light hover:text-[#00A8E8]-hover font-bold py-2 px-5 rounded-full shadow-md transition-all hover:shadow-lg text-sm"
+                  className="bg-[#00171F] dark:bg-white text-white dark:text-[#00171F] hover:bg-black font-bold py-2 px-6 rounded-full transition-all text-sm"
                 >
                   Sign In
                 </Link>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center gap-6">
+              <>
                 <Link
                   to="/dashboard"
-                  className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                  className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-full transition-colors ${
                     isActive("/dashboard")
-                      ? "text-[#00171F] dark:text-white"
-                      : "text-[#00171F] dark:text-white/70"
+                      ? "text-[#1C1E21] dark:text-[#1C1E21] bg-white shadow-sm"
+                      : "text-[#4B5563] dark:text-white/70 hover:text-[#1C1E21] dark:hover:text-white"
                   }`}
                 >
                   <FiHome className="text-lg" />
@@ -118,10 +119,10 @@ const Navbar = () => {
                 {user.role === "student" && (
                   <Link
                     to="/assessment"
-                    className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                    className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-full transition-colors ${
                       isActive("/assessment")
-                        ? "text-[#00171F] dark:text-white"
-                        : "text-[#00171F] dark:text-white/70"
+                        ? "text-[#1C1E21] dark:text-[#1C1E21] bg-white shadow-sm"
+                        : "text-[#4B5563] dark:text-white/70 hover:text-[#1C1E21] dark:hover:text-white"
                     }`}
                   >
                     <FiClipboard className="text-lg" />
@@ -132,17 +133,17 @@ const Navbar = () => {
                 {(user.role === "admin" || user.role === "superadmin") && (
                   <Link
                     to="/admin"
-                    className={`flex items-center gap-2 text-sm font-bold transition-colors hover:text-[#00171F] dark:text-white ${
+                    className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-full transition-colors ${
                       isActive("/admin")
-                        ? "text-[#00171F] dark:text-white"
-                        : "text-[#00171F] dark:text-white/70"
+                        ? "text-[#1C1E21] dark:text-[#1C1E21] bg-white shadow-sm"
+                        : "text-[#4B5563] dark:text-white/70 hover:text-[#1C1E21] dark:hover:text-white"
                     }`}
                   >
                     <FiShield className="text-lg" />
                     <span>Admin Panel</span>
                   </Link>
                 )}
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -168,7 +169,7 @@ const Navbar = () => {
                     {user.role === "student" ? "Candidate" : user.role}
                   </p>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-[#00171F] dark:bg-white/20 border border-white/30 flex items-center justify-center text-[#00171F] dark:text-white font-bold text-sm ring-2 ring-white/10 hover:bg-[#00171F] dark:bg-white hover:text-[#00A8E8] transition-colors cursor-pointer">
+                <div className="w-10 h-10 rounded-full text-[#00A8E8] dark:bg-[#00A8E8]/20 border border-white/30 flex items-center justify-center dark:text-white font-bold text-sm ring-2 ring-white/10 hover:bg-[#00171F] dark:bg-white hover:text-[#00A8E8] transition-colors cursor-pointer">
                   {user.role?.charAt(0).toUpperCase()}
                 </div>
               </div>

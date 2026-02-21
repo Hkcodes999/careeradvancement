@@ -338,7 +338,7 @@ const Results = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-light pt-24 pb-32 font-sans px-4">
+    <div className="min-h-screen bg-bg-light pt-8 pb-32 font-sans px-4">
       <div className="max-w-5xl mx-auto">
         <div
           className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 md:p-10 relative overflow-hidden"

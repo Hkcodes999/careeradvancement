@@ -12,8 +12,8 @@ export default {
         },
         secondary: "#007EA7", // Cerulean
         accent: "#00A8E8", // Match primary for accents
-        light: "#003459", // Section BGs in Dark Mode
-        surface: "#00171F", // Main BG in Dark Mode
+        light: "#F0F2F5", // Light mode cards
+        surface: "#F8FAFC", // Main BG in Light Mode
         navy: {
           900: "#00171F",
           800: "#003459",
@@ -23,16 +23,16 @@ export default {
         dark: "#000000",
         white: "#FFFFFF",
         text: {
-          main: "#f8fafc",
-          muted: "#94a3b8",
-          light: "#e2e8f0",
-          inverted: "#00171F",
+          main: "#00171F",
+          muted: "#4B5563",
+          light: "#9CA3AF",
+          inverted: "#F8FAFC",
         },
         bg: {
-          light: "#003459",
+          light: "#F0F2F5",
           white: "#ffffff",
           navy: "#00171F",
-          surface: "#00171F",
+          surface: "#F8FAFC",
         },
       },
       fontFamily: {

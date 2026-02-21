@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FiTwitter, FiLinkedin, FiInstagram, FiGithub } from "react-icons/fi";
+import logo from "../assets/logo.png";
 
 const Footer = () => {
   return (
@@ -9,9 +10,14 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2 space-y-6">
             <Link to="/" className="inline-block group">
-              <span className="font-display font-bold text-2xl tracking-tight text-white group-hover:text-accent transition-colors">
-                Career <span className="text-accent">Advancement</span>
-              </span>
+              <div className="relative flex items-center justify-center w-fit h-full group-hover:scale-105 transition-transform">
+                <img src={logo} alt="Logo" className="w-15 h-12" />
+              </div>
+              <div className="flex">
+                <span className="font-display font-bold text-2xl leading-none text-[#00171F] dark:text-white tracking-tight">
+                  Career <span className="text-[#00171F]">Advancement</span>
+                </span>
+              </div>
             </Link>
             <p className="text-white/70 text-sm leading-relaxed max-w-sm">
               Empowering students with AI-driven career precision. We analyze

@@ -213,26 +213,27 @@ const StudentDashboard = () => {
         <StudentSidebar />
         <main className="flex-1 p-6 md:p-10 md:ml-72 max-w-7xl mx-auto w-full pt-[40px] md:pt-10">
           {/* Header */}
-          <div className="mb-10 pb-6 border-b border-black/[0.05] dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div className="animate-fade-in-up">
-              <h1 className="text-4xl md:text-5xl font-display font-extrabold text-[#1C1E21] dark:text-white tracking-tight mb-2 drop-shadow-sm">
+              <h1 className="text-2xl md:text-4xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight mb-2 drop-shadow-sm">
                 Candidate Dashboard
               </h1>
-              <p className="text-lg text-[#4B5563] dark:text-white/60 font-medium">
+              <p className="text-sm text-[#4B5563] dark:text-white/60 font-medium">
                 Manage your academic journey and track assessments.
               </p>
             </div>
 
             {/* User Profile Pill */}
-            <div className="flex items-center gap-4 bg-white/70 dark:bg-[#00171F]/50 backdrop-blur-xl px-5 py-3 rounded-3xl border border-black/5 dark:border-white/10 shadow-soft-sm">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00A8E8] to-[#007EA7] flex items-center justify-center text-white font-bold text-lg shadow-inner ring-2 ring-white/20 dark:ring-white/5">
+            <div className="flex items-center gap-5 bg-white/90 dark:bg-[#00171F]/80 backdrop-blur-xl px-4 py-4 rounded-3xl border border-black/5 dark:border-white/10 shadow-soft-xl relative overflow-hidden group">
+              <div className="absolute right-0 top-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform"></div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00A8E8] to-[#007EA7] flex items-center justify-center text-white font-bold text-xl shadow-inner ring-4 ring-primary/10 dark:ring-white/5 capitalize">
                 {userName?.charAt(0) || "U"}
               </div>
-              <div>
-                <p className="text-[10px] text-[#4B5563] dark:text-white/50 font-bold uppercase tracking-widest mb-0.5">
+              <div className="pr-2">
+                <p className="text-xs text-[#4B5563] dark:text-white/50 font-bold uppercase tracking-widest mb-1">
                   Welcome back
                 </p>
-                <p className="text-base font-bold text-[#1C1E21] dark:text-white leading-none">
+                <p className="text-base font-display font-bold text-[#1C1E21] dark:text-white leading-none capitalize">
                   {userName}
                 </p>
               </div>
@@ -241,62 +242,74 @@ const StudentDashboard = () => {
 
           {/* STEP 1: COMPLETE PROFILE */}
           {!status?.profileComplete && (
-            <div className="max-w-4xl mx-auto mt-8 bg-gradient-to-r from-amber-500/10 to-amber-600/5 dark:from-amber-500/20 dark:to-orange-500/10 backdrop-blur-xl border border-amber-500/20 dark:border-amber-500/30 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8 shadow-soft-xl transition-all duration-300 relative overflow-hidden group">
-              {/* Optional background glow */}
-              <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-amber-400/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-400/30 transition-colors pointer-events-none"></div>
+            <div className="max-w-5xl mx-auto mt-30 bg-gradient-to-br from-orange-400 to-amber-500 dark:from-amber-600 dark:to-orange-700 border-none rounded-[2.5rem] p-5 md:p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-orange-500/20 dark:shadow-none relative overflow-hidden group/alert">
+              
 
-              <div className="p-5 bg-white shadow-xl shadow-amber-500/10 dark:shadow-none dark:bg-amber-500/20 rounded-[20px] text-amber-500 animate-bounce-slow relative z-10">
-                <FiAlertCircle size={36} strokeWidth={2.5} />
+              <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl text-white shadow-inner relative z-10 border border-white/30">
+                <FiAlertCircle
+                  size={48}
+                  strokeWidth={2.5}
+                  
+                />
               </div>
               <div className="flex-1 text-center md:text-left relative z-10">
-                <h3 className="text-2xl font-bold text-amber-900 dark:text-amber-400 mb-2 tracking-tight">
+                <h3 className="text-xl md:text-2xl font-display font-black text-white mb-3 tracking-tight">
                   Action Required: Complete Profile
                 </h3>
-                <p className="text-amber-800/80 dark:text-amber-200/80 text-lg font-medium">
+                <p className="text-white/90 text-sm md:text-sm font-medium max-w-2xl leading-relaxed">
                   We need a bit more info to intelligently customize your
-                  learning path.
+                  learning path and unlock personalized career recommendations.
                 </p>
               </div>
               <button
                 onClick={() => navigate("/profile")}
-                className="relative z-10 px-8 py-3.5 bg-amber-500 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                className="relative z-10 px-5 py-3 bg-white text-orange-600 font-black text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 flex-shrink-0 group/cta"
               >
                 Update Now
-                <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
+                <FiArrowRight
+                  size={22}
+                  className="group-hover/cta:translate-x-1 transition-transform"
+                />
               </button>
             </div>
           )}
 
           {/* STEP 2: LINK COLLEGE */}
           {status?.profileComplete && !status?.institutionId && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-1 bg-primary rounded-full"></div>
-                <h3 className="text-2xl font-bold text-text-main dark:text-white">
-                  Select Your Institution
-                </h3>
+            <div className="space-y-6 max-w-5xl mx-auto mt-12">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-12 w-2 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] rounded-full"></div>
+                <div>
+                  <h3 className="text-3xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight">
+                    Select Your Campus
+                  </h3>
+                  <p className="text-[#4B5563] dark:text-white/60 font-medium mt-1 text-lg">
+                    Connect your institution to fetch your academic records.
+                  </p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {institutions.map((inst) => (
                   <div
                     key={inst._id}
-                    className="bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-8 rounded-3xl shadow-soft hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden"
+                    className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 p-8 rounded-3xl shadow-soft hover:shadow-soft-2xl hover:-translate-y-1.5 transition-all duration-300 group relative overflow-hidden flex flex-col"
                   >
-                    {/* Decorative Corner */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#00A8E8]/10 to-transparent dark:from-white/5 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#00A8E8]/10 to-transparent dark:from-white/5 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110 pointer-events-none"></div>
 
-                    <div className="relative z-10">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00A8E8] group-hover:text-white transition-colors duration-300 shadow-sm border border-[#00A8E8]/20 dark:border-white/10">
-                        <FiMapPin size={28} />
+                    <div className="relative z-10 flex-1">
+                      <div className="w-16 h-16 bg-[#F8F9FA] dark:bg-white/10 text-[#00A8E8] dark:text-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00A8E8] group-hover:text-white transition-colors duration-300 shadow-sm">
+                        <FiMapPin size={30} />
                       </div>
-                      <h4 className="text-xl font-bold text-[#1C1E21] dark:text-white mb-6 leading-tight group-hover:text-[#00A8E8] transition-colors">
+                      <h4 className="text-xl font-bold text-[#1C1E21] dark:text-white mb-6 leading-tight">
                         {inst.name}
                       </h4>
+                    </div>
+                    <div className="relative z-10 mt-auto">
                       <button
                         disabled={selecting}
                         onClick={() => handleLinkInstitution(inst._id)}
-                        className="w-full py-3.5 bg-white dark:bg-[#00171F]/50 border border-black/10 dark:border-white/10 text-[#4B5563] dark:text-white/80 font-bold rounded-xl hover:bg-[#00A8E8] dark:hover:bg-[#00A8E8] hover:text-white dark:hover:text-white hover:border-[#00A8E8] dark:hover:border-[#00A8E8] transition-all disabled:opacity-50 shadow-sm hover:shadow-md"
+                        className="w-full py-4 bg-[#F8F9FA] dark:bg-[#00171F]/50 text-[#1C1E21] dark:text-white/80 font-bold rounded-xl hover:bg-[#00A8E8] dark:hover:bg-[#00A8E8] hover:text-white dark:hover:text-white transition-all disabled:opacity-50 border border-transparent dark:border-white/10"
                       >
                         {selecting ? (
                           <span className="flex items-center justify-center gap-2">
@@ -315,60 +328,85 @@ const StudentDashboard = () => {
 
           {/* STEP 2.5: TARGET SELECTION */}
           {status?.institutionId && !status?.stream && (
-            <div className="max-w-3xl mx-auto bg-white/80 dark:bg-[#00171F]/50 backdrop-blur-xl border border-black/5 dark:border-white/10 p-8 md:p-10 rounded-3xl shadow-soft relative overflow-hidden">
-              {/* Optional Subtle Glow Inside */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00A8E8]/5 rounded-full blur-[60px] pointer-events-none"></div>
+            <div className="max-w-4xl mx-auto mt-12 bg-white/90 dark:bg-[#00171F]/80 backdrop-blur-xl border border-black/5 dark:border-white/10 p-10 md:p-14 rounded-[2.5rem] shadow-soft-2xl relative overflow-hidden">
+              <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#00A8E8]/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-              <div className="flex flex-col md:flex-row items-start gap-6 mb-8 relative z-10">
-                <div className="p-4 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-2xl shadow-sm border border-[#00A8E8]/20 dark:border-white/10">
-                  <FiTarget size={32} />
+              <div className="flex flex-col md:flex-row items-center gap-8 mb-10 relative z-10">
+                <div className="p-6 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-3xl shadow-inner border border-[#00A8E8]/20 dark:border-white/10">
+                  <FiTarget size={48} className="animate-pulse-slow" />
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-text-main dark:text-white">
+                <div className="text-center md:text-left">
+                  <h3 className="text-3xl font-display font-black text-[#1C1E21] dark:text-white mb-3 tracking-tight">
                     Choose Your Path
                   </h3>
-                  <p className="text-text-muted dark:text-white/70 mt-1 font-medium">
-                    Where do you want to go next? We'll tailor the assessment
-                    for you.
+                  <p className="text-lg text-[#4B5563] dark:text-white/70 font-medium max-w-lg leading-relaxed">
+                    Where do you want to go next? Select your target career
+                    stream and our AI will build a personalized assessment
+                    roadmap.
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-5 relative z-10">
                 <div className="flex-1 relative">
                   <select
                     value={selectedTarget}
                     onChange={(e) => setSelectedTarget(e.target.value)}
-                    className="w-full px-5 py-4 bg-surface dark:bg-white/5 border-transparent dark:border-white/10 rounded-xl font-bold text-text-main dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:focus:ring-white/20 focus:bg-white dark:focus:bg-[#00171F] transition-all appearance-none cursor-pointer"
+                    className="w-full px-6 py-5 bg-[#F8F9FA] dark:bg-[#00171F] border border-black/5 dark:border-white/20 rounded-2xl font-bold text-lg text-[#1C1E21] dark:text-white focus:outline-none focus:ring-4 focus:ring-[#00A8E8]/20 transition-all appearance-none shadow-sm cursor-pointer"
                   >
-                    <option value="" className="text-gray-900">
+                    <option
+                      value=""
+                      className="text-gray-900 dark:text-white/50"
+                    >
                       Select your goal...
                     </option>
                     {getTargetOptions(status.educationLevel).map((opt) => (
-                      <option key={opt} value={opt} className="text-gray-900">
+                      <option
+                        key={opt}
+                        value={opt}
+                        className="text-gray-900 dark:text-white"
+                      >
                         {opt}
                       </option>
                     ))}
-                    <option value="Other" className="text-gray-900">
+                    <option
+                      value="Other"
+                      className="text-gray-900 dark:text-white"
+                    >
                       Other
                     </option>
                   </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-light dark:text-white/50">
-                    <FiLayers />
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[#00A8E8] dark:text-white/50">
+                    <FiLayers size={24} />
                   </div>
                 </div>
 
+                {selectedTarget === "Other" && (
+                  <div className="flex-1 relative animate-fade-in">
+                    <input
+                      type="text"
+                      placeholder="Type your custom target..."
+                      value={customTarget}
+                      onChange={(e) => setCustomTarget(e.target.value)}
+                      className="w-full px-6 py-5 bg-[#F8F9FA] dark:bg-[#00171F] border border-black/5 dark:border-white/20 rounded-2xl font-bold text-lg text-[#1C1E21] dark:text-white focus:outline-none focus:ring-4 focus:ring-[#00A8E8]/20 transition-all shadow-sm"
+                    />
+                  </div>
+                )}
+
                 <button
-                  className="px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:-translate-y-1 transition-all disabled:opacity-70 disabled:translate-y-0"
+                  className="px-10 py-5 bg-[#00A8E8] text-white font-bold text-lg rounded-2xl shadow-lg shadow-[#00A8E8]/30 hover:shadow-[#00A8E8]/50 hover:-translate-y-1 transition-all disabled:opacity-70 flex items-center justify-center gap-3 md:min-w-[240px]"
                   onClick={handleConfirmTarget}
                   disabled={autopilotLoading}
                 >
                   {autopilotLoading ? (
-                    <span className="flex items-center gap-2">
-                      <FiLoader className="animate-spin" /> Designing...
-                    </span>
+                    <>
+                      <FiLoader className="animate-spin" size={24} />{" "}
+                      Designing...
+                    </>
                   ) : (
-                    "Create Roadmap"
+                    <>
+                      Create Roadmap <FiArrowRight size={24} />
+                    </>
                   )}
                 </button>
               </div>
@@ -377,19 +415,19 @@ const StudentDashboard = () => {
 
           {/* STEP 3: WAITING / BATCH READY */}
           {status?.institutionId && status?.stream && (
-            <div className="max-w-4xl mx-auto mt-8">
+            <div className="max-w-5xl mx-auto mt-12">
               {!status.assigned || isTailoring ? (
-                <div className="bg-white/80 dark:bg-[#00171F]/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-3xl p-10 text-center relative overflow-hidden shadow-soft">
-                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#00A8E8] via-[#007EA7] to-[#00A8E8] animate-gradient-shift"></div>
+                <div className="bg-white/90 dark:bg-[#00171F]/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2.5rem] p-12 text-center relative overflow-hidden shadow-soft-2xl">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#00A8E8] via-[#007EA7] to-[#00A8E8] animate-gradient-shift"></div>
 
-                  <div className="w-24 h-24 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse shadow-sm border border-[#00A8E8]/20 dark:border-white/10">
-                    <FiClock size={48} />
+                  <div className="w-28 h-28 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse shadow-inner border border-[#00A8E8]/20 dark:border-white/10">
+                    <FiClock size={56} />
                   </div>
 
-                  <h3 className="text-3xl font-display font-bold text-[#1C1E21] dark:text-white mb-4">
+                  <h3 className="text-3xl md:text-4xl font-display font-black text-[#1C1E21] dark:text-white mb-4 tracking-tight drop-shadow-sm">
                     AI is crafting your path...
                   </h3>
-                  <p className="text-lg text-[#4B5563] dark:text-white/70 mb-8 max-w-xl mx-auto font-medium leading-relaxed">
+                  <p className="text-xl text-[#4B5563] dark:text-white/70 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
                     Analyzing profile:{" "}
                     <span className="text-[#00A8E8] font-bold">
                       {status.profileStream}
@@ -401,51 +439,59 @@ const StudentDashboard = () => {
                     </span>
                   </p>
 
-                  <div className="inline-flex items-center gap-3 px-6 py-3 bg-[#F8F9FA] dark:bg-white/5 rounded-full border border-black/5 dark:border-white/10 text-sm font-bold text-[#4B5563] dark:text-white/70 mb-8 shadow-sm">
-                    <FiLoader className="animate-spin text-[#00A8E8] dark:text-white" />
+                  <div className="inline-flex items-center gap-4 px-8 py-4 bg-[#F8F9FA] dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/10 text-base font-bold text-[#4B5563] dark:text-white/70 mb-10 shadow-sm">
+                    <FiLoader
+                      className="animate-spin text-[#00A8E8] dark:text-white"
+                      size={24}
+                    />
                     Generating personalized assessment architecture...
                   </div>
 
-                  <div className="flex justify-center">
+                  <div className="flex justify-center mt-2">
                     <button
-                      className="flex items-center gap-2 px-6 py-2.5 text-[#4B5563] dark:text-white/50 hover:text-[#1C1E21] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all font-bold text-sm"
+                      className="flex items-center gap-2 px-8 py-3 text-[#4B5563] dark:text-white/50 hover:text-[#1C1E21] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all font-bold text-base"
                       onClick={() => loadDashboard(false)}
                     >
-                      <FiRefreshCw /> Refresh Status
+                      <FiRefreshCw size={18} /> Refresh Status
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-[#00A8E8] to-[#007EA7] dark:from-[#00171F] dark:to-[#003459] rounded-3xl p-10 md:p-14 text-white shadow-soft-2xl relative overflow-hidden group border dark:border-white/10 transition-transform hover:scale-[1.01] duration-500">
+                <div className="bg-gradient-to-br from-[#00171F] to-[#003459] rounded-[2.5rem] p-10 md:p-16 text-white shadow-2xl shadow-[#003459]/30 relative overflow-hidden group border border-[#00A8E8]/20 transition-transform duration-500">
                   {/* Background Decor */}
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-[80px] pointer-events-none mix-blend-overlay"></div>
-                  <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-[60px] pointer-events-none"></div>
+                  <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00A8E8]/20 rounded-full translate-x-1/3 -translate-y-1/3 blur-[100px] pointer-events-none group-hover:bg-[#00A8E8]/30 transition-colors duration-700"></div>
+                  <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#00A8E8]/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-[80px] pointer-events-none"></div>
 
-                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-12">
                     <div className="flex-1">
-                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-white/20 shadow-lg text-white">
-                        <FiCheckCircle className="text-white" /> Assessment
-                        Ready
+                      <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00A8E8]/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-[#00A8E8]/40 shadow-lg text-[#00A8E8]">
+                        <FiCheckCircle size={18} /> Assessment Ready
                       </div>
-                      <h3 className="text-4xl md:text-5xl font-display font-extrabold mb-4 tracking-tight text-white drop-shadow-md">
-                        {status.stream}
+                      <h3 className="text-4xl md:text-6xl font-display font-black mb-6 tracking-tight text-white leading-tight">
+                        {status.stream} <br />{" "}
+                        <span className="text-white/50 text-3xl md:text-4xl font-extrabold">
+                          Bridge Path
+                        </span>
                       </h3>
-                      <p className="text-white/80 text-lg max-w-lg leading-relaxed font-medium">
-                        Your personalized bridge assessment for{" "}
-                        <span className="font-bold text-white border-b-2 border-white/30">
+                      <p className="text-white/70 text-xl max-w-xl leading-relaxed font-medium">
+                        Your personalized assessment architecture for the{" "}
+                        <span className="text-white font-bold">
                           {status.educationLevel}
                         </span>{" "}
-                        level is ready.
+                        level has been generated and is ready to deploy.
                       </p>
                     </div>
 
-                    <div className="mt-8 md:mt-0">
+                    <div className="mt-8 md:mt-0 flex-shrink-0">
                       <button
-                        className="px-10 py-5 bg-white text-[#00A8E8] dark:text-[#00171F] font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 group/btn"
+                        className="px-12 py-6 bg-[#00A8E8] text-white font-black text-xl rounded-2xl shadow-[0_0_40px_rgba(0,168,232,0.4)] hover:shadow-[0_0_60px_rgba(0,168,232,0.6)] hover:bg-[#00B4F5] hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-4 group/btn"
                         onClick={() => navigate("/assessment")}
                       >
-                        Start Now
-                        <FiArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
+                        Start Assessment
+                        <FiArrowRight
+                          size={28}
+                          className="group-hover/btn:translate-x-2 transition-transform"
+                        />
                       </button>
                     </div>
                   </div>

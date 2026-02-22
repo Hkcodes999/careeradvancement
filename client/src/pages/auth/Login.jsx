@@ -66,7 +66,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await loginUser({ email, password, role });
+      const res = await loginUser({ email, password });
       if (res.success) completeLogin(res.data, remember);
       else toast.error(res.message || "Invalid credentials");
     } catch {
@@ -273,44 +273,6 @@ const Login = () => {
               <FiAlertTriangle size={14} /> <span>Caps Lock is active</span>
             </div>
           )}
-
-          {/* SELECT ROLE */}
-          <div className="space-y-1.5 group pt-1">
-            <label
-              htmlFor="role"
-              className="block text-xs font-semibold text-gray-600 ml-1 transition-colors group-focus-within:text-[#00A8E8]"
-            >
-              Signing in as
-            </label>
-            <div className="relative">
-              <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00A8E8] transition-colors z-10" />
-              <select
-                id="role"
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-11 pr-4 py-3 text-gray-900 text-sm outline-none focus:border-[#00A8E8] focus:bg-white focus:ring-2 focus:ring-[#00A8E8]/20 transition-all appearance-none cursor-pointer"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="student">Student</option>
-                <option value="admin">Administrator</option>
-                <option value="superadmin">Super Admin</option>
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
 
           <div className="flex items-center justify-between pt-2 pb-3">
             <label className="flex items-center gap-2.5 cursor-pointer group">

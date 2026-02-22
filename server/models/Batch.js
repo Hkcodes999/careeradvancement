@@ -18,14 +18,14 @@ const BatchSchema = new mongoose.Schema({
   className: {
     type: String,
     trim: true,
-    default: function() {
+    default: function () {
       return this.educationLevel; // Defaults className to educationLevel if not provided
     },
   },
 
   educationLevel: {
     type: String,
-    enum: ["10th", "12th", "Diploma", "UG", "PG", "Post PG"],
+    enum: ["8th", "9th", "10th", "12th", "Diploma", "UG", "PG", "Post PG"],
     default: "UG",
   },
 
@@ -49,7 +49,7 @@ const BatchSchema = new mongoose.Schema({
   /* ================= ADMIN / SYSTEM ================= */
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", 
+    ref: "User",
     required: true,
     // Note: In Autopilot, this is often the Institution Admin's ID or the first student
   },
@@ -82,7 +82,7 @@ const BatchSchema = new mongoose.Schema({
   /* ================= STUDENT LIMIT ================= */
   maxStudents: {
     type: Number,
-    default: 500, 
+    default: 500,
     min: 1,
   },
 
@@ -103,7 +103,7 @@ const BatchSchema = new mongoose.Schema({
   assessmentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Assessment",
-    default: null, 
+    default: null,
   },
 
   isAssessmentLocked: {
@@ -134,12 +134,12 @@ BatchSchema.set("toObject", { virtuals: true });
 
 /* ================= INDEXES ================= */
 // Optimized index for the runAutopilot findOne query
-BatchSchema.index({ 
-  institutionId: 1, 
-  educationLevel: 1, 
-  targetDomain: 1, 
+BatchSchema.index({
+  institutionId: 1,
+  educationLevel: 1,
+  targetDomain: 1,
   creationType: 1,
-  isActive: 1
+  isActive: 1,
 });
 
 module.exports = mongoose.model("Batch", BatchSchema);

@@ -8,12 +8,12 @@ exports.getMyInstitution = async (req, res) => {
   try {
     // Find the institution created by the currently logged-in user (from authMiddleware)
     const institution = await Institution.findOne({ createdBy: req.user.id });
-    
+
     // Returning 200 even if null so the frontend knows there isn't one yet
     if (!institution) {
       return res.status(200).json({ institution: null });
     }
-    
+
     res.status(200).json({ institution });
   } catch (err) {
     console.error("GET INSTITUTION ERROR:", err.message);
@@ -35,19 +35,25 @@ exports.createInstitution = async (req, res) => {
     }
 
     if (!name || !code) {
-      return res.status(400).json({ message: "Institution name and code are required" });
+      return res
+        .status(400)
+        .json({ message: "Institution name and code are required" });
     }
 
     /* 🚫 One institution per admin */
     const existing = await Institution.findOne({ createdBy: req.user.id });
     if (existing) {
-      return res.status(400).json({ message: "Institution already exists for this admin" });
+      return res
+        .status(400)
+        .json({ message: "Institution already exists for this admin" });
     }
 
     /* 🚫 Unique institution code */
     const codeExists = await Institution.findOne({ code: code.toUpperCase() });
     if (codeExists) {
-      return res.status(400).json({ message: "Institution code already exists" });
+      return res
+        .status(400)
+        .json({ message: "Institution code already exists" });
     }
 
     const institution = await Institution.create({
@@ -64,8 +70,14 @@ exports.createInstitution = async (req, res) => {
       institution,
     });
   } catch (err) {
-    console.error("CREATE INSTITUTION ERROR:", err.message);
-    res.status(500).json({ message: "Failed to create institution" });
+    console.error("CREATE INSTITUTION ERROR:", err.message, err.stack);
+    res
+      .status(500)
+      .json({
+        message: "Failed to create institution",
+        error: err.message,
+        stack: err.stack,
+      });
   }
 };
 
@@ -90,16 +102,20 @@ exports.updateInstitution = async (req, res) => {
 
     // Ownership check
     if (institution.createdBy.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized to update this institution" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to update this institution" });
     }
 
     if (code && code.toUpperCase() !== institution.code) {
-      const codeExists = await Institution.findOne({ 
-        code: code.toUpperCase(), 
-        _id: { $ne: id } 
+      const codeExists = await Institution.findOne({
+        code: code.toUpperCase(),
+        _id: { $ne: id },
       });
       if (codeExists) {
-        return res.status(400).json({ message: "Institution code already exists" });
+        return res
+          .status(400)
+          .json({ message: "Institution code already exists" });
       }
     }
 
@@ -115,8 +131,14 @@ exports.updateInstitution = async (req, res) => {
       institution: updatedInstitution,
     });
   } catch (err) {
-    console.error("UPDATE INSTITUTION ERROR:", err.message);
-    res.status(500).json({ message: "Failed to update institution" });
+    console.error("UPDATE INSTITUTION ERROR:", err.message, err.stack);
+    res
+      .status(500)
+      .json({
+        message: "Failed to update institution",
+        error: err.message,
+        stack: err.stack,
+      });
   }
 };
 
@@ -126,7 +148,9 @@ exports.updateInstitution = async (req, res) => {
 ===================================================== */
 exports.getActiveInstitutions = async (req, res) => {
   try {
-    const institutions = await Institution.find({ isActive: true }).select("name code _id");
+    const institutions = await Institution.find({ isActive: true }).select(
+      "name code _id",
+    );
     res.json({ institutions });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch institutions" });

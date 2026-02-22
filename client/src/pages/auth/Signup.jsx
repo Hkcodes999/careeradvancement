@@ -13,8 +13,13 @@ import {
   FiArrowLeft,
 } from "react-icons/fi";
 
-import { signupUser, googleLogin, verifyEmailOTP } from "../../services/authApi";
+import {
+  signupUser,
+  googleLogin,
+  verifyEmailOTP,
+} from "../../services/authApi";
 import { useAuth } from "../../context/AuthContext";
+import logo from "../../assets/logo.png";
 
 const Signup = () => {
   /* ---------------- STATE ---------------- */
@@ -84,8 +89,7 @@ const Signup = () => {
       if (res.success) {
         setVerificationEmail(res.data?.email || form.email);
         setShowVerificationModal(true);
-      }
-      else toast.error(res.message || "Registration failed");
+      } else toast.error(res.message || "Registration failed");
     } catch {
       toast.error("Connection error. Please try again.");
     } finally {
@@ -119,7 +123,10 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      const res = await verifyEmailOTP({ email: verificationEmail, otp: otpValue });
+      const res = await verifyEmailOTP({
+        email: verificationEmail,
+        otp: otpValue,
+      });
       if (res.success) {
         completeSignup(res.data);
       } else {
@@ -130,8 +137,7 @@ const Signup = () => {
     } finally {
       setLoading(false);
     }
-  }; 
-
+  };
 
   const handleGoogleSuccess = async (cred) => {
     setLoading(true);
@@ -160,8 +166,8 @@ const Signup = () => {
       {/* Top Left Logo (Aligned exactly like Navbar) */}
       <div className="absolute top-0 left-0 w-full h-20 px-4 sm:px-6 lg:px-8 flex items-center z-20">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center w-10 h-10 bg-[#00171F] rounded-lg shadow-lg group-hover:scale-105 transition-transform">
-            <span className="text-[#00A8E8] font-extrabold text-xl">C</span>
+          <div className="relative flex items-center justify-center w-fit h-full group-hover:scale-105 transition-transform rounded-xl">
+            <img src={logo} alt="Logo" className="w-15 h-12" />
           </div>
           <div className="hidden md:flex flex-col">
             <span className="font-display font-bold text-2xl leading-none text-gray-900 tracking-tight">
@@ -232,7 +238,7 @@ const Signup = () => {
           {/* TOP-ALIGNED LABEL INPUT: PASSWORD */}
           <div className="space-y-1.5 group">
             <div className="flex justify-between items-end ml-1 mr-1">
-               <label
+              <label
                 htmlFor="password"
                 className="block text-xs font-semibold text-gray-600 transition-colors group-focus-within:text-[#00A8E8]"
               >
@@ -264,16 +270,24 @@ const Signup = () => {
 
           {/* Minimal Password Strength */}
           <div className="flex justify-between items-center px-2 pt-1">
-             <div className="flex gap-1.5 flex-1 max-w-[120px]">
-               <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${form.password.length > 0 ? strength.color : "bg-gray-200"}`}></div>
-               <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${strength.label === "Medium" || strength.label === "Strong" ? strength.color : "bg-gray-200"}`}></div>
-               <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${strength.label === "Strong" ? strength.color : "bg-gray-200"}`}></div>
-             </div>
-             {form.password && (
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${strength.textColor}`}>
-                  {strength.label}
-                </span>
-             )}
+            <div className="flex gap-1.5 flex-1 max-w-[120px]">
+              <div
+                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${form.password.length > 0 ? strength.color : "bg-gray-200"}`}
+              ></div>
+              <div
+                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${strength.label === "Medium" || strength.label === "Strong" ? strength.color : "bg-gray-200"}`}
+              ></div>
+              <div
+                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${strength.label === "Strong" ? strength.color : "bg-gray-200"}`}
+              ></div>
+            </div>
+            {form.password && (
+              <span
+                className={`text-[10px] font-bold uppercase tracking-widest ${strength.textColor}`}
+              >
+                {strength.label}
+              </span>
+            )}
           </div>
 
           {capsOn && (
@@ -304,8 +318,18 @@ const Signup = () => {
                 <option value="superadmin">Super Admin</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -386,8 +410,18 @@ const Signup = () => {
                   <option value="superadmin">Super Admin</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -395,7 +429,7 @@ const Signup = () => {
               <button
                 className="w-full py-3 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] text-white text-sm font-bold rounded-xl shadow-[0_4px_12px_rgba(0,168,232,0.25)] hover:shadow-[0_6px_16px_rgba(0,168,232,0.35)] hover:-translate-y-[1px] transition-all disabled:opacity-70"
                 onClick={() => {
-                   /* Intentionally left blank or complete via updateRole API call here if needed */
+                  /* Intentionally left blank or complete via updateRole API call here if needed */
                 }}
                 disabled={loading}
               >
@@ -410,27 +444,32 @@ const Signup = () => {
       {showVerificationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 animate-fade-in backdrop-blur-sm">
           <div className="bg-white border border-gray-100 rounded-[1.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.08)] p-6 sm:p-10 max-w-[460px] w-full animate-slide-up relative overflow-hidden flex flex-col items-center">
-            
             <button
               onClick={() => setShowVerificationModal(false)}
               className="absolute top-6 left-6 text-gray-400 hover:text-gray-900 transition-colors"
             >
               <FiArrowLeft size={22} />
             </button>
-            
+
             <h2 className="text-[26px] font-bold text-gray-900 text-center mb-2 tracking-tight mt-2">
               Verify your email
             </h2>
             <p className="text-[14px] text-gray-500 text-center mb-6 font-medium leading-relaxed w-full px-4">
-              We sent a verification code to <span className="text-gray-900 font-bold break-words inline-block max-w-[280px] align-top">{verificationEmail}</span><br/>
-              <span className="block mt-1">Check your spam folder or junk email folder for code</span>
+              We sent a verification code to{" "}
+              <span className="text-gray-900 font-bold break-words inline-block max-w-[280px] align-top">
+                {verificationEmail}
+              </span>
+              <br />
+              <span className="block mt-1">
+                Check your spam folder or junk email folder for code
+              </span>
             </p>
 
             <div className="w-full space-y-5">
               <label className="block text-xs font-semibold text-gray-600 mb-2 whitespace-normal">
                 Verification Code
               </label>
-              
+
               <div className="flex justify-between gap-2 sm:gap-3 w-full">
                 {otp.map((data, index) => (
                   <input

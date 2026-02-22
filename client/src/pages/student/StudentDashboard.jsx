@@ -163,10 +163,10 @@ const StudentDashboard = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
+      <div className="min-h-screen bg-surface dark:bg-[#00171F] flex items-center justify-center transition-colors duration-300">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-secondary/30 border-t-primary rounded-full animate-spin"></div>
-          <p className="text-text-muted font-bold animate-pulse">
+          <div className="w-16 h-16 border-4 border-[#007EA7]/30 dark:border-white/10 border-t-[#00A8E8] dark:border-t-white rounded-full animate-spin"></div>
+          <p className="text-[#4B5563] dark:text-white/60 font-bold animate-pulse">
             Syncing Candidate Profile...
           </p>
         </div>
@@ -243,14 +243,8 @@ const StudentDashboard = () => {
           {/* STEP 1: COMPLETE PROFILE */}
           {!status?.profileComplete && (
             <div className="max-w-5xl mx-auto mt-30 bg-gradient-to-br from-orange-400 to-amber-500 dark:from-amber-600 dark:to-orange-700 border-none rounded-[2.5rem] p-5 md:p-8 flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-orange-500/20 dark:shadow-none relative overflow-hidden group/alert">
-              
-
               <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl text-white shadow-inner relative z-10 border border-white/30">
-                <FiAlertCircle
-                  size={48}
-                  strokeWidth={2.5}
-                  
-                />
+                <FiAlertCircle size={48} strokeWidth={2.5} />
               </div>
               <div className="flex-1 text-center md:text-left relative z-10">
                 <h3 className="text-xl md:text-2xl font-display font-black text-white mb-3 tracking-tight">
@@ -276,14 +270,14 @@ const StudentDashboard = () => {
 
           {/* STEP 2: LINK COLLEGE */}
           {status?.profileComplete && !status?.institutionId && (
-            <div className="space-y-6 max-w-5xl mx-auto mt-12">
+            <div className="space-y-6 max-w-5xl mt-12">
               <div className="flex items-center gap-4 mb-8">
-                <div className="h-12 w-2 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] rounded-full"></div>
+                <div className="h-12 w-1 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] rounded-full"></div>
                 <div>
-                  <h3 className="text-3xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight">
+                  <h3 className="text-xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight">
                     Select Your Campus
                   </h3>
-                  <p className="text-[#4B5563] dark:text-white/60 font-medium mt-1 text-lg">
+                  <p className="text-[#4B5563] dark:text-white/60 font-medium mt-1 text-xs">
                     Connect your institution to fetch your academic records.
                   </p>
                 </div>
@@ -457,7 +451,7 @@ const StudentDashboard = () => {
                   </div>
                 </div>
               ) : (
-                <div className="bg-gradient-to-br from-[#00171F] to-[#003459] rounded-[2.5rem] p-10 md:p-16 text-white shadow-2xl shadow-[#003459]/30 relative overflow-hidden group border border-[#00A8E8]/20 transition-transform duration-500">
+                <div className="bg-gradient-to-br from-[#00171F] to-[#003459] rounded-[2.5rem] p-5 md:p-10 text-white shadow-2xl shadow-[#003459]/30 relative overflow-hidden group border border-[#00A8E8]/20 transition-transform duration-500">
                   {/* Background Decor */}
                   <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00A8E8]/20 rounded-full translate-x-1/3 -translate-y-1/3 blur-[100px] pointer-events-none group-hover:bg-[#00A8E8]/30 transition-colors duration-700"></div>
                   <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#00A8E8]/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-[80px] pointer-events-none"></div>
@@ -467,13 +461,13 @@ const StudentDashboard = () => {
                       <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00A8E8]/20 backdrop-blur-md rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-[#00A8E8]/40 shadow-lg text-[#00A8E8]">
                         <FiCheckCircle size={18} /> Assessment Ready
                       </div>
-                      <h3 className="text-4xl md:text-6xl font-display font-black mb-6 tracking-tight text-white leading-tight">
+                      <h3 className="text-2xl md:text-4xl font-display font-black mb-6 tracking-tight text-white leading-tight">
                         {status.stream} <br />{" "}
-                        <span className="text-white/50 text-3xl md:text-4xl font-extrabold">
+                        <span className="text-white/50 text-xl md:text-2xl font-extrabold">
                           Bridge Path
                         </span>
                       </h3>
-                      <p className="text-white/70 text-xl max-w-xl leading-relaxed font-medium">
+                      <p className="text-white/70 text-md max-w-xl leading-relaxed font-medium">
                         Your personalized assessment architecture for the{" "}
                         <span className="text-white font-bold">
                           {status.educationLevel}
@@ -484,7 +478,7 @@ const StudentDashboard = () => {
 
                     <div className="mt-8 md:mt-0 flex-shrink-0">
                       <button
-                        className="px-12 py-6 bg-[#00A8E8] text-white font-black text-xl rounded-2xl shadow-[0_0_40px_rgba(0,168,232,0.4)] hover:shadow-[0_0_60px_rgba(0,168,232,0.6)] hover:bg-[#00B4F5] hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-4 group/btn"
+                        className="px-8 py-4 bg-[#00A8E8] text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(0,168,232,0.4)] hover:shadow-[0_0_60px_rgba(0,168,232,0.6)] hover:bg-[#00B4F5] hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-4 group/btn"
                         onClick={() => navigate("/assessment")}
                       >
                         Start Assessment

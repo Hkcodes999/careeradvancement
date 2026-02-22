@@ -124,12 +124,10 @@ exports.verifySignupOTP = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid or expired verification code",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
     }
 
     user.isActive = true;
@@ -156,7 +154,7 @@ exports.verifySignupOTP = async (req, res) => {
 
 /* ---------------- LOGIN ---------------- */
 exports.login = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
@@ -164,9 +162,6 @@ exports.login = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
-
-    if (user.role !== role)
-      return res.status(403).json({ success: false, message: "Role mismatch" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)

@@ -11,7 +11,7 @@ const StudentProfileSchema = new mongoose.Schema(
       ref: "User",
       unique: true,
       required: true,
-      index: true, 
+      index: true,
     },
 
     // Contact & Demographic
@@ -39,7 +39,7 @@ const StudentProfileSchema = new mongoose.Schema(
     education: {
       type: String,
       required: [true, "Education level is required"],
-      enum: ["10th", "12th", "UG", "PG", "Post PG"],
+      enum: ["8th", "9th", "10th", "12th", "Diploma", "UG", "PG", "Post PG"],
     },
 
     stream: {
@@ -65,7 +65,7 @@ const StudentProfileSchema = new mongoose.Schema(
     },
 
     interests: {
-      type: String, 
+      type: String,
       trim: true,
     },
 
@@ -73,7 +73,7 @@ const StudentProfileSchema = new mongoose.Schema(
     skills: {
       type: [String],
       required: [true, "At least one skill is required"],
-      default: []
+      default: [],
     },
 
     careerGoal: {
@@ -88,13 +88,13 @@ const StudentProfileSchema = new mongoose.Schema(
     ========================================================= */
     others: {
       type: mongoose.Schema.Types.Mixed,
-      default: {}
+      default: {},
     },
 
     // Metadata for AI Autopilot flow and system tracking
     metadata: {
       parsedByAI: { type: Boolean, default: false },
-      lastModelUsed: { type: String, default: "gemini-2.5-flash" }
+      lastModelUsed: { type: String, default: "gemini-2.5-flash" },
     },
 
     completed: {
@@ -102,17 +102,16 @@ const StudentProfileSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { 
-    timestamps: true 
-  }
+  {
+    timestamps: true,
+  },
 );
 
 // Middleware to ensure empty strings or invalid enums are handled gracefully
-StudentProfileSchema.pre("save", function (next) {
+StudentProfileSchema.pre("save", function () {
   if (this.personalityType === "") {
     this.personalityType = undefined;
   }
-  next();
 });
 
 module.exports = mongoose.model("StudentProfile", StudentProfileSchema);

@@ -9,15 +9,32 @@ import {
   FiX,
   FiLogOut,
   FiCommand,
+  FiSun,
+  FiMoon,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
+import { useEffect } from "react";
 
 const StudentSidebar = () => {
   const location = useLocation();
   const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const isAssessmentActive = location.pathname.startsWith("/assessment");
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -96,19 +113,29 @@ const StudentSidebar = () => {
           </nav>
 
           <div className="mt-auto space-y-4">
-            {/* Status Card */}
-            <div className="px-5 py-4 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 shadow-sm">
-              <p className="text-xs font-bold text-text-light dark:text-white/50 uppercase tracking-wider mb-2 flex items-center gap-2">
-                <FiCommand /> System Status
-              </p>
-              <div className="flex items-center gap-2.5 text-sm font-bold text-emerald-600">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                </span>
-                Online & Synced
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 shadow-sm hover:bg-white dark:hover:bg-white/10 transition-colors group"
+            >
+              <div className="flex items-center gap-3 text-text-muted dark:text-white/70 font-bold group-hover:text-primary dark:group-hover:text-white transition-colors">
+                {theme === "dark" ? <FiMoon size={18} /> : <FiSun size={18} />}
+                <span>{theme === "dark" ? "Dark Mode" : "Light Mode"}</span>
               </div>
-            </div>
+              <div
+                className={`w-10 h-5 rounded-full relative transition-colors ${
+                  theme === "dark"
+                    ? "bg-primary"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <div
+                  className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                    theme === "dark" ? "left-[calc(100%-18px)]" : "left-[2px]"
+                  }`}
+                ></div>
+              </div>
+            </button>
 
             {/* Logout (Mobile Only) */}
             <button

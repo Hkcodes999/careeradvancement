@@ -30,10 +30,10 @@ app.use(
       "http://localhost:5173",
       "https://cprs-psi.vercel.app",
       "https://careeradvancement.in",
-      "https://www.careeradvancement.in"
+      "https://www.careeradvancement.in",
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());
@@ -63,7 +63,7 @@ const io = new Server(server, {
       "http://localhost:5173",
       "https://cprs-psi.vercel.app",
       "https://careeradvancement.in",
-      "https://www.careeradvancement.in"
+      "https://www.careeradvancement.in",
     ],
     methods: ["GET", "POST"],
   },
@@ -85,6 +85,38 @@ app.set("io", io);
 ========================= */
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+server
+  .listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  })
+  .on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `🚨 Port ${PORT} is busy. Please close any other running terminals.`,
+      );
+      process.exit(1);
+    } else {
+      console.error("Server error:", err);
+    }
+  });
+
+/* =========================
+   Graceful Shutdown (Prevents EADDRINUSE)
+========================= */
+const shutdown = () => {
+  console.log("Shutting down server gracefully...");
+  server.close(() => {
+    console.log("Closed out remaining connections.");
+    process.exit(0);
+  });
+};
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
+
+// For nodemon restarts
+process.once("SIGUSR2", () => {
+  server.close(() => {
+    process.kill(process.pid, "SIGUSR2");
+  });
 });

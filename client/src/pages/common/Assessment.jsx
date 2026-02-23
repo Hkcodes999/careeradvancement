@@ -187,12 +187,12 @@ const Assessment = () => {
   // Helper for Palette Styling
   const getPaletteColor = (i) => {
     if (i === currentQ)
-      return "bg-primary text-white scale-110 z-10 shadow-lg shadow-primary/30 ring-2 ring-seaside-300";
-    if (answers[i] !== null)
-      return "bg-seaside-500 text-white border-seaside-500";
+      return "bg-[#00A8E8] text-white scale-110 z-10 shadow-lg shadow-[#00A8E8]/30 ring-2 ring-[#00A8E8]/30 border-transparent";
+    if (answers[i] !== null && answers[i] !== undefined)
+      return "bg-emerald-500 text-white border-transparent shadow-sm";
     if (visited[i])
-      return "bg-seaside-200 text-primary-dark border-seaside-300";
-    return "bg-white text-text-muted border-seaside-200 hover:border-primary/50 hover:text-primary";
+      return "bg-orange-400 text-white border-transparent shadow-sm";
+    return "bg-white text-gray-500 border-gray-200 hover:border-gray-300";
   };
 
   return (
@@ -331,7 +331,7 @@ const Assessment = () => {
                 ) : (
                   <button
                     onClick={() => submit(false)}
-                    className="bg-accent-ocean hover:bg-sky-600 text-white font-medium py-2.5 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
+                    className="bg-accent-ocean text-white bg-sky-600  font-bold py-2.5 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2"
                   >
                     <FiCheckCircle /> Final Submit
                   </button>
@@ -366,22 +366,27 @@ const Assessment = () => {
                 </div>
               </div>
 
-              <div className="flex-none p-4 border-t border-seaside-100 bg-white space-y-3 text-xs font-semibold text-text-muted">
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-seaside-500"></span>{" "}
-                  Answered
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-seaside-200 border border-seaside-300"></span>{" "}
-                  Visited
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-white border border-seaside-200"></span>{" "}
-                  Not Visited
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full bg-primary ring-2 ring-seaside-200"></span>{" "}
-                  Current
+              <div className="flex-none p-5 border-t border-gray-100 bg-white">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  Status Legend
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-xs font-semibold text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm border border-emerald-600"></span>
+                    Answered
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 rounded-full bg-orange-400 shadow-sm border border-orange-500"></span>
+                    Visited
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 rounded-full bg-white border-2 border-gray-300"></span>
+                    Not Visited
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3.5 h-3.5 rounded-full bg-[#00A8E8] shadow-sm border border-[#00A8E8]"></span>
+                    Current
+                  </div>
                 </div>
               </div>
             </div>

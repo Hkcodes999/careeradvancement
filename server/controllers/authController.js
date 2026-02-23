@@ -251,6 +251,7 @@ exports.updateRole = async (req, res) => {
     res.json({
       success: true,
       role: user.role,
+      name: user.name,
       token,
       message: "Role updated successfully",
     });

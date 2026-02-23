@@ -9,7 +9,7 @@ const {
   joinBatch,
   getAssessmentForStudent,
   fetchAvailableBatches,
-  getBatchStatus // Added the specific controller method for clean logic
+  getBatchStatus, // Added the specific controller method for clean logic
 } = require("../controllers/studentController");
 
 // Import the AI Parsing logic
@@ -45,8 +45,25 @@ router.get("/batch-status", protect, async (req, res) => {
       .populate("institutionId")
       .populate("batchRef");
 
+    // Include completed institutions lookup (added from result/student controller merge logic)
+    const Result = require("../models/Result");
+    const results = await Result.find({ studentId: user._id }).select(
+      "batchId",
+    );
+    const completedBatchIds = results.map((r) => r.batchId);
+
+    let completedInstitutions = [];
+    if (completedBatchIds.length > 0) {
+      const batches = await Batch.find({
+        batchId: { $in: completedBatchIds },
+      }).select("institutionId");
+      completedInstitutions = batches.map((b) => b.institutionId.toString());
+    }
+
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     /**
@@ -65,11 +82,13 @@ router.get("/batch-status", protect, async (req, res) => {
       profileStream: user.profile?.stream || null, // Existing background
       stream: user.stream || null, // Target Upgrade Domain
       batchId: user.batchId || null,
-      batchDetails: null
+      batchDetails: null,
+      completedInstitutions,
     };
 
     // Cross-verify Batch assignment
-    const activeBatchId = user.batchId || (user.batchRef ? user.batchRef.batchId : null);
+    const activeBatchId =
+      user.batchId || (user.batchRef ? user.batchRef.batchId : null);
 
     if (activeBatchId) {
       const batch = await Batch.findOne({ batchId: activeBatchId });
@@ -82,7 +101,7 @@ router.get("/batch-status", protect, async (req, res) => {
           name: batch.name,
           className: batch.className,
           educationLevel: batch.educationLevel,
-          targetDomain: batch.targetDomain
+          targetDomain: batch.targetDomain,
         };
       }
     }
@@ -90,7 +109,9 @@ router.get("/batch-status", protect, async (req, res) => {
     res.json(responseData);
   } catch (err) {
     console.error("Batch Status Sync Error:", err.message);
-    res.status(500).json({ success: false, message: "Failed to sync dashboard status" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to sync dashboard status" });
   }
 });
 

@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import StudentSidebar from "../../components/StudentSidebar";
-import { fetchStudentBatchStatus } from "../../services/studentApi";
+import {
+  fetchStudentBatchStatus,
+  fetchAvailableBatches,
+  joinBatch,
+} from "../../services/studentApi";
 import {
   fetchInstitutions,
   selectInstitution,
@@ -19,6 +23,7 @@ import {
   FiArrowRight,
   FiTrendingUp,
   FiTarget,
+  FiUsers,
 } from "react-icons/fi";
 
 const StudentDashboard = () => {
@@ -33,19 +38,8 @@ const StudentDashboard = () => {
   const [autopilotLoading, setAutopilotLoading] = useState(false);
   const [isTailoring, setIsTailoring] = useState(false);
 
-  const [selectedTarget, setSelectedTarget] = useState("");
-  const [customTarget, setCustomTarget] = useState("");
-
-  const getTargetOptions = (level) => {
-    const targetMap = {
-      "10th": ["Science (PCM/PCB)", "Commerce", "Arts", "Diploma"],
-      "12th": ["Engineering", "Medical", "BCA", "BBA", "B.Sc IT"],
-      Diploma: ["B.E/B.Tech Lateral", "Aviation", "Design"],
-      UG: ["M.Tech", "MBA", "MCA", "Software Development"],
-      PG: ["Ph.D", "Industry Specialization"],
-    };
-    return targetMap[level] || ["General Aptitude"];
-  };
+  const [availableBatches, setAvailableBatches] = useState([]);
+  const [loadingBatches, setLoadingBatches] = useState(false);
 
   const stopPolling = () => {
     if (pollInterval.current) {
@@ -72,10 +66,23 @@ const StudentDashboard = () => {
       if (res.profileComplete && !res.institutionId) {
         const instRes = await fetchInstitutions();
         setInstitutions(instRes.institutions || []);
+      } else if (res.profileComplete && res.institutionId && !res.assigned) {
+        // Fetch predefined batches for the selected campus
+        try {
+          setLoadingBatches(true);
+          const batchRes = await fetchAvailableBatches();
+          if (batchRes && batchRes.success) {
+            setAvailableBatches(batchRes.batches || []);
+          }
+        } catch (e) {
+          console.error("Failed to load batches", e);
+        } finally {
+          setLoadingBatches(false);
+        }
       }
 
-      // If domain is selected but batch is not assigned, start looking for it
-      if (res.institutionId && res.stream && !res.assigned) {
+      // If batch is assigned but we suspect assessment generation is still ongoing in backend
+      if (res.assigned && isTailoring) {
         startPolling(res);
       }
     } catch (err) {
@@ -103,62 +110,35 @@ const StudentDashboard = () => {
     }
   };
 
-  /* ================= STEP 2.5: TARGET SELECTION ================= */
-  const handleConfirmTarget = async () => {
-    const finalTarget =
-      selectedTarget === "Other" ? customTarget : selectedTarget;
-    if (!finalTarget) {
-      toast.warn("Please select a target domain");
-      return;
-    }
-
+  /* ================= STEP 2.5: BATCH SELECTION ================= */
+  const handleJoinPredefinedBatch = async (batchId) => {
     try {
       setAutopilotLoading(true);
-      setIsTailoring(true);
+      setIsTailoring(true); // Treat joining as tailoring since it generates the assessment
 
-      // 1. Save Target to DB
-      await selectInstitution(status.institutionId, finalTarget);
+      await joinBatch(batchId);
 
-      // 2. Refresh status to confirm "stream" is saved
       const updatedStatus = await fetchStudentBatchStatus();
       setStatus(updatedStatus);
 
-      // 3. Explicitly call engine to create batch
-      await handleTriggerAutopilot(updatedStatus);
-
-      // 4. Forced 10-second wait for UI
+      // Wait to allow backend AI generation time if it's new
       setTimeout(() => {
         setIsTailoring(false);
         setAutopilotLoading(false);
-      }, 10000);
+        loadDashboard(false);
+      }, 8000);
     } catch (err) {
-      toast.error("Batch Initiation Failed");
+      toast.error(err.message || "Failed to join batch");
       setIsTailoring(false);
       setAutopilotLoading(false);
     }
   };
 
-  /* ================= STEP 3: ENGINE TRIGGER ================= */
+  /* ================= STEP 3: POLLING (FOR SLOW GENERATION) ================= */
   const handleTriggerAutopilot = async (currentStatus, isPolling = false) => {
-    if (!currentStatus?.stream) return;
-
-    try {
-      const res = await runAutopilotEngine({
-        educationLevel: currentStatus.educationLevel,
-        currentStream: currentStatus.profileStream, // Current knowledge
-        stream: currentStatus.stream, // Target domain
-      });
-
-      if (res.status === "ready") {
-        stopPolling();
-        const finalStatus = await fetchStudentBatchStatus();
-        setStatus(finalStatus);
-      } else {
-        if (!isPolling) startPolling(currentStatus);
-      }
-    } catch (err) {
-      if (!isPolling) stopPolling();
-    }
+    // We just poll the dashboard until isTailoring handles itself, or assigned status updates the UI
+    const finalStatus = await fetchStudentBatchStatus();
+    setStatus(finalStatus);
   };
 
   if (loading)
@@ -283,129 +263,153 @@ const StudentDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {institutions.map((inst) => (
-                  <div
-                    key={inst._id}
-                    className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 p-8 rounded-3xl shadow-soft hover:shadow-soft-2xl hover:-translate-y-1.5 transition-all duration-300 group relative overflow-hidden flex flex-col"
-                  >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#00A8E8]/10 to-transparent dark:from-white/5 rounded-bl-[100px] -mr-8 -mt-8 transition-transform group-hover:scale-110 pointer-events-none"></div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {institutions.map((inst) => {
+                  const isCompleted = status?.completedInstitutions?.includes(
+                    inst._id,
+                  );
 
-                    <div className="relative z-10 flex-1">
-                      <div className="w-16 h-16 bg-[#F8F9FA] dark:bg-white/10 text-[#00A8E8] dark:text-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00A8E8] group-hover:text-white transition-colors duration-300 shadow-sm">
-                        <FiMapPin size={30} />
+                  return (
+                    <div
+                      key={inst._id}
+                      className={`bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 p-5 rounded-2xl shadow-soft transition-all duration-300 group relative overflow-hidden flex flex-col shrink-0 min-w-[160px] ${
+                        isCompleted
+                          ? "opacity-60 grayscale pointer-events-none"
+                          : "hover:shadow-soft-xl hover:-translate-y-1"
+                      }`}
+                    >
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#00A8E8]/10 to-transparent dark:from-white/5 rounded-bl-[60px] -mr-6 -mt-6 transition-transform group-hover:scale-110 pointer-events-none"></div>
+
+                      <div className="relative z-10 flex-1">
+                        <div
+                          className={`w-12 h-12 bg-[#F8F9FA] dark:bg-white/10 text-[#00A8E8] dark:text-white rounded-xl flex items-center justify-center mb-4 transition-colors duration-300 shadow-sm ${!isCompleted && "group-hover:bg-[#00A8E8] group-hover:text-white"}`}
+                        >
+                          <FiMapPin size={24} />
+                        </div>
+                        <h4 className="text-base font-bold text-[#1C1E21] dark:text-white mb-4 leading-snug line-clamp-2">
+                          {inst.name}
+                        </h4>
                       </div>
-                      <h4 className="text-xl font-bold text-[#1C1E21] dark:text-white mb-6 leading-tight">
-                        {inst.name}
-                      </h4>
+                      <div className="relative z-10 mt-auto">
+                        <button
+                          disabled={selecting || isCompleted}
+                          onClick={() =>
+                            !isCompleted && handleLinkInstitution(inst._id)
+                          }
+                          className={`w-full py-2.5 text-sm font-bold rounded-lg transition-all border border-transparent dark:border-white/10 ${
+                            isCompleted
+                              ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                              : "bg-[#F8F9FA] dark:bg-[#00171F]/50 text-[#1C1E21] dark:text-white/80 hover:bg-[#00A8E8] dark:hover:bg-[#00A8E8] hover:text-white dark:hover:text-white disabled:opacity-50"
+                          }`}
+                        >
+                          {isCompleted ? (
+                            "Already Given Test"
+                          ) : selecting ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <FiLoader className="animate-spin" /> ...
+                            </span>
+                          ) : (
+                            "Connect"
+                          )}
+                        </button>
+                      </div>
                     </div>
-                    <div className="relative z-10 mt-auto">
-                      <button
-                        disabled={selecting}
-                        onClick={() => handleLinkInstitution(inst._id)}
-                        className="w-full py-4 bg-[#F8F9FA] dark:bg-[#00171F]/50 text-[#1C1E21] dark:text-white/80 font-bold rounded-xl hover:bg-[#00A8E8] dark:hover:bg-[#00A8E8] hover:text-white dark:hover:text-white transition-all disabled:opacity-50 border border-transparent dark:border-white/10"
-                      >
-                        {selecting ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <FiLoader className="animate-spin" /> Connecting...
-                          </span>
-                        ) : (
-                          "Connect Campus"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* STEP 2.5: TARGET SELECTION */}
-          {status?.institutionId && !status?.stream && (
-            <div className="max-w-4xl mx-auto mt-12 bg-white/90 dark:bg-[#00171F]/80 backdrop-blur-xl border border-black/5 dark:border-white/10 p-10 md:p-14 rounded-[2.5rem] shadow-soft-2xl relative overflow-hidden">
-              <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#00A8E8]/10 rounded-full blur-[80px] pointer-events-none"></div>
-
-              <div className="flex flex-col md:flex-row items-center gap-8 mb-10 relative z-10">
-                <div className="p-6 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-3xl shadow-inner border border-[#00A8E8]/20 dark:border-white/10">
-                  <FiTarget size={48} className="animate-pulse-slow" />
-                </div>
-                <div className="text-center md:text-left">
-                  <h3 className="text-3xl font-display font-black text-[#1C1E21] dark:text-white mb-3 tracking-tight">
-                    Choose Your Path
-                  </h3>
-                  <p className="text-lg text-[#4B5563] dark:text-white/70 font-medium max-w-lg leading-relaxed">
-                    Where do you want to go next? Select your target career
-                    stream and our AI will build a personalized assessment
-                    roadmap.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-5 relative z-10">
-                <div className="flex-1 relative">
-                  <select
-                    value={selectedTarget}
-                    onChange={(e) => setSelectedTarget(e.target.value)}
-                    className="w-full px-6 py-5 bg-[#F8F9FA] dark:bg-[#00171F] border border-black/5 dark:border-white/20 rounded-2xl font-bold text-lg text-[#1C1E21] dark:text-white focus:outline-none focus:ring-4 focus:ring-[#00A8E8]/20 transition-all appearance-none shadow-sm cursor-pointer"
-                  >
-                    <option
-                      value=""
-                      className="text-gray-900 dark:text-white/50"
-                    >
-                      Select your goal...
-                    </option>
-                    {getTargetOptions(status.educationLevel).map((opt) => (
-                      <option
-                        key={opt}
-                        value={opt}
-                        className="text-gray-900 dark:text-white"
-                      >
-                        {opt}
-                      </option>
-                    ))}
-                    <option
-                      value="Other"
-                      className="text-gray-900 dark:text-white"
-                    >
-                      Other
-                    </option>
-                  </select>
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[#00A8E8] dark:text-white/50">
-                    <FiLayers size={24} />
+          {/* STEP 2.5: BATCH SELECTION */}
+          {status?.institutionId &&
+            !status?.assigned &&
+            !isTailoring &&
+            !loadingBatches && (
+              <div className="max-w-6xl mx-auto mt-12 mb-12 animate-fade-in-up">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-white/10 dark:to-white/5 text-[#00A8E8] dark:text-white rounded-2xl flex items-center justify-center shadow-inner border border-[#00A8E8]/20 dark:border-white/10">
+                    <FiUsers size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-[#1C1E21] dark:text-white tracking-tight">
+                      Select Your Batch
+                    </h3>
+                    <p className="text-sm text-[#4B5563] dark:text-white/60 font-medium mt-1">
+                      {status?.institutionName ? (
+                        <>
+                          Join a predefined batch at{" "}
+                          <span className="font-bold text-[#1C1E21] dark:text-white">
+                            {status.institutionName}
+                          </span>{" "}
+                          to generate your assessment.
+                        </>
+                      ) : (
+                        "Join a predefined batch to generate your assessment."
+                      )}
+                    </p>
                   </div>
                 </div>
 
-                {selectedTarget === "Other" && (
-                  <div className="flex-1 relative animate-fade-in">
-                    <input
-                      type="text"
-                      placeholder="Type your custom target..."
-                      value={customTarget}
-                      onChange={(e) => setCustomTarget(e.target.value)}
-                      className="w-full px-6 py-5 bg-[#F8F9FA] dark:bg-[#00171F] border border-black/5 dark:border-white/20 rounded-2xl font-bold text-lg text-[#1C1E21] dark:text-white focus:outline-none focus:ring-4 focus:ring-[#00A8E8]/20 transition-all shadow-sm"
+                {availableBatches.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {availableBatches.map((batch) => (
+                      <div
+                        key={batch.batchId}
+                        className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 p-6 rounded-[2rem] shadow-soft hover:shadow-soft-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col"
+                      >
+                        <div className="mb-4">
+                          <span className="inline-block px-3 py-1 bg-[#00A8E8]/10 text-[#00A8E8] text-xs font-bold rounded-lg mb-3">
+                            {batch.educationLevel}
+                          </span>
+                          <h4 className="text-xl font-bold text-[#1C1E21] dark:text-white leading-snug mb-2">
+                            {batch.name}
+                          </h4>
+                          <p className="text-sm text-[#4B5563] dark:text-white/70 font-medium">
+                            Domain:{" "}
+                            <span className="font-bold text-[#1C1E21] dark:text-white">
+                              {batch.targetDomain}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="mt-auto pt-6">
+                          <button
+                            disabled={autopilotLoading}
+                            onClick={() =>
+                              handleJoinPredefinedBatch(batch.batchId)
+                            }
+                            className="w-full py-3 text-sm bg-[#F8F9FA] dark:bg-[#00171F]/50 text-[#1C1E21] dark:text-white/80 font-bold rounded-xl hover:bg-[#00A8E8] dark:hover:bg-[#00A8E8] hover:text-white dark:hover:text-white transition-all disabled:opacity-50 border border-transparent dark:border-white/10 flex items-center justify-center gap-2"
+                          >
+                            {autopilotLoading ? (
+                              <>
+                                <FiLoader className="animate-spin" /> Joining...
+                              </>
+                            ) : (
+                              <>
+                                <FiArrowRight /> Join Batch
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-10 bg-white/50 dark:bg-white/5 rounded-[2rem] border border-black/5 dark:border-white/10 text-center">
+                    <FiAlertCircle
+                      className="mx-auto text-[#4B5563] dark:text-white/50 mb-3"
+                      size={32}
                     />
+                    <p className="text-[#1C1E21] dark:text-white font-bold text-lg">
+                      No batches available
+                    </p>
+                    <p className="text-sm text-[#4B5563] dark:text-white/60 mt-1">
+                      Please ask your institution administrator to set up
+                      batches.
+                    </p>
                   </div>
                 )}
-
-                <button
-                  className="px-10 py-5 bg-[#00A8E8] text-white font-bold text-lg rounded-2xl shadow-lg shadow-[#00A8E8]/30 hover:shadow-[#00A8E8]/50 hover:-translate-y-1 transition-all disabled:opacity-70 flex items-center justify-center gap-3 md:min-w-[240px]"
-                  onClick={handleConfirmTarget}
-                  disabled={autopilotLoading}
-                >
-                  {autopilotLoading ? (
-                    <>
-                      <FiLoader className="animate-spin" size={24} />{" "}
-                      Designing...
-                    </>
-                  ) : (
-                    <>
-                      Create Roadmap <FiArrowRight size={24} />
-                    </>
-                  )}
-                </button>
               </div>
-            </div>
-          )}
+            )}
 
           {/* STEP 3: WAITING / BATCH READY */}
           {status?.institutionId && status?.stream && (

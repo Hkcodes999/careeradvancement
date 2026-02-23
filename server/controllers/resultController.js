@@ -1,6 +1,6 @@
 const Assessment = require("../models/Assessment");
 const Result = require("../models/Result");
-const User = require("../models/User"); 
+const User = require("../models/User");
 const careerEngine = require("../utils/careerEngine");
 
 /* ======================================================
@@ -10,11 +10,13 @@ exports.submitAssessment = async (req, res) => {
   try {
     const { answers, timeSpent, targetDomain, educationLevel } = req.body;
     const studentId = req.user.id;
-    
+
     // Fetch full user to get Profile info and Batch info
     const user = await User.findById(studentId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     const batchId = user.batchId;
@@ -38,7 +40,9 @@ exports.submitAssessment = async (req, res) => {
     /* ================= FETCH ASSESSMENT ================= */
     const assessment = await Assessment.findOne({ batchId });
     if (!assessment || !assessment.questions) {
-      return res.status(404).json({ success: false, message: "Assessment content not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Assessment content not found" });
     }
 
     /* ================= SCORE CALCULATION ================= */
@@ -64,15 +68,15 @@ exports.submitAssessment = async (req, res) => {
         correct: c.correct,
         total: c.total,
         percentage: Math.round((c.correct / c.total) * 100),
-      })
+      }),
     );
 
     /* ================= AI CAREER ENGINE ================= */
     const aiAnalysis = await careerEngine(
-      categoryScores, 
-      educationLevel || user.profile.education || "UG", 
+      categoryScores,
+      educationLevel || user.profile.education || "UG",
       user.profile.others || {},
-      targetDomain 
+      targetDomain,
     );
 
     /* ================= SAVE RESULT ================= */
@@ -85,11 +89,13 @@ exports.submitAssessment = async (req, res) => {
       categoryScores,
       totalCorrect,
       totalQuestions: assessment.questions.length,
-      overallPercentage: Math.round((totalCorrect / assessment.questions.length) * 100),
+      overallPercentage: Math.round(
+        (totalCorrect / assessment.questions.length) * 100,
+      ),
       strengths: aiAnalysis.strengths,
-      weaknesses: aiAnalysis.weaknesses, 
-      fitReasoning: aiAnalysis.fitReasoning, 
-      gapReasoning: aiAnalysis.gapReasoning, 
+      weaknesses: aiAnalysis.weaknesses,
+      fitReasoning: aiAnalysis.fitReasoning,
+      gapReasoning: aiAnalysis.gapReasoning,
       explanations: aiAnalysis.explanations,
       improvementSuggestions: aiAnalysis.improvementSuggestions,
       recommendedCareers: aiAnalysis.recommendedCareers,
@@ -98,6 +104,14 @@ exports.submitAssessment = async (req, res) => {
       isLocked: true,
     });
 
+    /* ================= CLEAR ACTIVE ASSESSMENT STATE ================= */
+    // Allow the student to take another assessment for a different campus
+    user.batchId = null;
+    user.batchRef = null;
+    user.institutionId = null;
+    user.stream = null;
+    await user.save();
+
     res.json({
       success: true,
       message: "Assessment submitted successfully",
@@ -105,12 +119,14 @@ exports.submitAssessment = async (req, res) => {
       result: {
         ...result.toObject(),
         studentName: user.name,
-        studentEmail: user.email
-      }
+        studentEmail: user.email,
+      },
     });
   } catch (err) {
     console.error("SUBMIT ERROR:", err);
-    res.status(500).json({ success: false, message: "Server error during submission" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error during submission" });
   }
 };
 
@@ -120,7 +136,7 @@ exports.submitAssessment = async (req, res) => {
 exports.getMyResult = async (req, res) => {
   try {
     const studentId = req.user.id;
-    
+
     // Find latest result
     const result = await Result.findOne({ studentId }).sort({ createdAt: -1 });
 
@@ -138,10 +154,12 @@ exports.getMyResult = async (req, res) => {
       success: true,
       ...result.toObject(),
       studentName: user ? user.name : "N/A",
-      studentEmail: user ? user.email : "N/A"
+      studentEmail: user ? user.email : "N/A",
     });
   } catch (err) {
-    res.status(500).json({ locked: true, message: "Failed to retrieve result" });
+    res
+      .status(500)
+      .json({ locked: true, message: "Failed to retrieve result" });
   }
 };
 
@@ -153,16 +171,21 @@ exports.getBatchAnalytics = async (req, res) => {
     const { batchId } = req.params;
     const results = await Result.find({ batchId });
     if (!results || results.length === 0) {
-      return res.json({ submissions: 0, averageScore: 0, categoryAverages: [] });
+      return res.json({
+        submissions: 0,
+        averageScore: 0,
+        categoryAverages: [],
+      });
     }
-    
+
     let totalPercentageSum = 0;
     const categoryMap = {};
-    
+
     results.forEach((r) => {
       totalPercentageSum += r.overallPercentage;
       r.categoryScores.forEach((c) => {
-        if (!categoryMap[c.category]) categoryMap[c.category] = { sum: 0, count: 0 };
+        if (!categoryMap[c.category])
+          categoryMap[c.category] = { sum: 0, count: 0 };
         categoryMap[c.category].sum += c.percentage;
         categoryMap[c.category].count++;
       });
@@ -170,7 +193,9 @@ exports.getBatchAnalytics = async (req, res) => {
 
     const categoryAverages = Object.keys(categoryMap).map((cat) => ({
       category: cat,
-      averagePercentage: Math.round(categoryMap[cat].sum / categoryMap[cat].count),
+      averagePercentage: Math.round(
+        categoryMap[cat].sum / categoryMap[cat].count,
+      ),
     }));
 
     res.json({
@@ -188,11 +213,14 @@ exports.resetAssessment = async (req, res) => {
   try {
     const studentId = req.user.id;
     const user = await User.findById(studentId);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
-    
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
     // Deletes the result for this specific student and batch
     await Result.deleteOne({ studentId, batchId: user.batchId });
-    
+
     res.json({ success: true, message: "Assessment unlocked." });
   } catch (err) {
     res.status(500).json({ success: false, message: "Reset failed" });

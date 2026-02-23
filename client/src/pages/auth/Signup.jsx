@@ -17,6 +17,7 @@ import {
   signupUser,
   googleLogin,
   verifyEmailOTP,
+  updateRole,
 } from "../../services/authApi";
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/logo.png";
@@ -152,6 +153,31 @@ const Signup = () => {
       } else toast.error(res.message || "Google signup failed");
     } catch {
       toast.error("Google signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteRoleSetup = async () => {
+    if (!tempToken || !form.role) {
+      toast.error("Invalid session or role.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await updateRole(tempToken, form.role);
+      if (res.success) {
+        completeSignup({
+          token: res.data.token,
+          role: res.data.role,
+          name: res.data.name,
+        });
+      } else {
+        toast.error(res.message || "Failed to update role");
+      }
+    } catch {
+      toast.error("Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -428,9 +454,7 @@ const Signup = () => {
 
               <button
                 className="w-full py-3 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] text-white text-sm font-bold rounded-xl shadow-[0_4px_12px_rgba(0,168,232,0.25)] hover:shadow-[0_6px_16px_rgba(0,168,232,0.35)] hover:-translate-y-[1px] transition-all disabled:opacity-70"
-                onClick={() => {
-                  /* Intentionally left blank or complete via updateRole API call here if needed */
-                }}
+                onClick={handleCompleteRoleSetup}
                 disabled={loading}
               >
                 {loading ? "Finalizing..." : "Complete Setup"}

@@ -14,8 +14,8 @@ async function extractTextFromPDF(filePath) {
   try {
     const dataBuffer = fs.readFileSync(filePath);
     const pdf = require("pdf-parse-fork");
-    const parse = typeof pdf === 'function' ? pdf : pdf.default;
-    if (typeof parse !== 'function') throw new Error("PDF parser failed.");
+    const parse = typeof pdf === "function" ? pdf : pdf.default;
+    if (typeof parse !== "function") throw new Error("PDF parser failed.");
     const data = await parse(dataBuffer);
     return (data.text || "").replace(/\s+/g, " ").trim().slice(0, 7000);
   } catch (err) {
@@ -32,36 +32,68 @@ exports.runAutopilot = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId);
 
+    console.log("[runAutopilot] Incoming payload:", req.body);
+    console.log(
+      "[runAutopilot] isPersonal evaluated to:",
+      req.body.isPersonal === true,
+    );
+
     // 1. Context validation & NORMALIZATION
-    let contextLevel = req.body.educationLevel || user?.educationLevel || "10th";
+    let contextLevel =
+      req.body.educationLevel || user?.educationLevel || "10th";
     // Force Class 10 normalization for Batch Enum compatibility
     if (contextLevel.toString().includes("10")) contextLevel = "10th";
 
     const targetDomain = req.body.stream || user?.stream || "General Aptitude";
-    const currentStream = req.body.currentStream || user?.profile?.stream || "General";
+    const currentStream =
+      req.body.currentStream || user?.profile?.stream || "General";
+    const isPersonal =
+      req.body.isPersonal === true || String(req.body.isPersonal) === "true";
 
-    if (!user || !user.institutionId) {
-      return res.status(400).json({ message: "User or Institution context missing." });
+    // 2. Fetch Institutional Policy if the user belongs to an institution AND it's not a personal assessment
+    let config = {
+      batchLimit: 500,
+      questionsPerCategory: 5,
+      timeLimit: 60,
+    };
+
+    if (user.institutionId && !isPersonal) {
+      const inst = await Institution.findById(user.institutionId);
+      if (inst && !inst.autopilot?.active) {
+        return res.status(403).json({
+          status: "disabled",
+          message: "Autopilot is not active for this institution.",
+        });
+      }
+      if (inst && inst.autopilot?.settings) {
+        config = inst.autopilot.settings;
+      }
     }
-
-    // 2. Fetch Institutional Policy
-    const inst = await Institution.findById(user.institutionId);
-    if (!inst?.autopilot?.active) {
-      return res.status(403).json({ status: "disabled", message: "Autopilot is not active." });
-    }
-
-    const config = inst.autopilot.settings;
 
     // 3. Batch Management
-    const sanitizedDomain = targetDomain.replace(/[^a-zA-Z0-9]/g, '');
-    let batch = await Batch.findOne({
-      institutionId: user.institutionId,
+    const sanitizedDomain = targetDomain.replace(/[^a-zA-Z0-9]/g, "");
+
+    const Result = require("../models/Result");
+    const previousResults = await Result.find({ studentId: userId }).select(
+      "batchId",
+    );
+    const completedBatchIds = previousResults.map((r) => r.batchId);
+
+    const query = {
       educationLevel: contextLevel,
       targetDomain: targetDomain,
       creationType: "autopilot",
       isActive: true,
-      $expr: { $lt: [{ $size: "$students" }, config.batchLimit || 500] }
-    });
+      batchId: { $nin: completedBatchIds },
+      $expr: { $lt: [{ $size: "$students" }, config.batchLimit || 500] },
+    };
+    if (user.institutionId && !isPersonal) {
+      query.institutionId = user.institutionId;
+    } else {
+      query.institutionId = null; // isolate personal batches from campus batches
+    }
+
+    let batch = await Batch.findOne(query);
 
     if (!batch) {
       batch = await Batch.create({
@@ -69,16 +101,21 @@ exports.runAutopilot = async (req, res) => {
         name: `AI Batch - ${targetDomain} (${contextLevel})`,
         educationLevel: contextLevel,
         targetDomain: targetDomain,
-        institutionId: user.institutionId,
-        createdBy: inst.createdBy || userId,
+        institutionId:
+          !isPersonal && user.institutionId ? user.institutionId : null,
+        createdBy:
+          !isPersonal && user.institutionId
+            ? (await Institution.findById(user.institutionId))?.createdBy ||
+              userId
+            : userId,
         creationType: "autopilot",
         isActive: true,
         students: [userId],
-        slot: { 
-          date: new Date().toISOString().split('T')[0], 
-          startTime: "00:00", 
-          endTime: "23:59" 
-        }
+        slot: {
+          date: new Date().toISOString().split("T")[0],
+          startTime: "00:00",
+          endTime: "23:59",
+        },
       });
     }
 
@@ -100,14 +137,14 @@ exports.runAutopilot = async (req, res) => {
 
     if (!assessment) {
       // Using gemini-2.5-flash as specified for reliability
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash", 
-        generationConfig: { responseMimeType: "application/json" }
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
+        generationConfig: { responseMimeType: "application/json" },
       });
 
       const categories = ["Technical", "Logic", "Aptitude", "Communication"];
       const qCount = config.questionsPerCategory || 5;
-      
+
       const prompt = `Generate a high-quality assessment JSON for a ${contextLevel} student.
       CONTEXT: Upgrading from ${currentStream} to ${targetDomain}.
       REQUIREMENT: Exactly ${qCount} questions for EACH category: ${categories.join(", ")}.
@@ -117,40 +154,53 @@ exports.runAutopilot = async (req, res) => {
       let rawQuestions = JSON.parse(result.response.text());
 
       // SCHEMA GUARD: Ensure exactly 4 options and valid categories for every question
-      const validatedQuestions = rawQuestions.map(q => {
+      const validatedQuestions = rawQuestions.map((q) => {
         let opts = Array.isArray(q.options) ? q.options : [];
-        if (opts.length < 4) while (opts.length < 4) opts.push(`Option ${opts.length + 1}`);
+        if (opts.length < 4)
+          while (opts.length < 4) opts.push(`Option ${opts.length + 1}`);
         return {
           question: q.question || "Topic Assessment Question",
           options: opts.slice(0, 4),
           correctAnswer: q.correctAnswer || opts[0],
-          category: q.category || categories[0]
+          category: q.category || categories[0],
         };
       });
 
       assessment = await Assessment.create({
         batchId: batch.batchId,
-        institutionId: user.institutionId,
-        createdBy: inst.createdBy || userId,
+        institutionId:
+          !isPersonal && user.institutionId ? user.institutionId : null,
+        createdBy:
+          !isPersonal && user.institutionId
+            ? (await Institution.findById(user.institutionId))?.createdBy ||
+              userId
+            : userId,
         mode: "autopilot",
         source: "autopilot", // Required by schema
         questions: validatedQuestions,
         difficulty: "medium",
         categories: categories,
-        timePerQuestion: config.timeLimit ? Math.floor((config.timeLimit * 60) / validatedQuestions.length) : 60,
-        slot: batch.slot // Ensure slot is passed
+        timePerQuestion: config.timeLimit
+          ? Math.floor((config.timeLimit * 60) / validatedQuestions.length)
+          : 60,
+        slot: batch.slot, // Ensure slot is passed
       });
 
       batch.assessmentId = assessment._id;
       await batch.save();
 
-      return res.json({ status: "waiting", message: "AI is tailoring your assessment questions..." });
+      return res.json({
+        status: "waiting",
+        message: "AI is tailoring your assessment questions...",
+      });
     }
 
     res.json({ status: "ready", assessment });
   } catch (err) {
     console.error("Autopilot Engine Error:", err.message);
-    res.status(500).json({ message: "Internal Autopilot Engine Error: " + err.message });
+    res
+      .status(500)
+      .json({ message: "Internal Autopilot Engine Error: " + err.message });
   }
 };
 
@@ -165,14 +215,20 @@ exports.generateAndStoreAssessment = async (req, res) => {
     if (mode === "autopilot_config") {
       const updated = await Institution.findByIdAndUpdate(
         institutionId,
-        { $set: { "autopilot.active": active, "autopilot.settings": settings } },
-        { new: true }
+        {
+          $set: { "autopilot.active": active, "autopilot.settings": settings },
+        },
+        { new: true },
       );
-      return res.json({ message: "Autopilot policy saved", autopilot: updated.autopilot });
+      return res.json({
+        message: "Autopilot policy saved",
+        autopilot: updated.autopilot,
+      });
     }
 
     const targetBatch = await Batch.findOne({ batchId: config.batchId });
-    if (!targetBatch) return res.status(404).json({ message: "Batch not found" });
+    if (!targetBatch)
+      return res.status(404).json({ message: "Batch not found" });
 
     let pdfText = "";
     if (req.file) {
@@ -180,14 +236,14 @@ exports.generateAndStoreAssessment = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash", 
-      generationConfig: { responseMimeType: "application/json" } 
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: { responseMimeType: "application/json" },
     });
 
     const prompt = `Generate manual assessment. Count: ${config.questionCount}. Difficulty: ${config.difficulty}. ${pdfText ? `Ref Syllabus: ${pdfText}` : ""}`;
     const result = await model.generateContent(prompt);
-    
+
     const assessment = await Assessment.create({
       batchId: targetBatch.batchId,
       institutionId: targetBatch.institutionId,
@@ -197,10 +253,13 @@ exports.generateAndStoreAssessment = async (req, res) => {
       questions: JSON.parse(result.response.text()),
       difficulty: config.difficulty || "medium",
       timePerQuestion: config.timePerQuestion || 60,
-      slot: targetBatch.slot
+      slot: targetBatch.slot,
     });
 
-    res.json({ message: "Manual Assessment Created", assessmentId: assessment._id });
+    res.json({
+      message: "Manual Assessment Created",
+      assessmentId: assessment._id,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -213,8 +272,8 @@ exports.parseBiodata = async (req, res) => {
     if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash", 
-      generationConfig: { responseMimeType: "application/json" }
+      model: "gemini-2.5-flash",
+      generationConfig: { responseMimeType: "application/json" },
     });
 
     const prompt = `Extract professional details into JSON: phone, age, gender, education, stream, city, state, skills, interests, careerGoal. Text: ${resumeText}`;

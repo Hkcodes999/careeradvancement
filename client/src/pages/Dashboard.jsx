@@ -7,7 +7,9 @@ import SuperAdminDashboard from "./SuperAdminDashboard";
 const Dashboard = () => {
   const { user } = useAuth();
 
-  if (user?.role === "student") return <StudentDashboard />;
+  if (["student", "general", "campus_student"].includes(user?.role)) {
+    return <StudentDashboard />;
+  }
   if (user?.role === "admin") return <AdminDashboard />;
   if (user?.role === "superadmin") return <SuperAdminDashboard />;
 

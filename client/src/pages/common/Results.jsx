@@ -295,7 +295,7 @@ const Results = () => {
     ) {
       try {
         await resetAssessment();
-        window.location.href = "/assessment";
+        window.location.href = "/dashboard";
       } catch (err) {
         alert("Failed to reset assessment.");
       }

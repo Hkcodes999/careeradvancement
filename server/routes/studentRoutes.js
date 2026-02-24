@@ -10,6 +10,8 @@ const {
   getAssessmentForStudent,
   fetchAvailableBatches,
   getBatchStatus, // Added the specific controller method for clean logic
+  joinCampus,
+  setAssessmentGoal,
 } = require("../controllers/studentController");
 
 // Import the AI Parsing logic
@@ -29,11 +31,13 @@ const upload = multer({
 ================================ */
 router.post("/profile", protect, saveStudentProfile);
 router.post("/parse-biodata", protect, upload.single("biodata"), parseBiodata);
+router.post("/set-goal", protect, setAssessmentGoal);
 
 /* ===============================
     SELECT INSTITUTION & DOMAIN
 ================================ */
 router.post("/select-institution", protect, selectInstitution);
+router.post("/join-campus", protect, joinCampus);
 
 /* ===============================
     DASHBOARD & REFRESH STATUS
@@ -45,19 +49,31 @@ router.get("/batch-status", protect, async (req, res) => {
       .populate("institutionId")
       .populate("batchRef");
 
-    // Include completed institutions lookup (added from result/student controller merge logic)
+    // Include completed institutions lookup and KPI stats
     const Result = require("../models/Result");
-    const results = await Result.find({ studentId: user._id }).select(
-      "batchId",
-    );
+    const results = await Result.find({ studentId: user._id });
+
     const completedBatchIds = results.map((r) => r.batchId);
+
+    // Calculate Dashboard KPIs
+    const assessmentsCompleted = results.length;
+    let avgScore = "--";
+    if (assessmentsCompleted > 0) {
+      const totalScore = results.reduce(
+        (sum, r) => sum + (r.overallPercentage || 0),
+        0,
+      );
+      avgScore = Math.round(totalScore / assessmentsCompleted);
+    }
 
     let completedInstitutions = [];
     if (completedBatchIds.length > 0) {
       const batches = await Batch.find({
         batchId: { $in: completedBatchIds },
       }).select("institutionId");
-      completedInstitutions = batches.map((b) => b.institutionId.toString());
+      completedInstitutions = batches
+        .filter((b) => b.institutionId)
+        .map((b) => b.institutionId.toString());
     }
 
     if (!user) {
@@ -80,10 +96,14 @@ router.get("/batch-status", protect, async (req, res) => {
       institutionId: user.institutionId?._id || null,
       educationLevel: user.profile?.education || null,
       profileStream: user.profile?.stream || null, // Existing background
-      stream: user.stream || null, // Target Upgrade Domain
+      stream: user.stream || null, // Active Target Domain
+      shortTermGoal: user.profile?.shortTermGoal || null, // Saved ST Goal
+      longTermGoal: user.profile?.longTermGoal || null, // Saved LT Goal
       batchId: user.batchId || null,
       batchDetails: null,
       completedInstitutions,
+      assessmentsCompleted,
+      avgScore,
     };
 
     // Cross-verify Batch assignment
@@ -94,6 +114,23 @@ router.get("/batch-status", protect, async (req, res) => {
       const batch = await Batch.findOne({ batchId: activeBatchId });
 
       if (batch && batch.isActive) {
+        // Fix Corrupt State: If it's a personal autopilot request, ensure an assessment actually exists
+        // If it doesn't, AI generation failed. Clear it so the user isn't stuck.
+        if (batch.batchId.startsWith("AUTO-")) {
+          const AssessmentModel = require("../models/Assessment");
+          const assessmentExists = await AssessmentModel.exists({
+            batchId: batch.batchId,
+          });
+          if (!assessmentExists) {
+            user.batchId = null;
+            user.batchRef = null;
+            user.stream = null;
+            await user.save();
+            responseData.assigned = false;
+            return res.json(responseData);
+          }
+        }
+
         responseData.assigned = true;
         responseData.batchId = batch.batchId;
         responseData.slot = batch.slot;

@@ -47,9 +47,10 @@ exports.signup = async (req, res) => {
       email,
       password: hashedPassword,
       role:
-        role && ["student", "admin", "superadmin"].includes(role)
+        role &&
+        ["general", "campus_student", "admin", "superadmin"].includes(role)
           ? role
-          : "student",
+          : "general",
       isActive: false, // Must verify OTP to activate
       verificationOTP: otp,
       verificationOTPExpires: Date.now() + 10 * 60 * 1000, // 10 minutes

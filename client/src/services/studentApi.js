@@ -88,6 +88,13 @@ export const saveStudentProfile = async (profileData) => {
   });
 };
 
+export const setAssessmentGoal = async (domain, goalType) => {
+  return apiFetch(`${API_BASE}/set-goal`, {
+    method: "POST",
+    body: JSON.stringify({ domain, goalType }),
+  });
+};
+
 /* ==================================================
     BATCH & INSTITUTION LOGIC
 ================================================== */
@@ -111,6 +118,13 @@ export const selectInstitution = async (institutionId, targetStream = null) => {
   return apiFetch(`${API_BASE}/select-institution`, {
     method: "POST",
     body: JSON.stringify(body),
+  });
+};
+
+export const joinCampus = async (institutionId) => {
+  return apiFetch(`${API_BASE}/join-campus`, {
+    method: "POST",
+    body: JSON.stringify({ institutionId }),
   });
 };
 

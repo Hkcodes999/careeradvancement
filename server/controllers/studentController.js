@@ -183,6 +183,24 @@ exports.selectInstitution = async (req, res) => {
   }
 };
 
+exports.joinCampus = async (req, res) => {
+  try {
+    const { institutionId } = req.body;
+    const user = await User.findById(req.user.id);
+
+    user.institutionId = institutionId;
+    user.role = "campus_student";
+    user.stream = null;
+    user.batchId = null;
+    user.batchRef = null;
+    await user.save();
+
+    res.json({ success: true, message: "Joined campus successfully." });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to join campus" });
+  }
+};
+
 exports.getAssessmentForStudent = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -207,7 +225,8 @@ exports.getAssessmentForStudent = async (req, res) => {
       studentId: user._id,
       batchId: user.batchId,
     });
-    if (existingResult) {
+    // Allow users with the 'general' role to take the assessment unlimited times
+    if (existingResult && user.role !== "general") {
       return res.json({
         locked: true,
         reason: "Assessment already completed.",
@@ -283,5 +302,40 @@ exports.joinBatch = async (req, res) => {
     res.json({ success: true, message: "Joined successfully" });
   } catch (err) {
     res.status(500).json({ success: false, message: "Join failed" });
+  }
+};
+
+exports.setAssessmentGoal = async (req, res) => {
+  try {
+    const { domain, goalType } = req.body; // goalType should be 'shortTermGoal' or 'longTermGoal'
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (goalType === "shortTermGoal") {
+      user.profile.shortTermGoal = domain;
+    } else if (goalType === "longTermGoal") {
+      user.profile.longTermGoal = domain;
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid goal type" });
+    }
+
+    // Explicitly mark the modified path since it's a Mixed/Object type
+    user.markModified("profile");
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `${goalType === "shortTermGoal" ? "Short-Term" : "Long-Term"} Goal updated successfully.`,
+    });
+  } catch (err) {
+    console.error("Set Goal Error:", err);
+    res.status(500).json({ success: false, message: "Failed to save goal" });
   }
 };

@@ -13,31 +13,33 @@ const ProfileSchema = new mongoose.Schema(
     /* UPDATED: Added a setter to normalize education strings. 
       This ensures "10" becomes "10th" to match Batch enum requirements.
     */
-    education: { 
-      type: String, 
+    education: {
+      type: String,
       default: "",
-      set: function(v) {
+      set: function (v) {
         if (!v) return v;
         const val = v.toLowerCase().trim();
         // Regex to catch "10", "10th", "class 10", "grade 10" etc.
         if (/\b10\b/.test(val) || val.includes("10th")) return "10th";
         return v;
-      }
-    }, 
-    stream: { type: String, default: "" },    // Current background
+      },
+    },
+    stream: { type: String, default: "" }, // Current background
     city: { type: String, default: "" },
     state: { type: String, default: "" },
     personalityType: { type: String, default: "" },
     skills: { type: [String], default: [] },
     interests: { type: String, default: "" },
     careerGoal: { type: String, default: "" },
-    
+    shortTermGoal: { type: String, default: "" },
+    longTermGoal: { type: String, default: "" },
+
     others: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 /* ================= USER SCHEMA ================= */
@@ -54,7 +56,7 @@ const UserSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
-      trim: true
+      trim: true,
     },
 
     password: {
@@ -64,8 +66,8 @@ const UserSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["student", "admin", "superadmin"],
-      default: "student",
+      enum: ["general", "campus_student", "admin", "superadmin"],
+      default: "general",
     },
 
     /* ================= OTP RESET FIELDS ================= */
@@ -88,7 +90,7 @@ const UserSchema = new mongoose.Schema(
     /* ================= STUDENT PROFILE ================= */
     profile: {
       type: ProfileSchema,
-      default: () => ({}), 
+      default: () => ({}),
     },
 
     isProfileComplete: {
@@ -111,7 +113,7 @@ const UserSchema = new mongoose.Schema(
     },
 
     batchId: {
-      type: String, 
+      type: String,
       default: null,
     },
 
@@ -127,11 +129,11 @@ const UserSchema = new mongoose.Schema(
       default: false, // Changed: require OTP verification for email signups to become active
     },
   },
-  { 
+  {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-  }
+    toObject: { virtuals: true },
+  },
 );
 
 /* ================= VIRTUALS ================= */
@@ -151,7 +153,7 @@ UserSchema.pre("findOneAndDelete", async function (next) {
     if (user && user.role === "admin") {
       const Institution = mongoose.model("Institution");
       await Institution.deleteMany({ createdBy: user._id });
-      
+
       const Batch = mongoose.model("Batch");
       await Batch.deleteMany({ createdBy: user._id });
     }

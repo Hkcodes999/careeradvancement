@@ -5,7 +5,8 @@ const API_URL = `${import.meta.env.VITE_API_URL}/ai`;
  * @param {boolean} isJson - If true, sets application/json content-type
  */
 const getHeaders = (isJson = true) => {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
   if (isJson) headers["Content-Type"] = "application/json";
   return headers;
@@ -26,7 +27,9 @@ export const generateAssessment = async (formData) => {
   const data = await res.json();
 
   if (res.status === 409) {
-    throw new Error("Assessment already exists for this batch. Delete the existing one first.");
+    throw new Error(
+      "Assessment already exists for this batch. Delete the existing one first.",
+    );
   }
 
   if (!res.ok) {
@@ -48,7 +51,8 @@ export const runAutopilotEngine = async (context = {}) => {
     // Explicitly mapping keys to ensure backend receives expected fields
     body: JSON.stringify({
       educationLevel: context.educationLevel,
-      stream: context.stream
+      stream: context.stream,
+      isPersonal: context.isPersonal || false,
     }),
   });
 

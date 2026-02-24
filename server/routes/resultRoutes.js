@@ -15,13 +15,28 @@ const {
 ===================================================== */
 
 /* 📝 Submit Assessment (Includes Target Domain Logic) */
-router.post("/submit", protect, role("student"), submitAssessment);
+router.post(
+  "/submit",
+  protect,
+  role("student", "general", "campus_student"),
+  submitAssessment,
+);
 
 /* 📊 Get My Result (Sorted by latest) */
-router.get("/my", protect, role("student"), getMyResult);
+router.get(
+  "/my",
+  protect,
+  role("student", "general", "campus_student"),
+  getMyResult,
+);
 
 /* 🔄 Reset/Unlock Assessment (Allows Retake/Domain Change) */
-router.delete("/reset", protect, role("student"), resetAssessment);
+router.delete(
+  "/reset",
+  protect,
+  role("student", "general", "campus_student"),
+  resetAssessment,
+);
 
 /* =====================================================
     ADMIN / SUPERADMIN
@@ -32,7 +47,7 @@ router.get(
   "/batch/:batchId",
   protect,
   role("admin", "superadmin"),
-  getBatchAnalytics
+  getBatchAnalytics,
 );
 
 module.exports = router;

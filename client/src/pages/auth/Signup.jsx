@@ -28,7 +28,7 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
-    role: "student",
+    role: "general",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -339,7 +339,7 @@ const Signup = () => {
                 value={form.role}
                 onChange={handleChange}
               >
-                <option value="student">Student</option>
+                <option value="general">Student (Independent)</option>
                 <option value="admin">Administrator</option>
                 <option value="superadmin">Super Admin</option>
               </select>
@@ -431,7 +431,7 @@ const Signup = () => {
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
                 >
-                  <option value="student">Student</option>
+                  <option value="general">Student (Independent)</option>
                   <option value="admin">Admin</option>
                   <option value="superadmin">Super Admin</option>
                 </select>

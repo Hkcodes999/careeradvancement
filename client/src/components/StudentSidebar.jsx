@@ -11,6 +11,7 @@ import {
   FiCommand,
   FiSun,
   FiMoon,
+  FiMapPin,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
@@ -18,7 +19,7 @@ import { useEffect } from "react";
 
 const StudentSidebar = () => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const isAssessmentActive = location.pathname.startsWith("/assessment");
@@ -38,17 +39,37 @@ const StudentSidebar = () => {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  const links = [
-    { name: "Dashboard", path: "/dashboard", icon: FiGrid },
-    { name: "My Profile", path: "/profile", icon: FiUser },
+  const ObjectLinks = [
+    { name: "Dashboard", path: "/dashboard", icon: FiGrid, visible: true },
+    {
+      name: "My Campus",
+      path: "/campus",
+      icon: FiMapPin,
+      visible: ["campus_student", "student"].includes(user?.role),
+    },
+    {
+      name: "Personal Assessment",
+      path: "/personal-assessment",
+      icon: FiCommand,
+      visible: true,
+    },
+    { name: "My Profile", path: "/profile", icon: FiUser, visible: true },
     {
       name: "Assessment",
       path: "/assessment",
       icon: FiFileText,
       activeCheck: isAssessmentActive,
+      visible: true,
     },
-    { name: "Global Results", path: "/results", icon: FiPieChart },
+    {
+      name: "Global Results",
+      path: "/results",
+      icon: FiPieChart,
+      visible: true,
+    },
   ];
+
+  const links = ObjectLinks.filter((link) => link.visible !== false);
 
   return (
     <>

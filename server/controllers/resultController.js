@@ -30,7 +30,8 @@ exports.submitAssessment = async (req, res) => {
 
     /* ================= ATTEMPT LOCK ================= */
     const existing = await Result.findOne({ studentId, batchId });
-    if (existing) {
+    // Bypass the lock for 'general' users
+    if (existing && user.role !== "general") {
       return res.status(403).json({
         success: false,
         message: "Assessment already submitted. One attempt only.",
@@ -79,13 +80,25 @@ exports.submitAssessment = async (req, res) => {
       targetDomain,
     );
 
+    const batch = await require("../models/Batch").findOne({ batchId });
+    const finalTargetDomain =
+      targetDomain ||
+      (batch ? batch.targetDomain : null) ||
+      user.stream ||
+      "General";
+    const finalEducationLevel =
+      educationLevel ||
+      (batch ? batch.educationLevel : null) ||
+      user.profile?.education ||
+      "UG";
+
     /* ================= SAVE RESULT ================= */
     const result = await Result.create({
       studentId,
       batchId,
       assessmentId: assessment._id,
-      targetDomain: targetDomain || "General",
-      educationLevel: educationLevel || user.profile.education,
+      targetDomain: finalTargetDomain,
+      educationLevel: finalEducationLevel,
       categoryScores,
       totalCorrect,
       totalQuestions: assessment.questions.length,
@@ -218,8 +231,19 @@ exports.resetAssessment = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    // Deletes the result for this specific student and batch
-    await Result.deleteOne({ studentId, batchId: user.batchId });
+    // Find the latest result and delete it ONLY if they aren't a general user (who keeps all records)
+    const latestResult = await Result.findOne({ studentId }).sort({
+      createdAt: -1,
+    });
+    if (latestResult && user.role !== "general") {
+      await Result.deleteOne({ _id: latestResult._id });
+    }
+
+    // Ensure the user's batch state is cleared just in case
+    user.batchId = null;
+    user.batchRef = null;
+    user.stream = null;
+    await user.save();
 
     res.json({ success: true, message: "Assessment unlocked." });
   } catch (err) {

@@ -15,8 +15,11 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/Dashboard";
 import StudentProfile from "./pages/student/StudentProfile";
+import JoinCampus from "./pages/student/JoinCampus";
+import PersonalAssessment from "./pages/student/PersonalAssessment";
 import Results from "./pages/common/Results";
 import Assessment from "./pages/common/Assessment";
+import Campus from "./pages/student/Campus";
 import SmoothScroll from "./components/SmoothScroll";
 
 /* ---------------- App Layout ---------------- */
@@ -30,7 +33,9 @@ const AppLayout = ({ children }) => {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/profile") ||
     location.pathname.startsWith("/assessment") ||
-    location.pathname.startsWith("/results");
+    location.pathname.startsWith("/personal-assessment") ||
+    location.pathname.startsWith("/results") ||
+    location.pathname.startsWith("/campus");
 
   // Prevent UI flicker while checking localStorage/token on refresh
   if (loading) {
@@ -76,12 +81,18 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/join-campus/:institutionId"
+              element={<JoinCampus />}
+            />
 
             {/* STUDENT PROFILE */}
             <Route
               path="/profile"
               element={
-                <ProtectedRoute allowedRoles={["student"]}>
+                <ProtectedRoute
+                  allowedRoles={["student", "general", "campus_student"]}
+                >
                   <StudentProfile />
                 </ProtectedRoute>
               }
@@ -92,9 +103,37 @@ const App = () => {
               path="/dashboard"
               element={
                 <ProtectedRoute
-                  allowedRoles={["student", "admin", "superadmin"]}
+                  allowedRoles={[
+                    "student",
+                    "general",
+                    "campus_student",
+                    "admin",
+                    "superadmin",
+                  ]}
                 >
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* CAMPUS (PREDEFINED BATCHES & INSTITUTION LINK) */}
+            <Route
+              path="/campus"
+              element={
+                <ProtectedRoute allowedRoles={["student", "campus_student"]}>
+                  <Campus />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* PERSONAL ASSESSMENT */}
+            <Route
+              path="/personal-assessment"
+              element={
+                <ProtectedRoute
+                  allowedRoles={["student", "general", "campus_student"]}
+                >
+                  <PersonalAssessment />
                 </ProtectedRoute>
               }
             />
@@ -103,7 +142,9 @@ const App = () => {
             <Route
               path="/assessment"
               element={
-                <ProtectedRoute allowedRoles={["student"]}>
+                <ProtectedRoute
+                  allowedRoles={["student", "general", "campus_student"]}
+                >
                   <Assessment />
                 </ProtectedRoute>
               }
@@ -113,7 +154,9 @@ const App = () => {
             <Route
               path="/results"
               element={
-                <ProtectedRoute allowedRoles={["student"]}>
+                <ProtectedRoute
+                  allowedRoles={["student", "general", "campus_student"]}
+                >
                   <Results />
                 </ProtectedRoute>
               }

@@ -42,7 +42,7 @@ const BatchSchema = new mongoose.Schema({
   institutionId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Institution",
-    required: true,
+    default: null,
     index: true,
   },
 

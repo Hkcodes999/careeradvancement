@@ -95,6 +95,10 @@ export const setAssessmentGoal = async (domain, goalType) => {
   });
 };
 
+export const cancelPersonalAssessment = async () => {
+  return apiFetch(`${API_BASE}/cancel-autopilot`, { method: "POST" });
+};
+
 /* ==================================================
     BATCH & INSTITUTION LOGIC
 ================================================== */

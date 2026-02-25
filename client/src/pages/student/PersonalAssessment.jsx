@@ -4,6 +4,7 @@ import StudentSidebar from "../../components/StudentSidebar";
 import {
   fetchStudentBatchStatus,
   setAssessmentGoal,
+  cancelPersonalAssessment,
 } from "../../services/studentApi";
 import { runAutopilotEngine } from "../../services/aiApi";
 import { toast } from "react-toastify";
@@ -24,8 +25,8 @@ const PersonalAssessment = () => {
 
   // Custom Flow States
   const [targetDomain, setTargetDomain] = useState("");
-  const [goalType, setGoalType] = useState("none");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Simple hardcoded domains for the UI exactly like before
   const predefinedTargets = [
@@ -53,22 +54,27 @@ const PersonalAssessment = () => {
     loadDashboard();
   }, []);
 
-  const handleGenerateCustomAssessment = async (domainOverride = null) => {
+  const handleGenerateCustomAssessment = async (
+    domainOverride = null,
+    forcedGoalType = "none",
+  ) => {
     const domainToTest = domainOverride || targetDomain;
     if (!domainToTest) return toast.error("Please enter a target domain first");
 
     try {
       setIsGenerating(true);
 
-      // Save goal if they selected a classification
-      if (!domainOverride && goalType !== "none") {
-        await setAssessmentGoal(domainToTest, goalType);
+      // Save goal if this somehow came from a flow that was setting a new one
+      // (Currently, custom input defaults to "none", returning false for this condition)
+      if (!domainOverride && forcedGoalType !== "none") {
+        await setAssessmentGoal(domainToTest, forcedGoalType);
       }
 
       // Run the autopilot engine directly with the user's custom stream
       await runAutopilotEngine({
         educationLevel: status?.educationLevel || "Undergraduate",
         stream: domainToTest,
+        goalType: forcedGoalType,
         isPersonal: true,
       });
 
@@ -79,6 +85,20 @@ const PersonalAssessment = () => {
     } catch (err) {
       toast.error(err.message || "Failed to generate personal assessment.");
       setIsGenerating(false);
+    }
+  };
+
+  const handleCancelAssessment = async () => {
+    try {
+      setIsCancelling(true);
+      await cancelPersonalAssessment();
+      setTargetDomain("");
+      await loadDashboard();
+      toast.success("Assessment cleared. You can now generate a new one.");
+    } catch (err) {
+      toast.error(err.message || "Failed to clear assessment.");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -181,15 +201,20 @@ const PersonalAssessment = () => {
                       </div>
                       <button
                         onClick={() =>
-                          handleGenerateCustomAssessment(status.shortTermGoal)
+                          handleGenerateCustomAssessment(
+                            status.shortTermGoal,
+                            "shortTermGoal",
+                          )
                         }
                         disabled={isGenerating}
-                        className="px-4 py-2 bg-emerald-500 text-white text-sm font-bold rounded-xl shadow-md hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                        className="px-5 py-2.5 bg-emerald-500 text-white text-sm font-bold rounded-xl shadow-md hover:bg-emerald-600 transition-colors flex items-center gap-2 border border-emerald-400/50"
                       >
-                        Retake{" "}
-                        <FiRefreshCw
-                          size={14}
-                          className={isGenerating ? "animate-spin" : ""}
+                        {isGenerating ? "Generating..." : "Assess Goal"}
+                        <FiArrowRight
+                          size={16}
+                          className={
+                            isGenerating ? "opacity-50" : "translate-y-[1px]"
+                          }
                         />
                       </button>
                     </div>
@@ -206,15 +231,20 @@ const PersonalAssessment = () => {
                       </div>
                       <button
                         onClick={() =>
-                          handleGenerateCustomAssessment(status.longTermGoal)
+                          handleGenerateCustomAssessment(
+                            status.longTermGoal,
+                            "longTermGoal",
+                          )
                         }
                         disabled={isGenerating}
-                        className="px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-xl shadow-md hover:bg-purple-600 transition-colors flex items-center gap-2"
+                        className="px-5 py-2.5 bg-purple-500 text-white text-sm font-bold rounded-xl shadow-md hover:bg-purple-600 transition-colors flex items-center gap-2 border border-purple-400/50"
                       >
-                        Retake{" "}
-                        <FiRefreshCw
-                          size={14}
-                          className={isGenerating ? "animate-spin" : ""}
+                        {isGenerating ? "Generating..." : "Assess Goal"}
+                        <FiArrowRight
+                          size={16}
+                          className={
+                            isGenerating ? "opacity-50" : "translate-y-[1px]"
+                          }
                         />
                       </button>
                     </div>
@@ -255,49 +285,11 @@ const PersonalAssessment = () => {
                     />
                   </div>
 
-                  {/* GOAL TYPE SELECTOR */}
-                  <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-2 pb-2">
-                    <span className="text-sm font-bold text-[#4B5563] dark:text-white/60">
-                      Classify as:
-                    </span>
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-[#1C1E21] dark:text-white">
-                      <input
-                        type="radio"
-                        name="goalType"
-                        value="none"
-                        checked={goalType === "none"}
-                        onChange={() => setGoalType("none")}
-                        className="accent-[#00A8E8] w-4 h-4 cursor-pointer"
-                      />
-                      Just Testing
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-[#1C1E21] dark:text-white">
-                      <input
-                        type="radio"
-                        name="goalType"
-                        value="shortTermGoal"
-                        checked={goalType === "shortTermGoal"}
-                        onChange={() => setGoalType("shortTermGoal")}
-                        className="accent-[#00A8E8] w-4 h-4 cursor-pointer"
-                      />
-                      Short-Term Goal
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-[#1C1E21] dark:text-white">
-                      <input
-                        type="radio"
-                        name="goalType"
-                        value="longTermGoal"
-                        checked={goalType === "longTermGoal"}
-                        onChange={() => setGoalType("longTermGoal")}
-                        className="accent-[#00A8E8] w-4 h-4 cursor-pointer"
-                      />
-                      Long-Term Goal
-                    </label>
-                  </div>
-
-                  <div className="flex justify-end border-t border-black/5 dark:border-white/10 pt-6">
+                  <div className="flex justify-end border-t border-black/5 dark:border-white/10 pt-6 mt-4">
                     <button
-                      onClick={() => handleGenerateCustomAssessment()}
+                      onClick={() =>
+                        handleGenerateCustomAssessment(null, "none")
+                      }
                       disabled={!targetDomain || isGenerating}
                       className="px-8 py-4 bg-gradient-to-r from-[#00A8E8] to-[#007EA7] text-white font-black text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:grayscale disabled:hover:scale-100 flex items-center gap-3"
                     >
@@ -385,9 +377,9 @@ const PersonalAssessment = () => {
                       </p>
                     </div>
 
-                    <div className="mt-8 md:mt-0 flex-shrink-0">
+                    <div className="mt-8 md:mt-0 flex-shrink-0 flex flex-col items-center sm:items-end gap-3 w-full sm:w-auto">
                       <button
-                        className="px-8 py-4 bg-[#00A8E8] text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(0,168,232,0.4)] hover:shadow-[0_0_60px_rgba(0,168,232,0.6)] hover:bg-[#00B4F5] hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-4 group/btn"
+                        className="w-full sm:w-auto px-8 py-4 bg-[#00A8E8] text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(0,168,232,0.4)] hover:shadow-[0_0_60px_rgba(0,168,232,0.6)] hover:bg-[#00B4F5] hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-4 group/btn"
                         onClick={() => navigate("/assessment")}
                       >
                         Start Assessment
@@ -395,6 +387,19 @@ const PersonalAssessment = () => {
                           size={28}
                           className="group-hover/btn:translate-x-2 transition-transform"
                         />
+                      </button>
+
+                      <button
+                        className="w-full sm:w-auto px-6 py-2.5 bg-white/10 text-white/80 hover:text-white hover:bg-[#ef4444]/80 font-bold text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-white/20 hover:border-transparent hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] disabled:opacity-50"
+                        onClick={handleCancelAssessment}
+                        disabled={isCancelling}
+                      >
+                        {isCancelling ? (
+                          <FiLoader className="animate-spin" />
+                        ) : (
+                          <FiRefreshCw size={14} />
+                        )}
+                        Start Over / Change Domain
                       </button>
                     </div>
                   </div>

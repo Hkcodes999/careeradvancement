@@ -72,25 +72,29 @@ exports.submitAssessment = async (req, res) => {
       }),
     );
 
-    /* ================= AI CAREER ENGINE ================= */
-    const aiAnalysis = await careerEngine(
-      categoryScores,
-      educationLevel || user.profile.education || "UG",
-      user.profile.others || {},
-      targetDomain,
-    );
-
+    /* ================= DYNAMIC CONTEXT COMPUTATION ================= */
     const batch = await require("../models/Batch").findOne({ batchId });
+
+    // Fallbacks ensure we always have valid strings for the analysis engine
     const finalTargetDomain =
       targetDomain ||
       (batch ? batch.targetDomain : null) ||
       user.stream ||
       "General";
+
     const finalEducationLevel =
       educationLevel ||
       (batch ? batch.educationLevel : null) ||
       user.profile?.education ||
       "UG";
+
+    /* ================= AI CAREER ENGINE ================= */
+    const aiAnalysis = await careerEngine(
+      categoryScores,
+      finalEducationLevel,
+      user.profile?.others || {},
+      finalTargetDomain,
+    );
 
     /* ================= SAVE RESULT ================= */
     const result = await Result.create({

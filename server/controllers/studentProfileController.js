@@ -168,7 +168,7 @@ exports.parseBiodata = async (req, res) => {
         : (await mammoth.extractRawText({ buffer: req.file.buffer })).value;
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const prompt = `Extract details from this resume into JSON: { "extractedData": { "phone":"", "age":0, "gender":"", "education":"", "stream":"", "city":"", "state":"", "skills":[], "careerGoal":"" }, "others": {} } Text: ${extractedText.slice(0, 7000)}`;
+    const prompt = `Extract details from this resume into JSON: { "extractedData": { "phone":"", "age":0, "dob":"", "gender":"", "education":"", "stream":"", "area":"", "city":"", "state":"", "motherTongue":"", "skills":[], "careerGoal":"" }, "others": {} } Text: ${extractedText.slice(0, 7000)}`;
 
     const result = await model.generateContent(prompt);
     const parsedData = JSON.parse(
@@ -199,11 +199,14 @@ exports.saveStudentProfile = async (req, res) => {
     const {
       phone,
       age,
+      dob,
       gender,
       education,
       stream,
+      area,
       city,
       state,
+      motherTongue,
       skills,
       careerGoal,
       others,
@@ -212,11 +215,14 @@ exports.saveStudentProfile = async (req, res) => {
     user.profile = {
       phone,
       age,
+      dob,
       gender,
       education,
       stream,
+      area,
       city,
       state,
+      motherTongue,
       careerGoal,
       others,
       skills: Array.isArray(skills)

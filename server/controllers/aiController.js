@@ -49,6 +49,7 @@ exports.runAutopilot = async (req, res) => {
       req.body.currentStream || user?.profile?.stream || "General";
     const isPersonal =
       req.body.isPersonal === true || String(req.body.isPersonal) === "true";
+    const goalType = req.body.goalType || "none";
 
     // 2. Fetch Institutional Policy if the user belongs to an institution AND it's not a personal assessment
     let config = {
@@ -142,11 +143,50 @@ exports.runAutopilot = async (req, res) => {
         generationConfig: { responseMimeType: "application/json" },
       });
 
-      const categories = ["Technical", "Logic", "Aptitude", "Communication"];
+      const categories = [
+        "Domain Intuition",
+        "Logic",
+        "Aptitude",
+        "Communication",
+      ];
       const qCount = config.questionsPerCategory || 5;
 
-      const prompt = `Generate a high-quality assessment JSON for a ${contextLevel} student.
-      CONTEXT: Upgrading from ${currentStream} to ${targetDomain}.
+      // Determine goal context phrasing
+      let goalContext =
+        "wants to explore if they have a natural fit for a career in";
+      if (goalType === "shortTermGoal") {
+        goalContext = "is actively preparing for a short-term transition into";
+      } else if (goalType === "longTermGoal") {
+        goalContext =
+          "is seriously assessing their long-term potential to become an expert in";
+      }
+
+      // Extract Profile Skills & Interests
+      const userSkills =
+        user?.profile?.skills?.length > 0
+          ? user.profile.skills.join(", ")
+          : "Not specified";
+      const userInterests = user?.profile?.interests || "Not specified";
+
+      const prompt = `Generate a high-quality cognitive and intuitive assessment JSON for a ${contextLevel} student.
+      CONTEXT: The student ${goalContext} ${targetDomain}.
+      
+      STUDENT BACKGROUND:
+      - Current Skills: ${userSkills}
+      - Interests: ${userInterests}
+      (Use this background to frame scenario questions using concepts they *might* already be familiar with, but strictly test their intuition for ${targetDomain}).
+
+      CRITICAL OBJECTIVE: You are testing if the student has the *mindset*, *intuition*, and *problem-solving approach* required for ${targetDomain}. 
+      RULES: 
+      1. DO ask scenario-based questions that involve the core concepts of ${targetDomain} (e.g., if UI/UX, ask about user flow, contrast, and layout intuition. If Web Dev, ask about organizing information or basic logic flow).
+      2. DO NOT ask about specific software, coding syntax, or advanced jargon (e.g., NO Figma questions, NO HTML/React syntax, NO advanced statistical formulas). The student is a beginner. 
+      
+      CATEGORY DEFINITIONS (STRICTLY REQUIRED):
+      1. "Domain Intuition": Scenario-based questions testing their natural 'gut feeling' and common sense for ${targetDomain}'s core concepts.
+      2. "Logic": Deductive troubleshooting or structural reasoning relevant to the kinds of problems faced in ${targetDomain}.
+      3. "Aptitude": Basic analytical or quantitative reasoning tied to the field's demands (e.g., estimating proportions, identifying data outliers).
+      4. "Communication": Understanding hypothetical client requirements, user feedback, or workplace scenarios in the context of ${targetDomain}.
+
       REQUIREMENT: Exactly ${qCount} questions for EACH category: ${categories.join(", ")}.
       FORMAT: [{"question": "string", "options": ["string", "string", "string", "string"], "correctAnswer": "string", "category": "string"}]`;
 

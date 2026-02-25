@@ -12,6 +12,7 @@ const {
   getBatchStatus, // Added the specific controller method for clean logic
   joinCampus,
   setAssessmentGoal,
+  cancelAutopilot,
 } = require("../controllers/studentController");
 
 // Import the AI Parsing logic
@@ -42,6 +43,8 @@ router.post("/join-campus", protect, joinCampus);
 /* ===============================
     DASHBOARD & REFRESH STATUS
 ================================ */
+router.post("/cancel-autopilot", protect, cancelAutopilot);
+
 router.get("/batch-status", protect, async (req, res) => {
   try {
     // Populate institution and batchRef for complete frontend context
@@ -49,9 +52,14 @@ router.get("/batch-status", protect, async (req, res) => {
       .populate("institutionId")
       .populate("batchRef");
 
-    // Include completed institutions lookup and KPI stats
+    // Include completed institutions lookup, KPI stats, and Recent Results
     const Result = require("../models/Result");
-    const results = await Result.find({ studentId: user._id });
+    const results = await Result.find({ studentId: user._id }).sort({
+      createdAt: -1,
+    });
+
+    // Grab top 3 for dashboard display
+    const recentResults = results.slice(0, 3);
 
     const completedBatchIds = results.map((r) => r.batchId);
 
@@ -104,6 +112,7 @@ router.get("/batch-status", protect, async (req, res) => {
       completedInstitutions,
       assessmentsCompleted,
       avgScore,
+      recentResults,
     };
 
     // Cross-verify Batch assignment

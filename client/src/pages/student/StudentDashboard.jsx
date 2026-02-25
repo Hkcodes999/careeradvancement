@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import StudentSidebar from "../../components/StudentSidebar";
-import { fetchStudentBatchStatus } from "../../services/studentApi";
+import {
+  fetchStudentBatchStatus,
+  setAssessmentGoal,
+} from "../../services/studentApi";
 import { toast } from "react-toastify";
 import {
   FiUser,
@@ -14,6 +17,12 @@ import {
   FiTrendingUp,
   FiTarget,
   FiAward,
+  FiBriefcase,
+  FiCalendar,
+  FiCheckCircle,
+  FiMessageSquare,
+  FiPlus,
+  FiX,
 } from "react-icons/fi";
 
 const StudentDashboard = () => {
@@ -23,6 +32,22 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
   const [userName, setUserName] = useState("");
+
+  // Goal Modal State
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [editingGoalType, setEditingGoalType] = useState(null); // 'shortTermGoal' | 'longTermGoal'
+  const [selectedDomain, setSelectedDomain] = useState("");
+  const [customDomain, setCustomDomain] = useState("");
+  const [savingGoal, setSavingGoal] = useState(false);
+
+  const predefinedDomains = [
+    "Full Stack Development",
+    "Data Science",
+    "Cloud Computing",
+    "Cybersecurity",
+    "UI/UX Design",
+    "Product Management",
+  ];
 
   const loadDashboard = async () => {
     try {
@@ -35,6 +60,43 @@ const StudentDashboard = () => {
       toast.error("Dashboard Sync Error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openGoalModal = (type) => {
+    setEditingGoalType(type);
+    setSelectedDomain("");
+    setCustomDomain("");
+    setIsGoalModalOpen(true);
+  };
+
+  const handleSaveGoal = async () => {
+    const finalDomain = customDomain.trim() || selectedDomain;
+    if (!finalDomain) {
+      toast.error("Please select or enter a goal domain.");
+      return;
+    }
+
+    try {
+      setSavingGoal(true);
+      const res = await setAssessmentGoal(finalDomain, editingGoalType);
+
+      if (res.success) {
+        toast.success(res.message || "Goal updated successfully!");
+        // Update local state to reflect UI changes immediately
+        setStatus((prev) => ({
+          ...prev,
+          profile: {
+            ...prev.profile,
+            [editingGoalType]: finalDomain,
+          },
+        }));
+        setIsGoalModalOpen(false);
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to save goal.");
+    } finally {
+      setSavingGoal(false);
     }
   };
 
@@ -243,6 +305,191 @@ const StudentDashboard = () => {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            {/* Left Column: Goals & Tips */}
+            <div className="lg:col-span-2 flex flex-col gap-8">
+              {/* Career Goals Block */}
+              <div className="bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 p-6 md:p-8 rounded-[2rem] shadow-soft flex-1">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 rounded-xl">
+                    <FiBriefcase size={22} />
+                  </div>
+                  <h3 className="text-xl font-display font-black text-[#1C1E21] dark:text-white">
+                    Career Goals
+                  </h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-[#F8FAFC] dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5">
+                    <span className="text-xs font-bold text-[#4B5563] dark:text-white/50 uppercase tracking-widest block mb-1">
+                      Target Domain (Dream Role)
+                    </span>
+                    <p className="text-[#1C1E21] dark:text-white/90 font-medium">
+                      {status?.profile?.careerGoal || "Not specified yet."}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => openGoalModal("shortTermGoal")}
+                      className="p-4 bg-[#F8FAFC] dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 hover:border-[#00A8E8]/50 transition-colors text-left group relative md:h-[90px]"
+                    >
+                      <span className="text-xs font-bold text-[#4B5563] dark:text-white/50 uppercase tracking-widest block mb-1">
+                        Short-Term Goal
+                      </span>
+                      {status?.profile?.shortTermGoal ? (
+                        <p className="text-[#1C1E21] dark:text-white/90 font-medium">
+                          {status.profile.shortTermGoal}
+                        </p>
+                      ) : (
+                        <div className="flex items-center gap-2 text-[#00A8E8] font-bold mt-1">
+                          <div className="w-6 h-6 rounded-full bg-[#00A8E8]/10 flex items-center justify-center">
+                            <FiPlus />
+                          </div>
+                          Add Goal
+                        </div>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => openGoalModal("longTermGoal")}
+                      className="p-4 bg-[#F8FAFC] dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 hover:border-[#00A8E8]/50 transition-colors text-left group relative md:h-[90px]"
+                    >
+                      <span className="text-xs font-bold text-[#4B5563] dark:text-white/50 uppercase tracking-widest block mb-1">
+                        Long-Term Goal
+                      </span>
+                      {status?.profile?.longTermGoal ? (
+                        <p className="text-[#1C1E21] dark:text-white/90 font-medium">
+                          {status.profile.longTermGoal}
+                        </p>
+                      ) : (
+                        <div className="flex items-center gap-2 text-[#00A8E8] font-bold mt-1">
+                          <div className="w-6 h-6 rounded-full bg-[#00A8E8]/10 flex items-center justify-center">
+                            <FiPlus />
+                          </div>
+                          Add Goal
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Improvement Tips Block */}
+              <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5 border border-indigo-500/20 dark:border-indigo-500/10 p-6 md:p-8 rounded-[2rem] shadow-soft">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-indigo-500 text-white rounded-xl shadow-md">
+                    <FiMessageSquare size={22} />
+                  </div>
+                  <h3 className="text-xl font-display font-black text-[#1C1E21] dark:text-white">
+                    AI Improvement Nudge
+                  </h3>
+                </div>
+                <div className="p-5 bg-white/60 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/50 dark:border-white/10 shadow-inner">
+                  {status?.recentResults?.length > 0 &&
+                  status.recentResults[0].improvementSuggestions?.length > 0 ? (
+                    <ul className="space-y-3">
+                      {status.recentResults[0].improvementSuggestions
+                        .slice(0, 3)
+                        .map((tip, i) => (
+                          <li
+                            key={i}
+                            className="flex gap-3 text-sm md:text-base text-[#1C1E21] dark:text-white/80 leading-relaxed font-medium"
+                          >
+                            <FiCheckCircle className="text-emerald-500 mt-1 flex-shrink-0" />
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm md:text-base text-[#4B5563] dark:text-white/70 leading-relaxed font-medium">
+                      Based on your profile, we recommend taking a{" "}
+                      <strong className="text-indigo-600 dark:text-indigo-400">
+                        Personal Assessment
+                      </strong>{" "}
+                      to evaluate your baseline skills in{" "}
+                      <span className="italic">
+                        {status?.stream || "your target domain"}
+                      </span>
+                      . Once completed, our AI will generate targeted feedback
+                      here to accelerate your career growth.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Recent Assessments Widget */}
+            <div className="flex flex-col gap-6">
+              <div className="bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 p-6 rounded-[2rem] shadow-soft flex flex-col h-fit">
+                <div className="flex items-center justify-between gap-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-xl">
+                      <FiTrendingUp size={22} />
+                    </div>
+                    <h3 className="text-xl font-display font-black text-[#1C1E21] dark:text-white">
+                      Recent Tests
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4 flex-1">
+                  {status?.recentResults?.length > 0 ? (
+                    status.recentResults.map((result, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 bg-[#F8FAFC] dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 group hover:border-[#00A8E8]/30 transition-colors"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-sm font-bold text-[#1C1E21] dark:text-white line-clamp-1 pr-2">
+                            {result.targetDomain || "General Test"}
+                          </span>
+                          <span
+                            className={`text-sm font-black flex-shrink-0 ${
+                              result.overallPercentage >= 80
+                                ? "text-emerald-500"
+                                : result.overallPercentage >= 60
+                                  ? "text-orange-500"
+                                  : "text-red-500"
+                            }`}
+                          >
+                            {result.overallPercentage}%
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-[#4B5563] dark:text-white/50 font-medium">
+                          <FiCalendar />
+                          {new Date(result.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-[#F8FAFC] dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 border-dashed">
+                      <p className="text-sm text-[#4B5563] dark:text-white/50 font-medium mb-1">
+                        No recent tests found.
+                      </p>
+                      <p className="text-xs text-[#9CA3AF] dark:text-white/40">
+                        Take an assessment to see your history here.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => navigate("/results")}
+                  className="mt-6 w-full py-3.5 bg-gray-900 dark:bg-white text-white dark:text-[#000E14] font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  View All Results <FiArrowRight />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <h2 className="text-xl font-display font-black text-[#1C1E21] dark:text-white mb-6">
             Quick Actions
           </h2>
@@ -281,6 +528,104 @@ const StudentDashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* Goal Setting Modal */}
+      {isGoalModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm bg-black/40">
+          <div
+            className="absolute inset-0"
+            onClick={() => !savingGoal && setIsGoalModalOpen(false)}
+          ></div>
+          <div className="relative w-full max-w-2xl bg-white dark:bg-[#00171F] rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-black/5 dark:border-white/10">
+            <div className="p-6 md:p-8">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-display font-black text-[#1C1E21] dark:text-white">
+                    Set{" "}
+                    {editingGoalType === "shortTermGoal"
+                      ? "Short-Term"
+                      : "Long-Term"}{" "}
+                    Goal
+                  </h2>
+                  <p className="text-sm text-[#4B5563] dark:text-white/60 mt-1">
+                    Select a predefined domain or write your own.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsGoalModalOpen(false)}
+                  disabled={savingGoal}
+                  className="p-2 bg-black/5 dark:bg-white/10 rounded-full hover:bg-black/10 dark:hover:bg-white/20 transition-colors text-[#1C1E21] dark:text-white"
+                >
+                  <FiX size={20} />
+                </button>
+              </div>
+
+              <div className="mb-8">
+                <div className="flex flex-wrap gap-3 mb-6">
+                  {predefinedDomains.map((domain, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSelectedDomain(domain);
+                        setCustomDomain("");
+                      }}
+                      className={`px-4 py-2 rounded-full text-sm font-bold border transition-all ${
+                        selectedDomain === domain && !customDomain
+                          ? "bg-[#00A8E8] text-white border-[#00A8E8]"
+                          : "bg-transparent text-[#1C1E21] dark:text-white/70 border-black/10 dark:border-white/10 hover:border-[#00A8E8] hover:text-[#00A8E8]"
+                      }`}
+                    >
+                      {domain}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <FiTarget className="text-[#4B5563] dark:text-white/40" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Or type a custom domain (e.g., DevOps, Game Design)..."
+                    value={customDomain}
+                    onChange={(e) => {
+                      setCustomDomain(e.target.value);
+                      if (e.target.value) setSelectedDomain("");
+                    }}
+                    className="w-full pl-11 pr-4 py-3 bg-[#F8FAFC] dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-[#1C1E21] dark:text-white placeholder:text-[#4B5563] dark:placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#007EA7] focus:border-transparent transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setIsGoalModalOpen(false)}
+                  disabled={savingGoal}
+                  className="px-6 py-2.5 rounded-xl text-[#4B5563] dark:text-white/70 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveGoal}
+                  disabled={
+                    savingGoal || (!selectedDomain && !customDomain.trim())
+                  }
+                  className="px-6 py-2.5 bg-gradient-to-r from-[#00A8E8] to-[#007EA7] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  {savingGoal ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Goal"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

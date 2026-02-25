@@ -248,6 +248,40 @@ exports.getAssessmentForStudent = async (req, res) => {
 /* ======================================================
     PROFILE & HELPERS
 ====================================================== */
+exports.cancelAutopilot = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    // Only allow cancelling if it's an autopilot batch
+    if (user.batchId && user.batchId.startsWith("AUTO-")) {
+      // Delete the generated assessment
+      await Assessment.deleteMany({ batchId: user.batchId });
+      // Delete the batch document
+      await Batch.deleteMany({ batchId: user.batchId });
+
+      // Clear user state
+      user.batchId = null;
+      user.batchRef = null;
+      user.stream = null;
+      await user.save();
+
+      return res.json({
+        success: true,
+        message: "Assessment cancelled successfully.",
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "No active personal assessment found to cancel.",
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to cancel assessment." });
+  }
+};
+
 exports.saveStudentProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -326,13 +360,13 @@ exports.setAssessmentGoal = async (req, res) => {
         .json({ success: false, message: "Invalid goal type" });
     }
 
-    // Explicitly mark the modified path since it's a Mixed/Object type
     user.markModified("profile");
     await user.save();
 
     res.json({
       success: true,
       message: `${goalType === "shortTermGoal" ? "Short-Term" : "Long-Term"} Goal updated successfully.`,
+      profile: user.profile,
     });
   } catch (err) {
     console.error("Set Goal Error:", err);

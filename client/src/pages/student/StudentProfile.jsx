@@ -33,10 +33,13 @@ const StudentProfile = () => {
   const [form, setForm] = useState({
     phone: "",
     age: "",
+    dob: "",
     gender: "",
+    motherTongue: "",
     education: "",
     stream: "",
     personalityType: "",
+    area: "",
     city: "",
     state: "",
     interests: "",
@@ -60,10 +63,13 @@ const StudentProfile = () => {
           setForm({
             phone: p.phone || "",
             age: p.age || "",
+            dob: p.dob ? new Date(p.dob).toISOString().split("T")[0] : "",
             gender: p.gender || "",
+            motherTongue: p.motherTongue || "",
             education: p.education || "",
             stream: p.stream || "",
             personalityType: p.personalityType || "",
+            area: p.area || "",
             city: p.city || "",
             state: p.state || "",
             interests: p.interests || "",
@@ -254,10 +260,23 @@ const StudentProfile = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   <DetailItem label="Phone" value={form.phone} />
                   <DetailItem label="Age" value={form.age} />
+                  <DetailItem
+                    label="DOB"
+                    value={
+                      form.dob ? new Date(form.dob).toLocaleDateString() : ""
+                    }
+                  />
                   <DetailItem label="Gender" value={form.gender} capitalize />
                   <DetailItem
+                    label="Mother Tongue"
+                    value={form.motherTongue}
+                    capitalize
+                  />
+                  <DetailItem
                     label="Location"
-                    value={`${form.city}, ${form.state}`}
+                    value={[form.area, form.city, form.state]
+                      .filter(Boolean)
+                      .join(", ")}
                   />
                   <DetailItem
                     label="Personality"
@@ -397,6 +416,19 @@ const StudentProfile = () => {
                   )}
                 </div>
 
+                {/* DOB */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-[#1C1E21] dark:text-white/80">
+                    Date of Birth
+                  </label>
+                  <input
+                    type="date"
+                    value={form.dob}
+                    onChange={(e) => setForm({ ...form, dob: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#00171F]/50 border border-[#007EA7]/20 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A8E8]/20 focus:border-[#00A8E8] transition-all text-sm md:text-base font-medium text-[#1C1E21] dark:text-white placeholder:text-[#4B5563]/50 dark:placeholder:text-white/30 shadow-inner"
+                  />
+                </div>
+
                 {/* Gender */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-[#1C1E21] dark:text-white/80">
@@ -429,6 +461,21 @@ const StudentProfile = () => {
                   )}
                 </div>
 
+                {/* Mother Tongue */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-[#1C1E21] dark:text-white/80">
+                    Mother Tongue
+                  </label>
+                  <input
+                    value={form.motherTongue}
+                    onChange={(e) =>
+                      setForm({ ...form, motherTongue: e.target.value })
+                    }
+                    placeholder="e.g. English, Hindi, Spanish"
+                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#00171F]/50 border border-[#007EA7]/20 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A8E8]/20 focus:border-[#00A8E8] transition-all text-sm md:text-base font-medium text-[#1C1E21] dark:text-white placeholder:text-[#4B5563]/50 dark:placeholder:text-white/30 shadow-inner"
+                  />
+                </div>
+
                 {/* Personality */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-[#1C1E21] dark:text-white/80">
@@ -454,6 +501,19 @@ const StudentProfile = () => {
                       Ambivert
                     </option>
                   </select>
+                </div>
+
+                {/* Location - Area */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-[#1C1E21] dark:text-white/80">
+                    Area/Locality
+                  </label>
+                  <input
+                    value={form.area}
+                    onChange={(e) => setForm({ ...form, area: e.target.value })}
+                    placeholder="e.g. Downtown, Sector 5"
+                    className="w-full px-4 py-3 bg-[#F8FAFC] dark:bg-[#00171F]/50 border border-[#007EA7]/20 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00A8E8]/20 focus:border-[#00A8E8] transition-all text-sm md:text-base font-medium text-[#1C1E21] dark:text-white placeholder:text-[#4B5563]/50 dark:placeholder:text-white/30 shadow-inner"
+                  />
                 </div>
 
                 {/* Location - City */}

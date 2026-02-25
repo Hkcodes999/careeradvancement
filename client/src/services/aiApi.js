@@ -52,6 +52,7 @@ export const runAutopilotEngine = async (context = {}) => {
     body: JSON.stringify({
       educationLevel: context.educationLevel,
       stream: context.stream,
+      goalType: context.goalType,
       isPersonal: context.isPersonal || false,
     }),
   });

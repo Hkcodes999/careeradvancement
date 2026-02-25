@@ -11,6 +11,9 @@ import {
   HiOutlineDownload,
   HiOutlineExclamationCircle,
   HiOutlineCheckCircle,
+  HiOutlineLightBulb,
+  HiOutlineTrendingUp,
+  HiOutlineSparkles,
 } from "react-icons/hi";
 import jsPDF from "jspdf";
 import { fetchMyResult, resetAssessment } from "../../services/resultApi";
@@ -347,49 +350,160 @@ const Results = () => {
           {/* Header */}
           <div className="text-center mb-12 relative z-10">
             <div className="inline-flex items-center justify-center p-3 bg-indigo-50 rounded-2xl mb-4 text-indigo-600">
-              <HiOutlineChartBar className="text-3xl" />
+              <HiOutlineSparkles className="text-3xl" />
             </div>
             <h2 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 mb-2">
-              Fitment: {result.targetDomain}
+              Career Combinatorics: {result.targetDomain}
             </h2>
             <p className="text-slate-500 font-medium bg-slate-100 inline-block px-4 py-1 rounded-full text-sm">
-              Level: {result.educationLevel}
+              Education Level: {result.educationLevel}
             </p>
           </div>
 
-          {/* Analysis Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div className="bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100 flex gap-4 transition-transform hover:scale-[1.01]">
-              <HiOutlineCheckCircle className="text-3xl text-emerald-500 shrink-0" />
-              <div>
-                <h4 className="font-bold text-emerald-900 mb-2">Why You Fit</h4>
-                <p className="text-emerald-700/80 text-sm leading-relaxed">
-                  {result.fitReasoning ||
-                    "Your strengths align with the core requirements of this field."}
-                </p>
+          {/* AI Combinatorial Deep Insights */}
+          {result.explanations && result.explanations.length > 0 && (
+            <div className="bg-gradient-to-br from-indigo-900 to-violet-900 rounded-3xl p-8 mb-10 shadow-2xl shadow-indigo-900/20 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <HiOutlineLightBulb className="text-8xl" />
               </div>
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
+                <HiOutlineSparkles className="text-indigo-300" />
+                AI Combinatorial Insights
+              </h3>
+              <div className="space-y-4 relative z-10">
+                {result.explanations.map((exp, idx) => (
+                  <div
+                    key={idx}
+                    className="flex gap-4 items-start bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/10 shadow-inner"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-indigo-500/50 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="font-bold text-sm">{idx + 1}</span>
+                    </div>
+                    <p className="text-indigo-50 font-medium leading-relaxed">
+                      {exp}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Target Domain Fitment Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div className="bg-emerald-50/50 rounded-3xl p-6 border border-emerald-100 flex flex-col gap-4 transition-transform hover:scale-[1.01] shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-emerald-100 rounded-xl">
+                  <HiOutlineCheckCircle className="text-2xl text-emerald-600 shrink-0" />
+                </div>
+                <h4 className="font-bold text-emerald-900 text-lg">
+                  Why You Fit
+                </h4>
+              </div>
+              <p className="text-emerald-800/80 text-sm leading-relaxed p-4 bg-white/60 rounded-xl border border-emerald-50 grow">
+                {result.fitReasoning ||
+                  "Your strengths align with the core requirements of this field."}
+              </p>
             </div>
 
-            <div className="bg-amber-50/50 rounded-2xl p-6 border border-amber-100 flex gap-4 transition-transform hover:scale-[1.01]">
-              <HiOutlineExclamationCircle className="text-3xl text-amber-500 shrink-0" />
-              <div>
-                <h4 className="font-bold text-amber-900 mb-2">
+            <div className="bg-amber-50/50 rounded-3xl p-6 border border-amber-100 flex flex-col gap-4 transition-transform hover:scale-[1.01] shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-amber-100 rounded-xl">
+                  <HiOutlineExclamationCircle className="text-2xl text-amber-600 shrink-0" />
+                </div>
+                <h4 className="font-bold text-amber-900 text-lg">
                   Potential Gaps
                 </h4>
-                <p className="text-amber-700/80 text-sm leading-relaxed">
-                  {result.gapReasoning ||
-                    "Focus on the categories listed below to bridge the skill gap."}
-                </p>
               </div>
+              <p className="text-amber-800/80 text-sm leading-relaxed p-4 bg-white/60 rounded-xl border border-amber-50 grow">
+                {result.gapReasoning ||
+                  "Focus on the categories listed below to bridge the skill gap."}
+              </p>
             </div>
           </div>
+
+          {/* Insights Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 p-6 md:p-8 bg-slate-50/50 rounded-3xl border border-slate-100">
+            <section>
+              <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-6 text-lg">
+                <HiOutlineLightningBolt className="text-indigo-500" />
+                Foundational Strengths
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {(result.strengths || []).map((s, idx) => (
+                  <span
+                    key={idx}
+                    className="px-5 py-2.5 bg-white rounded-2xl border border-indigo-100 shadow-sm text-indigo-700 font-bold text-sm flex items-center gap-2"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-6 text-lg">
+                <HiOutlineAcademicCap className="text-amber-500" />
+                Derived Combinatorial Roles
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {(result.recommendedCareers || []).map((c, idx) => (
+                  <span
+                    key={idx}
+                    className="px-5 py-2.5 bg-white rounded-2xl border border-amber-100 shadow-sm text-amber-700 font-bold text-sm flex items-center gap-2"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                    {c}
+                  </span>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* Actionable Gaps */}
+          {result.weaknesses && result.weaknesses.length > 0 && (
+            <div className="mb-12">
+              <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-6 text-lg px-2">
+                <HiOutlineTrendingUp className="text-rose-500" />
+                Targeted Remediation Areas
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {result.weaknesses.map((w, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white p-6 rounded-3xl border border-rose-100 shadow-sm shadow-rose-100/50 flex flex-col"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="font-extrabold text-rose-600 uppercase text-xs tracking-wider bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100">
+                        {w.category}
+                      </span>
+                    </div>
+                    <p className="text-slate-700 text-sm mb-5 font-semibold">
+                      {w.reason}
+                    </p>
+                    <div className="space-y-3 mt-auto">
+                      {(w.improvementTips || []).map((tip, tIdx) => (
+                        <div
+                          key={tIdx}
+                          className="flex gap-3 items-start text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1 shrink-0"></div>
+                          <span className="leading-relaxed">{tip}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Charts */}
           {categoryScores.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 relative h-80 flex flex-col">
-                <h4 className="text-slate-900 font-bold mb-4 text-sm uppercase tracking-wider text-center">
-                  Distribution
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm relative h-[360px] flex flex-col">
+                <h4 className="text-slate-900 font-bold mb-6 text-sm uppercase tracking-wider text-center">
+                  Cognitive Distribution
                 </h4>
                 <div className="flex-1 relative w-full h-full min-h-0">
                   <Pie
@@ -398,9 +512,9 @@ const Results = () => {
                   />
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 relative h-80 flex flex-col">
-                <h4 className="text-slate-900 font-bold mb-4 text-sm uppercase tracking-wider text-center">
-                  Category Performance
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-100 shadow-sm relative h-[360px] flex flex-col">
+                <h4 className="text-slate-900 font-bold mb-6 text-sm uppercase tracking-wider text-center">
+                  Absolute Performance
                 </h4>
                 <div className="flex-1 relative w-full h-full min-h-0">
                   <Bar
@@ -411,45 +525,6 @@ const Results = () => {
               </div>
             </div>
           )}
-
-          {/* Insights Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            <section>
-              <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-4 text-lg">
-                <HiOutlineLightningBolt className="text-indigo-500" />{" "}
-                Identified Strengths
-              </h3>
-              <ul className="space-y-3">
-                {(result.strengths || []).map((s, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start gap-3 text-slate-600 bg-white p-3 rounded-xl border border-slate-100 shadow-sm"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-2 shrink-0"></span>
-                    <span className="text-sm">{s}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section>
-              <h3 className="flex items-center gap-2 font-bold text-slate-800 mb-4 text-lg">
-                <HiOutlineAcademicCap className="text-amber-500" /> Alternative
-                Career Options
-              </h3>
-              <ul className="space-y-3">
-                {(result.recommendedCareers || []).map((c, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start gap-3 text-slate-600 bg-white p-3 rounded-xl border border-slate-100 shadow-sm"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></span>
-                    <span className="text-sm">{c}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
 
           {/* Score Summary */}
           <div className="border-t border-slate-100 pt-10 mt-8 text-center bg-slate-50/50 rounded-2xl p-8">

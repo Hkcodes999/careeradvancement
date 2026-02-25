@@ -5,6 +5,7 @@ const ProfileSchema = new mongoose.Schema(
   {
     phone: { type: String, default: "" },
     age: { type: Number, default: null },
+    dob: { type: Date, default: null }, // Added DOB
     gender: {
       type: String,
       enum: ["male", "female", "other", ""],
@@ -25,8 +26,10 @@ const ProfileSchema = new mongoose.Schema(
       },
     },
     stream: { type: String, default: "" }, // Current background
+    area: { type: String, default: "" }, // Added Area
     city: { type: String, default: "" },
     state: { type: String, default: "" },
+    motherTongue: { type: String, default: "" }, // Added Mother Tongue
     personalityType: { type: String, default: "" },
     skills: { type: [String], default: [] },
     interests: { type: String, default: "" },

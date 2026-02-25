@@ -20,7 +20,7 @@ const CategoryScoreSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 /* ================= RESULT SCHEMA ================= */
@@ -151,11 +151,6 @@ const ResultSchema = new mongoose.Schema({
 });
 
 /* ================= INDEXES ================= */
-/**
- * Ensures a student can only have ONE result per batch.
- */
-ResultSchema.index({ studentId: 1, batchId: 1 }, { unique: true });
-
 // Facilitates fast lookup for batch-level analytics
 ResultSchema.index({ batchId: 1, createdAt: -1 });
 

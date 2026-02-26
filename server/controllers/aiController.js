@@ -178,8 +178,9 @@ exports.runAutopilot = async (req, res) => {
 
       CRITICAL OBJECTIVE: You are testing if the student has the *mindset*, *intuition*, and *problem-solving approach* required for ${targetDomain}. 
       RULES: 
-      1. DO ask scenario-based questions that involve the core concepts of ${targetDomain} (e.g., if UI/UX, ask about user flow, contrast, and layout intuition. If Web Dev, ask about organizing information or basic logic flow).
-      2. DO NOT ask about specific software, coding syntax, or advanced jargon (e.g., NO Figma questions, NO HTML/React syntax, NO advanced statistical formulas). The student is a beginner. 
+      1. STRICTLY SCALE DIFFICULTY to a ${contextLevel} education level. Vocabulary, scenarios, and logical complexity MUST NOT exceed what a typical ${contextLevel} student can understand.
+      2. DO ask scenario-based questions that involve the core concepts of ${targetDomain} (e.g., if UI/UX, ask about user flow, contrast, and layout intuition. If Web Dev, ask about organizing information or basic logic flow).
+      3. DO NOT ask about specific software, coding syntax, or advanced jargon (e.g., NO Figma questions, NO HTML/React syntax, NO advanced statistical formulas). The student is a beginner. 
       
       CATEGORY DEFINITIONS (STRICTLY REQUIRED):
       1. "Domain Intuition": Scenario-based questions testing their natural 'gut feeling' and common sense for ${targetDomain}'s core concepts.

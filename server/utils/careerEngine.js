@@ -57,13 +57,13 @@ module.exports = function careerEngine(
   // 2. COMBINATORIAL CAREER MAPPING
   // We use combination matrices rather than single-trait mapping
 
-  // Logic + Technical = Engineering / Data
-  if (isStrong("logic") && isStrong("technical")) {
+  // Logic + Domain Intuition = Engineering / Data
+  if (isStrong("logic") && isStrong("domain intuition")) {
     careers.add("Software Engineer");
     careers.add("Data Scientist");
     careers.add("Systems Architect");
     explanations.push(
-      "Your combination of Logic and Technical skills makes you highly suited for complex engineering roles.",
+      "Your combination of Logic and Domain Intuition makes you highly suited for complex engineering roles.",
     );
   }
 
@@ -77,13 +77,13 @@ module.exports = function careerEngine(
     );
   }
 
-  // Technical + Communication = DevRel / Solutions Architecture
-  if (isStrong("technical") && isStrong("communication")) {
+  // Domain Intuition + Communication = DevRel / Solutions Architecture
+  if (isStrong("domain intuition") && isStrong("communication")) {
     careers.add("Developer Advocate");
     careers.add("Solutions Architect");
     careers.add("Technical Sales Engineer");
     explanations.push(
-      "Excelling in both technical execution and communication makes you perfect for bridging the gap between engineers and clients.",
+      "Excelling in both domain-specific execution and communication makes you perfect for bridging the gap between engineers and clients.",
     );
   }
 
@@ -91,7 +91,7 @@ module.exports = function careerEngine(
   if (isStrong("aptitude")) {
     if (isStrong("communication"))
       careers.add("Growth Hacker / Marketing Strategist");
-    if (isStrong("technical")) careers.add("Cybersecurity Analyst");
+    if (isStrong("domain intuition")) careers.add("Cybersecurity Analyst");
     if (isStrong("logic")) careers.add("Operations Research Analyst");
   }
 
@@ -115,7 +115,7 @@ module.exports = function careerEngine(
     domainLower.includes("computer") ||
     domainLower.includes("it")
   ) {
-    evaluateFit(["technical", "logic"], targetDomain);
+    evaluateFit(["domain intuition", "logic"], targetDomain);
   } else if (
     domainLower.includes("data") ||
     domainLower.includes("ai") ||

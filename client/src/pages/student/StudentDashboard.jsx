@@ -40,14 +40,29 @@ const StudentDashboard = () => {
   const [customDomain, setCustomDomain] = useState("");
   const [savingGoal, setSavingGoal] = useState(false);
 
-  const predefinedDomains = [
-    "Full Stack Development",
-    "Data Science",
-    "Cloud Computing",
-    "Cybersecurity",
-    "UI/UX Design",
-    "Product Management",
-  ];
+  const [expandedCategory, setExpandedCategory] = useState("Technical");
+
+  const categorizedDomains = {
+    Technical: [
+      "Software Engineering",
+      "Data Science",
+      "Cybersecurity",
+      "Cloud Computing",
+      "UI/UX Design",
+    ],
+    Medical: [
+      "Medical Sciences",
+      "Healthcare Administration",
+      "Nursing",
+      "Biotechnology",
+    ],
+    Business: [
+      "Financial Analysis",
+      "Product Management",
+      "Digital Marketing",
+      "Sales & Operations",
+    ],
+  };
 
   const loadDashboard = async () => {
     try {
@@ -561,23 +576,56 @@ const StudentDashboard = () => {
               </div>
 
               <div className="mb-8">
-                <div className="flex flex-wrap gap-3 mb-6">
-                  {predefinedDomains.map((domain, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setSelectedDomain(domain);
-                        setCustomDomain("");
-                      }}
-                      className={`px-4 py-2 rounded-full text-sm font-bold border transition-all ${
-                        selectedDomain === domain && !customDomain
-                          ? "bg-[#00A8E8] text-white border-[#00A8E8]"
-                          : "bg-transparent text-[#1C1E21] dark:text-white/70 border-black/10 dark:border-white/10 hover:border-[#00A8E8] hover:text-[#00A8E8]"
-                      }`}
-                    >
-                      {domain}
-                    </button>
-                  ))}
+                <div className="mb-6 space-y-3">
+                  {Object.entries(categorizedDomains).map(
+                    ([category, domains]) => (
+                      <div
+                        key={category}
+                        className="border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden bg-[#F8FAFC] dark:bg-white/5"
+                      >
+                        <button
+                          onClick={() =>
+                            setExpandedCategory(
+                              expandedCategory === category ? null : category,
+                            )
+                          }
+                          className="w-full flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                        >
+                          <span className="font-bold text-[#1C1E21] dark:text-white">
+                            {category} Fields
+                          </span>
+                          <FiTarget
+                            className={`transition-transform ${
+                              expandedCategory === category
+                                ? "rotate-90 text-[#00A8E8]"
+                                : "text-[#4B5563] dark:text-white/50"
+                            }`}
+                          />
+                        </button>
+
+                        {expandedCategory === category && (
+                          <div className="p-4 flex flex-wrap gap-2 border-t border-black/5 dark:border-white/5 bg-white/30 dark:bg-transparent">
+                            {domains.map((domain, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  setSelectedDomain(domain);
+                                  setCustomDomain("");
+                                }}
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                  selectedDomain === domain && !customDomain
+                                    ? "bg-[#00A8E8] text-white border-[#00A8E8] shadow-md"
+                                    : "bg-white dark:bg-black/20 text-[#1C1E21] dark:text-white/80 border-black/10 dark:border-white/10 hover:border-[#00A8E8] hover:text-[#00A8E8]"
+                                }`}
+                              >
+                                {domain}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  )}
                 </div>
 
                 <div className="relative">

@@ -24,6 +24,7 @@ import {
   FiPlus,
   FiX,
 } from "react-icons/fi";
+import GlobalLoader from "../../components/GlobalLoader";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -119,17 +120,7 @@ const StudentDashboard = () => {
     loadDashboard();
   }, []);
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-surface dark:bg-[#00171F] flex items-center justify-center transition-colors duration-300">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-[#007EA7]/30 dark:border-white/10 border-t-[#00A8E8] dark:border-t-white rounded-full animate-spin"></div>
-          <p className="text-[#4B5563] dark:text-white/60 font-bold animate-pulse">
-            Syncing Profile Data...
-          </p>
-        </div>
-      </div>
-    );
+  if (loading) return <GlobalLoader />;
 
   const quickActions = [
     {
@@ -231,7 +222,7 @@ const StudentDashboard = () => {
           </div>
 
           {!status?.profileComplete && (
-            <div className="mb-10 bg-gradient-to-br from-orange-400 to-amber-500 dark:from-amber-600 dark:to-orange-700 rounded-[2rem] p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-orange-500/20 dark:shadow-none transition-transform hover:scale-[1.01]">
+            <div className="mb-10 bg-gradient-to-br from-orange-400 to-amber-500 dark:from-amber-600 dark:to-orange-700 rounded-[2rem] p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-orange-500/20 dark:shadow-none transition-transform hover:scale-[1.01] animate-fade-in-left delay-[150ms]">
               <div className="p-4 bg-white/20 backdrop-blur-md rounded-2xl text-white shadow-inner">
                 <FiAlertCircle size={36} strokeWidth={2.5} />
               </div>
@@ -255,7 +246,7 @@ const StudentDashboard = () => {
 
           {/* KPI Stats Row Placeholder */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 rounded-3xl shadow-soft">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 rounded-3xl shadow-soft animate-fade-in-left delay-[300ms]">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center">
                   <FiTarget size={24} />
@@ -264,28 +255,39 @@ const StudentDashboard = () => {
                   Target Domain
                 </h4>
               </div>
-              <p className="text-2xl font-black text-[#1C1E21] dark:text-white leading-none">
-                {status?.stream ||
-                  status?.shortTermGoal ||
-                  status?.longTermGoal ||
-                  status?.profileStream ||
-                  "Not Set"}
-              </p>
-              {!status?.stream && status?.shortTermGoal && (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold tracking-wide uppercase mt-2 block">
-                  Short-Term Goal
-                </span>
-              )}
-              {!status?.stream &&
-                !status?.shortTermGoal &&
-                status?.longTermGoal && (
-                  <span className="text-xs text-purple-600 dark:text-purple-400 font-bold tracking-wide uppercase mt-2 block">
-                    Long-Term Goal
-                  </span>
+              <div className="space-y-4">
+                {status?.shortTermGoal && (
+                  <div>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold tracking-widest uppercase mb-1 block">
+                      Short-Term Goal
+                    </span>
+                    <p className="text-xl font-black text-[#1C1E21] dark:text-white leading-tight">
+                      {status.shortTermGoal}
+                    </p>
+                  </div>
                 )}
+                {status?.longTermGoal && (
+                  <div>
+                    <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold tracking-widest uppercase mb-1 block">
+                      Long-Term Goal
+                    </span>
+                    <p className="text-xl font-black text-[#1C1E21] dark:text-white leading-tight">
+                      {status.longTermGoal}
+                    </p>
+                  </div>
+                )}
+                {!status?.stream &&
+                  !status?.profileStream &&
+                  !status?.shortTermGoal &&
+                  !status?.longTermGoal && (
+                    <p className="text-2xl font-black text-[#1C1E21] dark:text-white leading-none">
+                      Not Set
+                    </p>
+                  )}
+              </div>
             </div>
 
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 rounded-3xl shadow-soft">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 rounded-3xl shadow-soft animate-fade-in-left delay-[450ms]">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center">
                   <FiTrendingUp size={24} />
@@ -302,7 +304,7 @@ const StudentDashboard = () => {
               </p>
             </div>
 
-            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 rounded-3xl shadow-soft">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 rounded-3xl shadow-soft animate-fade-in-left delay-[600ms]">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-[#00A8E8]/10 text-[#00A8E8] dark:text-[#00A8E8] rounded-2xl flex items-center justify-center">
                   <FiAward size={24} />
@@ -324,7 +326,7 @@ const StudentDashboard = () => {
             {/* Left Column: Goals & Tips */}
             <div className="lg:col-span-2 flex flex-col gap-8">
               {/* Career Goals Block */}
-              <div className="bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 p-6 md:p-8 rounded-[2rem] shadow-soft flex-1">
+              <div className="bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 p-6 md:p-8 rounded-[2rem] shadow-soft flex-1 animate-fade-in-left delay-[750ms]">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 rounded-xl">
                     <FiBriefcase size={22} />
@@ -390,7 +392,7 @@ const StudentDashboard = () => {
               </div>
 
               {/* AI Improvement Tips Block */}
-              <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5 border border-indigo-500/20 dark:border-indigo-500/10 p-6 md:p-8 rounded-[2rem] shadow-soft">
+              <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5 border border-indigo-500/20 dark:border-indigo-500/10 p-6 md:p-8 rounded-[2rem] shadow-soft animate-fade-in-left delay-[900ms]">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 bg-indigo-500 text-white rounded-xl shadow-md">
                     <FiMessageSquare size={22} />
@@ -435,7 +437,7 @@ const StudentDashboard = () => {
 
             {/* Right Column: Recent Assessments Widget */}
             <div className="flex flex-col gap-6">
-              <div className="bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 p-6 rounded-[2rem] shadow-soft flex flex-col h-fit">
+              <div className="bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 p-6 rounded-[2rem] shadow-soft flex flex-col h-fit animate-fade-in-left delay-[1050ms]">
                 <div className="flex items-center justify-between gap-3 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-xl">
@@ -515,7 +517,8 @@ const StudentDashboard = () => {
                 <button
                   key={idx}
                   onClick={() => navigate(action.path)}
-                  className="group relative flex flex-col p-6 bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 rounded-[2rem] shadow-soft hover:shadow-soft-xl transition-all duration-300 hover:-translate-y-1 text-left overflow-hidden"
+                  className="group relative flex flex-col p-6 bg-white dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 rounded-[2rem] shadow-soft hover:shadow-soft-xl transition-all duration-300 hover:-translate-y-1 text-left overflow-hidden animate-fade-in-left"
+                  style={{ animationDelay: `${1200 + idx * 150}ms` }}
                 >
                   <div
                     className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${action.color} opacity-10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110 pointer-events-none`}

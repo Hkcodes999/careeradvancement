@@ -21,6 +21,7 @@ import Results from "./pages/common/Results";
 import Assessment from "./pages/common/Assessment";
 import Campus from "./pages/student/Campus";
 import SmoothScroll from "./components/SmoothScroll";
+import GlobalLoader from "./components/GlobalLoader";
 
 /* ---------------- App Layout ---------------- */
 const AppLayout = ({ children }) => {
@@ -39,7 +40,7 @@ const AppLayout = ({ children }) => {
 
   // Prevent UI flicker while checking localStorage/token on refresh
   if (loading) {
-    return <div className="loading-spinner">Loading...</div>;
+    return <GlobalLoader />;
   }
 
   return (

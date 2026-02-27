@@ -206,7 +206,7 @@ exports.getAssessmentForStudent = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     if (!user.batchId) {
-      return res.json({ locked: true, reason: "No active batch assigned." });
+      return res.json({ locked: true, reason: "No active assessment." });
     }
 
     const assessment = await Assessment.findOne({

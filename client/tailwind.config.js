@@ -50,7 +50,8 @@ export default {
         float: "float 6s ease-in-out infinite",
         "float-delayed": "float 6s ease-in-out 3s infinite",
         blob: "blob 7s infinite",
-        "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+        "fade-in-up": "fadeInUp 0.8s ease-out both",
+        "fade-in-left": "fadeInLeft 0.8s ease-out both",
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         marquee: "marquee 25s linear infinite",
         marquee2: "marquee2 25s linear infinite",
@@ -85,6 +86,10 @@ export default {
         fadeInUp: {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeInLeft: {
+          "0%": { opacity: "0", transform: "translateX(-30px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
         },
       },
       boxShadow: {

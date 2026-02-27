@@ -18,6 +18,7 @@ import {
   FiActivity,
   FiTarget,
 } from "react-icons/fi";
+import GlobalLoader from "../../components/GlobalLoader";
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -186,19 +187,14 @@ const StudentProfile = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-surface dark:bg-[#00171F] transition-colors duration-300">
-        <div className="w-8 h-8 border-4 border-primary/30 dark:border-white/10 border-t-primary dark:border-t-white rounded-full animate-spin"></div>
-      </div>
-    );
+  if (loading) return <GlobalLoader />;
 
   return (
     <div className="flex min-h-screen bg-surface dark:bg-[#00171F] font-sans transition-colors duration-300">
       <StudentSidebar />
       <main className="flex-1 p-8 md:p-10 md:ml-72 max-w-5xl mx-auto w-full">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 animate-fade-in-up delay-[100ms]">
           <div>
             <h1 className="text-2xl md:text-3xl font-display font-bold text-[#1C1E21] dark:text-white tracking-tight mb-1">
               {isEditing ? "Update Candidate Profile" : "My Profile"}
@@ -251,9 +247,9 @@ const StudentProfile = () => {
         <div className="bg-white dark:bg-white/5 rounded-2xl shadow-soft border border-[#007EA7]/10 dark:border-white/10 overflow-hidden backdrop-blur-md">
           {/* VIEW MODE */}
           {hasProfile && !isEditing ? (
-            <div className="p-6 md:p-8 space-y-8 animate-fade-in">
+            <div className="p-6 md:p-8 space-y-8">
               {/* Personal Info Grid */}
-              <section>
+              <section className="animate-fade-in-up delay-[150ms]">
                 <h3 className="text-xs font-bold text-[#9CA3AF] dark:text-white/50 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <FiUser className="text-lg text-[#00A8E8]" /> Personal Details
                 </h3>
@@ -288,7 +284,7 @@ const StudentProfile = () => {
               <hr className="border-[#007EA7]/10 dark:border-white/10" />
 
               {/* Education Grid */}
-              <section>
+              <section className="animate-fade-in-up delay-[300ms]">
                 <h3 className="text-xs font-bold text-[#9CA3AF] dark:text-white/50 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <FiBookOpen className="text-lg text-[#00A8E8]" /> Education
                 </h3>
@@ -303,7 +299,7 @@ const StudentProfile = () => {
               <hr className="border-[#007EA7]/10 dark:border-white/10" />
 
               {/* Skills & Goals - Full Width */}
-              <section className="space-y-6">
+              <section className="space-y-6 animate-fade-in-up delay-[450ms]">
                 <div>
                   <h3 className="text-xs font-bold text-[#9CA3AF] dark:text-white/50 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <FiActivity className="text-lg text-[#00A8E8]" /> Skills &
@@ -342,7 +338,7 @@ const StudentProfile = () => {
               {Object.keys(others).length > 0 && (
                 <>
                   <hr className="border-[#007EA7]/10 dark:border-white/10" />
-                  <section>
+                  <section className="animate-fade-in-up delay-[600ms]">
                     <h3 className="text-xs font-bold text-[#9CA3AF] dark:text-white/50 uppercase tracking-wider mb-4 border-l-4 border-[#00A8E8] pl-3">
                       Additional AI Insights
                     </h3>
@@ -374,7 +370,7 @@ const StudentProfile = () => {
                 e.preventDefault();
                 handleSubmit();
               }}
-              className="p-6 md:p-8"
+              className="p-6 md:p-8 animate-fade-in-up delay-[150ms]"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 {/* Phone */}

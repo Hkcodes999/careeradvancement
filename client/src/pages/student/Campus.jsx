@@ -22,6 +22,7 @@ import {
   FiArrowRight,
   FiUsers,
 } from "react-icons/fi";
+import GlobalLoader from "../../components/GlobalLoader";
 
 const Campus = () => {
   const navigate = useNavigate();
@@ -134,17 +135,7 @@ const Campus = () => {
     setStatus(finalStatus);
   };
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-surface dark:bg-[#00171F] flex items-center justify-center transition-colors duration-300">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-[#007EA7]/30 dark:border-white/10 border-t-[#00A8E8] dark:border-t-white rounded-full animate-spin"></div>
-          <p className="text-[#4B5563] dark:text-white/60 font-bold animate-pulse">
-            Syncing Campus Data...
-          </p>
-        </div>
-      </div>
-    );
+  if (loading) return <GlobalLoader />;
 
   return (
     <div className="relative flex min-h-screen bg-surface dark:bg-[#00171F] font-sans overflow-hidden">

@@ -1,12 +1,13 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import GlobalLoader from "./GlobalLoader";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
-    return <div className="loading-spinner">Verifying access...</div>;
+    return <GlobalLoader />;
   }
 
   // 1. Not logged in? Send to login but remember where they wanted to go

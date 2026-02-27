@@ -17,6 +17,7 @@ import {
 } from "react-icons/hi";
 import jsPDF from "jspdf";
 import { fetchMyResult, resetAssessment } from "../../services/resultApi";
+import GlobalLoader from "../../components/GlobalLoader";
 
 const Results = () => {
   const [result, setResult] = useState(null);
@@ -305,12 +306,7 @@ const Results = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-bg-light">
-        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+  if (loading) return <GlobalLoader />;
 
   if (!result)
     return (

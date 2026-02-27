@@ -1,0 +1,50 @@
+﻿[36mvite v7.3.0 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 81 modules transformed.
+node.exe : [31mΓ£ù[39m 
+Build failed in 1.81s
+At c:\program 
+files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo         
+     : NotSpecified: ([3  
+  1mΓ£ù[39m Build faile   
+ d in 1.81s:String) [],    
+ RemoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+[31merror during build:
+[31mCould not resolve "../
+../components/TargetDomainC
+ard" from "src/pages/studen
+t/StudentDashboard.jsx"[31
+m
+file: [36mC:/Users/HK/Desk
+top/CPRS/client/src/pages/s
+tudent/StudentDashboard.jsx
+[31m
+    at getRollupError (file
+:///C:/Users/HK/Desktop/CPR
+S/client/node_modules/rollu
+p/dist/es/shared/parseAst.j
+s:401:41)
+    at error (file:///C:/Us
+ers/HK/Desktop/CPRS/client/
+node_modules/rollup/dist/es
+/shared/parseAst.js:397:42)
+    at ModuleLoader.handleI
+nvalidResolvedId (file:///C
+:/Users/HK/Desktop/CPRS/cli
+ent/node_modules/rollup/dis
+t/es/shared/node-entry.js:2
+1710:24)
+    at file:///C:/Users/HK/
+Desktop/CPRS/client/node_mo
+dules/rollup/dist/es/shared
+/node-entry.js:21670:26[39
+m

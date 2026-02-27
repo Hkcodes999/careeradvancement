@@ -10,6 +10,7 @@ import {
   FiCheckCircle,
   FiHelpCircle,
 } from "react-icons/fi";
+import GlobalLoader from "../../components/GlobalLoader";
 
 // Persistence Keys
 const BATCH_ID_KEY = "assessment_active_batch_id";
@@ -193,17 +194,7 @@ const Assessment = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-surface dark:bg-[#00171F]">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-          <p className="text-primary font-medium animate-pulse">
-            Loading Assessment...
-          </p>
-        </div>
-      </div>
-    );
+  if (loading) return <GlobalLoader />;
 
   if (!assessment) return null;
 

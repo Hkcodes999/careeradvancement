@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { 
-  FaCrown, 
-  FaChartBar, 
-  FaUsers, 
-  FaUserPlus, 
+import {
+  FaCrown,
+  FaChartBar,
+  FaUsers,
+  FaUserPlus,
   FaTrash,
   FaUserShield,
   FaUserGraduate,
   FaCheckCircle,
-  FaTimesCircle
+  FaTimesCircle,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
+import GlobalLoader from "../components/GlobalLoader";
 import "./SuperAdminDashboard.css";
 
 const SuperAdminDashboard = () => {
@@ -60,9 +61,12 @@ const SuperAdminDashboard = () => {
   const fetchProfile = async () => {
     try {
       const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/superadmin/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -78,9 +82,12 @@ const SuperAdminDashboard = () => {
   const fetchStats = async () => {
     try {
       const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/superadmin/stats`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -99,9 +106,12 @@ const SuperAdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/superadmin/users`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -122,14 +132,17 @@ const SuperAdminDashboard = () => {
 
     try {
       const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/superadmin/users`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(addUserForm),
         },
-        body: JSON.stringify(addUserForm),
-      });
+      );
 
       const data = await response.json();
 
@@ -154,10 +167,13 @@ const SuperAdminDashboard = () => {
 
     try {
       const token = getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/superadmin/users/${userId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/superadmin/users/${userId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       const data = await response.json();
 
@@ -180,11 +196,7 @@ const SuperAdminDashboard = () => {
   });
 
   if (loading) {
-    return (
-      <div className="dashboard-container">
-        <p>Loading...</p>
-      </div>
-    );
+    return <GlobalLoader />;
   }
 
   return (
@@ -277,10 +289,18 @@ const SuperAdminDashboard = () => {
             <div className="features-section">
               <h2>System Features</h2>
               <ul className="dashboard-list">
-                <li><FaUserPlus /> Create / Remove Admins & Students</li>
-                <li><FaChartBar /> System Configuration</li>
-                <li><FaChartBar /> Platform Analytics</li>
-                <li><FaUserShield /> Security & Logs</li>
+                <li>
+                  <FaUserPlus /> Create / Remove Admins & Students
+                </li>
+                <li>
+                  <FaChartBar /> System Configuration
+                </li>
+                <li>
+                  <FaChartBar /> Platform Analytics
+                </li>
+                <li>
+                  <FaUserShield /> Security & Logs
+                </li>
               </ul>
             </div>
           </>
@@ -290,28 +310,38 @@ const SuperAdminDashboard = () => {
         {activeTab === "users" && (
           <>
             <div className="dashboard-header">
-              <h1><FaUsers /> Manage Users</h1>
+              <h1>
+                <FaUsers /> Manage Users
+              </h1>
               <p className="welcome-text">View and manage all system users</p>
             </div>
 
             <div className="filter-section">
               <button
-                className={userFilter === "all" ? "filter-btn active" : "filter-btn"}
+                className={
+                  userFilter === "all" ? "filter-btn active" : "filter-btn"
+                }
                 onClick={() => setUserFilter("all")}
               >
                 <FaUsers /> All Users ({users.length})
               </button>
               <button
-                className={userFilter === "admin" ? "filter-btn active" : "filter-btn"}
+                className={
+                  userFilter === "admin" ? "filter-btn active" : "filter-btn"
+                }
                 onClick={() => setUserFilter("admin")}
               >
-                <FaUserShield /> Admins ({users.filter((u) => u.role === "admin").length})
+                <FaUserShield /> Admins (
+                {users.filter((u) => u.role === "admin").length})
               </button>
               <button
-                className={userFilter === "student" ? "filter-btn active" : "filter-btn"}
+                className={
+                  userFilter === "student" ? "filter-btn active" : "filter-btn"
+                }
                 onClick={() => setUserFilter("student")}
               >
-                <FaUserGraduate /> Students ({users.filter((u) => u.role === "student").length})
+                <FaUserGraduate /> Students (
+                {users.filter((u) => u.role === "student").length})
               </button>
             </div>
 
@@ -333,13 +363,23 @@ const SuperAdminDashboard = () => {
                       <td>{user.email}</td>
                       <td>
                         <span className={`role-badge ${user.role}`}>
-                          {user.role === "admin" ? <FaUserShield /> : <FaUserGraduate />}
+                          {user.role === "admin" ? (
+                            <FaUserShield />
+                          ) : (
+                            <FaUserGraduate />
+                          )}
                           {user.role}
                         </span>
                       </td>
                       <td>
-                        <span className={`status-badge ${user.isActive ? "active" : "inactive"}`}>
-                          {user.isActive ? <FaCheckCircle /> : <FaTimesCircle />}
+                        <span
+                          className={`status-badge ${user.isActive ? "active" : "inactive"}`}
+                        >
+                          {user.isActive ? (
+                            <FaCheckCircle />
+                          ) : (
+                            <FaTimesCircle />
+                          )}
                           {user.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
@@ -347,7 +387,9 @@ const SuperAdminDashboard = () => {
                         {user.role !== "superadmin" && (
                           <button
                             className="delete-btn"
-                            onClick={() => handleDeleteUser(user._id, user.name)}
+                            onClick={() =>
+                              handleDeleteUser(user._id, user.name)
+                            }
                           >
                             <FaTrash /> Delete
                           </button>
@@ -369,7 +411,9 @@ const SuperAdminDashboard = () => {
         {activeTab === "add-user" && (
           <>
             <div className="dashboard-header">
-              <h1><FaUserPlus /> Add New User</h1>
+              <h1>
+                <FaUserPlus /> Add New User
+              </h1>
               <p className="welcome-text">Create admin or student accounts</p>
             </div>
 

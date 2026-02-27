@@ -17,6 +17,7 @@ import {
   FiClock,
   FiRefreshCw,
 } from "react-icons/fi";
+import GlobalLoader from "../../components/GlobalLoader";
 
 const PersonalAssessment = () => {
   const navigate = useNavigate();
@@ -28,15 +29,29 @@ const PersonalAssessment = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  // Simple hardcoded domains for the UI exactly like before
-  const predefinedTargets = [
-    "Full Stack Development",
-    "Data Science",
-    "Cloud Computing",
-    "Cybersecurity",
-    "UI/UX Design",
-    "Product Management",
-  ];
+  const [expandedCategory, setExpandedCategory] = useState("Technical");
+
+  const categorizedDomains = {
+    Technical: [
+      "Software Engineering",
+      "Data Science",
+      "Cybersecurity",
+      "Cloud Computing",
+      "UI/UX Design",
+    ],
+    Medical: [
+      "Medical Sciences",
+      "Healthcare Administration",
+      "Nursing",
+      "Biotechnology",
+    ],
+    Business: [
+      "Financial Analysis",
+      "Product Management",
+      "Digital Marketing",
+      "Sales & Operations",
+    ],
+  };
 
   const loadDashboard = async () => {
     try {
@@ -103,11 +118,7 @@ const PersonalAssessment = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-surface dark:bg-[#00171F] flex items-center justify-center">
-        <FiLoader className="animate-spin text-[#00A8E8]" size={48} />
-      </div>
-    );
+    return <GlobalLoader />;
   }
 
   return (
@@ -255,51 +266,84 @@ const PersonalAssessment = () => {
               <div className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-[2.5rem] p-8 shadow-soft-xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#00A8E8]/5 to-transparent rounded-bl-[80px] -mr-8 -mt-8 pointer-events-none"></div>
 
-                <div className="relative z-10 flex flex-col gap-8">
-                  <div className="flex flex-wrap gap-3">
-                    {predefinedTargets.map((target) => (
-                      <button
-                        key={target}
-                        onClick={() => setTargetDomain(target)}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-all duration-300 ${
-                          targetDomain === target
-                            ? "bg-[#00A8E8] border-[#00A8E8] text-white shadow-md shadow-[#00A8E8]/20 scale-105"
-                            : "bg-[#F8F9FA] dark:bg-[#00171F]/50 border-black/5 dark:border-white/10 text-[#4B5563] dark:text-white/70 hover:border-[#00A8E8]/30 hover:text-[#00A8E8] dark:hover:text-[#00A8E8]"
-                        }`}
-                      >
-                        {target}
-                      </button>
-                    ))}
+                <div className="relative z-10 flex flex-col gap-4">
+                  <h3 className="text-2xl font-black text-[#1C1E21] dark:text-white tracking-tight mb-2 drop-shadow-sm">
+                    Try Other Domains
+                  </h3>
+                  <div className="space-y-3 mb-6">
+                    {Object.entries(categorizedDomains).map(
+                      ([category, domains]) => (
+                        <div
+                          key={category}
+                          className="border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden bg-[#F8FAFC] dark:bg-[#00171F]/50"
+                        >
+                          <button
+                            onClick={() =>
+                              setExpandedCategory(
+                                expandedCategory === category ? null : category,
+                              )
+                            }
+                            className="w-full flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                          >
+                            <span className="font-bold text-[#1C1E21] dark:text-white">
+                              {category} Fields
+                            </span>
+                            <FiTarget
+                              className={`transition-transform ${
+                                expandedCategory === category
+                                  ? "rotate-90 text-[#00A8E8]"
+                                  : "text-[#4B5563] dark:text-white/50"
+                              }`}
+                            />
+                          </button>
+
+                          {expandedCategory === category && (
+                            <div className="p-4 flex flex-wrap gap-3 border-t border-black/5 dark:border-white/5 bg-white/30 dark:bg-transparent">
+                              {domains.map((target) => (
+                                <button
+                                  key={target}
+                                  onClick={() => setTargetDomain(target)}
+                                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-300 ${
+                                    targetDomain === target
+                                      ? "bg-[#00A8E8] border-[#00A8E8] text-white shadow-md shadow-[#00A8E8]/20 scale-105"
+                                      : "bg-white dark:bg-black/20 text-[#1C1E21] dark:text-white/80 border-black/10 dark:border-white/10 hover:border-[#00A8E8]/30 hover:text-[#00A8E8] dark:hover:text-[#00A8E8]"
+                                  }`}
+                                >
+                                  {target}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ),
+                    )}
                   </div>
 
-                  <div className="relative">
+                  <div className="relative flex justify-between gap-5">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                      <FiTarget size={18} />
+                      <FiTarget size={15} />
                     </div>
                     <input
                       type="text"
-                      className="w-full bg-[#F8F9FA] dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[#1C1E21] dark:text-white font-bold outline-none focus:border-[#00A8E8] focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                      className="w-full bg-[#F8F9FA] dark:bg-[#00171F]/50 border border-black/5 dark:border-white/10 rounded-2xl pl-10 pr-2 py-2 text-[#1C1E21] dark:text-white font-bold outline-none focus:border-[#00A8E8] focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
                       placeholder="Or type a custom domain (e.g., DevOps Engineering, Game Design)..."
                       value={targetDomain}
                       onChange={(e) => setTargetDomain(e.target.value)}
                     />
-                  </div>
-
-                  <div className="flex justify-end border-t border-black/5 dark:border-white/10 pt-6 mt-4">
                     <button
                       onClick={() =>
                         handleGenerateCustomAssessment(null, "none")
                       }
                       disabled={!targetDomain || isGenerating}
-                      className="px-8 py-4 bg-gradient-to-r from-[#00A8E8] to-[#007EA7] text-white font-black text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:grayscale disabled:hover:scale-100 flex items-center gap-3"
+                      className="px-10 py-4 bg-gradient-to-r from-[#00A8E8] to-[#007EA7] text-white font-black text-base rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:grayscale disabled:hover:scale-100 flex items-center gap-3"
                     >
                       {isGenerating ? (
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 shrink-0 whitespace-nowrap">
                           <FiLoader className="animate-spin" /> Igniting AI
                           Engine...
                         </span>
                       ) : (
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 shrink-0 whitespace-nowrap">
                           Generate Exam <FiArrowRight />
                         </span>
                       )}

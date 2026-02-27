@@ -1,0 +1,11 @@
+[dotenv@17.3.1] injecting env (15) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+=== Admins ===
+johndoe@gmail.com | ID: 69987481d27e73d94aee4fce
+thomassharma@gmail.com | ID: 699874bcd27e73d94aee4fe9
+superadmintest@gmail.com | ID: 699ab8c22ea4845327d69295
+testadmin@gamil.com | ID: 699ac1d9f3ad1d0bb9a6c85d
+testadmin@gmail.com | ID: 69a17e2367d35fa0062a2142
+
+=== Institutions ===
+Test Inst | Created By: 699adeeca5711a726e1990c5
+sdad | Created By: 699ac1d9f3ad1d0bb9a6c85d

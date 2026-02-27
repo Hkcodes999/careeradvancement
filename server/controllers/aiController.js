@@ -85,6 +85,7 @@ exports.runAutopilot = async (req, res) => {
       targetDomain: targetDomain,
       creationType: "autopilot",
       isActive: true,
+      isPersonal: isPersonal,
       batchId: { $nin: completedBatchIds },
       $expr: { $lt: [{ $size: "$students" }, config.batchLimit || 500] },
     };
@@ -99,9 +100,12 @@ exports.runAutopilot = async (req, res) => {
     if (!batch) {
       batch = await Batch.create({
         batchId: `AUTO-${contextLevel.toUpperCase()}-${sanitizedDomain}-${Date.now()}`,
-        name: `AI Batch - ${targetDomain} (${contextLevel})`,
+        name: isPersonal
+          ? `Personal Assessment - ${targetDomain} (${contextLevel})`
+          : `AI Batch - ${targetDomain} (${contextLevel})`,
         educationLevel: contextLevel,
         targetDomain: targetDomain,
+        isPersonal: isPersonal,
         institutionId:
           !isPersonal && user.institutionId ? user.institutionId : null,
         createdBy:

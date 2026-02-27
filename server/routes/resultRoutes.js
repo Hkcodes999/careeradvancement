@@ -6,8 +6,10 @@ const role = require("../middleware/roleMiddleware");
 const {
   submitAssessment,
   getMyResult,
+  getAllMyResults, // Added
+  getResultById, // Added
   getBatchAnalytics,
-  resetAssessment, // Import the new controller function
+  resetAssessment,
 } = require("../controllers/resultController");
 
 /* =====================================================
@@ -28,6 +30,22 @@ router.get(
   protect,
   role("student", "general", "campus_student"),
   getMyResult,
+);
+
+/* 📚 Get ALL My Results (History View) */
+router.get(
+  "/my/all",
+  protect,
+  role("student", "general", "campus_student"),
+  getAllMyResults,
+);
+
+/* 🔍 Get Specific Result by ID */
+router.get(
+  "/:id",
+  protect,
+  role("student", "general", "campus_student"),
+  getResultById,
 );
 
 /* 🔄 Reset/Unlock Assessment (Allows Retake/Domain Change) */

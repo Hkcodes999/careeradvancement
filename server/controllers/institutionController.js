@@ -1,16 +1,48 @@
 const Institution = require("../models/Institution");
 
 /* ======================================================
-   GET ADMIN'S INSTITUTION (FOR REFRESH PERSISTENCE)
+   GET PUBLIC INSTITUTION (FOR QR VERIFICATION)
+   GET /api/institution/public/:id
+   Returns ONLY explicitly safe public fields to avoid data breaches.
+====================================================== */
+exports.getPublicInstitution = async (req, res) => {
+  try {
+    const institution = await Institution.findById(req.params.id)
+      .select("name city") // Only select safe public data
+      .lean();
+
+    if (!institution) {
+      return res.status(404).json({ message: "Institution not found" });
+    }
+
+    res.status(200).json({ institution });
+  } catch (err) {
+    console.error("PUBLIC INSTITUTION ERROR:", err.message);
+    res.status(500).json({ message: "Failed to fetch institution" });
+  }
+};
+
+/* ======================================================
+   GET ADMIN'S INSTITUTION (FOR REFRESH PERSISTENCE & CHECK)
    GET /api/institution/my
 ====================================================== */
 exports.getMyInstitution = async (req, res) => {
   try {
-    // Find the institution created by the currently logged-in user (from authMiddleware)
-    const institution = await Institution.findOne({ createdBy: req.user.id });
+    let institution;
 
-    // Returning 200 even if null so the frontend knows there isn't one yet
-    if (!institution) {
+    // Disable ownership check for getMyInstitution so AdminDashboard acts globally
+    if (["admin", "superadmin"].includes(req.user.role)) {
+      // Return ALL active institutions for Admin/SuperAdmin (frontend handles array)
+      institution = await Institution.find({ isActive: true });
+    } else {
+      // Normal admins only get the one they created
+      institution = await Institution.findOne({ createdBy: req.user.id });
+    }
+
+    if (
+      !institution ||
+      (Array.isArray(institution) && institution.length === 0)
+    ) {
       return res.status(200).json({ institution: null });
     }
 
@@ -71,13 +103,11 @@ exports.createInstitution = async (req, res) => {
     });
   } catch (err) {
     console.error("CREATE INSTITUTION ERROR:", err.message, err.stack);
-    res
-      .status(500)
-      .json({
-        message: "Failed to create institution",
-        error: err.message,
-        stack: err.stack,
-      });
+    res.status(500).json({
+      message: "Failed to create institution",
+      error: err.message,
+      stack: err.stack,
+    });
   }
 };
 
@@ -100,12 +130,21 @@ exports.updateInstitution = async (req, res) => {
       return res.status(404).json({ message: "Institution not found" });
     }
 
-    // Ownership check
-    if (institution.createdBy.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized to update this institution" });
-    }
+    console.log("UPDATE_INSTITUTION DEBUG:", {
+      role: req.user.role,
+      userId: req.user.id,
+      createdBy: institution.createdBy.toString(),
+    });
+
+    // Ownership check - DISABLED for now as requested to allow "AdminDashboard" to act globally.
+    // if (
+    //   institution.createdBy.toString() !== req.user.id &&
+    //   req.user.role !== "superadmin"
+    // ) {
+    //   return res
+    //     .status(403)
+    //     .json({ message: "Unauthorized to update this institution" });
+    // }
 
     if (code && code.toUpperCase() !== institution.code) {
       const codeExists = await Institution.findOne({
@@ -132,13 +171,11 @@ exports.updateInstitution = async (req, res) => {
     });
   } catch (err) {
     console.error("UPDATE INSTITUTION ERROR:", err.message, err.stack);
-    res
-      .status(500)
-      .json({
-        message: "Failed to update institution",
-        error: err.message,
-        stack: err.stack,
-      });
+    res.status(500).json({
+      message: "Failed to update institution",
+      error: err.message,
+      stack: err.stack,
+    });
   }
 };
 

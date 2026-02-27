@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import logo from "../../assets/logo.png";
 import { toast } from "react-toastify";
@@ -47,6 +47,7 @@ const Login = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   /* ---------------- LOGIC ---------------- */
   const handleKeyEvent = (e) => setCapsOn(e.getModifierState("CapsLock"));
@@ -59,7 +60,8 @@ const Login = () => {
       remember: isRemember,
     });
     toast.success("Welcome back!");
-    navigate("/dashboard");
+    const returnTo = location.state?.returnTo || "/dashboard";
+    navigate(returnTo, { replace: true });
   };
 
   const handleLogin = async (e) => {
@@ -182,10 +184,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-[#F8FAFC] overflow-hidden font-sans text-gray-900 relative">
-      {/* Subtle Abstract Background Texture (Light Version) */}
-      <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(0,168,232,0.04)_0%,rgba(248,250,252,0)_60%)] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,126,167,0.04)_0%,rgba(248,250,252,0)_60%)] pointer-events-none"></div>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-[#F8FAFC] dark:bg-gray-900 overflow-hidden font-sans text-gray-900 dark:text-gray-100 relative transition-colors duration-300">
+      {/* Subtle Abstract Background Texture */}
+      <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,rgba(0,168,232,0.04)_0%,rgba(248,250,252,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top_right,rgba(0,168,232,0.1)_0%,transparent_60%)] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,126,167,0.04)_0%,rgba(248,250,252,0)_60%)] dark:bg-[radial-gradient(ellipse_at_bottom_left,rgba(0,126,167,0.1)_0%,transparent_60%)] pointer-events-none"></div>
 
       {/* Top Left Logo (Aligned exactly like Navbar) */}
       <div className="absolute top-0 left-0 w-full h-20 px-4 sm:px-6 lg:px-8 flex items-center z-20">
@@ -194,20 +196,20 @@ const Login = () => {
             <img src={logo} alt="Logo" className="w-15 h-12" />
           </div>
           <div className="hidden sm:flex flex-col">
-            <span className="font-display font-bold text-2xl leading-none text-gray-900 tracking-tight">
+            <span className="font-display font-bold text-2xl leading-none text-gray-900 dark:text-white tracking-tight">
               Career <span className="text-[#00A8E8]">Advancement</span>
             </span>
           </div>
         </Link>
       </div>
 
-      {/* --- CENTERED CARD (LIGHT) --- */}
-      <div className="w-full max-w-[420px] bg-white border border-gray-100 rounded-[1.5rem] p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10 animate-fade-in-up mt-10">
+      {/* --- CENTERED CARD --- */}
+      <div className="w-full max-w-[420px] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[1.5rem] p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] relative z-10 animate-fade-in-up mt-10 transition-colors duration-300">
         <header className="mb-6 text-center">
           <h1 className="text-[26px] font-bold text-[#00A8E8] mb-1.5 tracking-tight">
             Welcome back
           </h1>
-          <p className="text-gray-500 text-sm font-medium">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium transition-colors">
             Sign in to continue
           </p>
         </header>
@@ -217,16 +219,16 @@ const Login = () => {
           <div className="space-y-1.5 group">
             <label
               htmlFor="email"
-              className="block text-xs font-semibold text-gray-600 ml-1 transition-colors group-focus-within:text-[#00A8E8]"
+              className="block text-xs font-semibold text-gray-600 dark:text-gray-300 ml-1 transition-colors group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8]"
             >
               Email Address
             </label>
             <div className="relative">
-              <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00A8E8] transition-colors z-10" />
+              <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8] transition-colors z-10" />
               <input
                 type="email"
                 id="email"
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-11 pr-4 py-3 text-gray-900 text-sm outline-none focus:border-[#00A8E8] focus:bg-white focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder-gray-400"
+                className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl pl-11 pr-4 py-3 text-gray-900 dark:text-white text-sm outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -240,17 +242,17 @@ const Login = () => {
             <div className="flex justify-between items-end ml-1 mr-1">
               <label
                 htmlFor="password"
-                className="block text-xs font-semibold text-gray-600 transition-colors group-focus-within:text-[#00A8E8]"
+                className="block text-xs font-semibold text-gray-600 dark:text-gray-300 transition-colors group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8]"
               >
                 Password
               </label>
             </div>
             <div className="relative">
-              <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#00A8E8] transition-colors z-10" />
+              <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8] transition-colors z-10" />
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-11 pr-12 py-3 text-gray-900 text-sm outline-none focus:border-[#00A8E8] focus:bg-white focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder-gray-400"
+                className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl pl-11 pr-12 py-3 text-gray-900 dark:text-white text-sm outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-[#00A8E8]/20 transition-all placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -260,7 +262,7 @@ const Login = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-700 transition-colors rounded-full"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors rounded-full"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
@@ -269,7 +271,7 @@ const Login = () => {
           </div>
 
           {capsOn && (
-            <div className="flex items-center gap-2 p-3 bg-amber-50 text-amber-700 rounded-xl text-xs font-medium border border-amber-200 animate-fade-in-up mt-2">
+            <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-xl text-xs font-medium border border-amber-200 dark:border-amber-700/50 animate-fade-in-up mt-2 transition-colors">
               <FiAlertTriangle size={14} /> <span>Caps Lock is active</span>
             </div>
           )}
@@ -279,19 +281,19 @@ const Login = () => {
               <div className="relative flex items-center justify-center">
                 <input
                   type="checkbox"
-                  className="peer appearance-none w-[18px] h-[18px] border-[1.5px] border-gray-300 rounded bg-white checked:bg-[#00A8E8] checked:border-[#00A8E8] focus:ring-2 focus:ring-offset-1 focus:ring-[#00A8E8]/30 transition-all cursor-pointer"
+                  className="peer appearance-none w-[18px] h-[18px] border-[1.5px] border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 checked:bg-[#00A8E8] dark:checked:bg-[#00A8E8] checked:border-[#00A8E8] dark:checked:border-[#00A8E8] focus:ring-2 focus:ring-offset-1 dark:focus:ring-offset-gray-800 focus:ring-[#00A8E8]/30 transition-all cursor-pointer"
                   checked={remember}
                   onChange={() => setRemember(!remember)}
                 />
                 <FiCheckCircle className="absolute text-white opacity-0 peer-checked:opacity-100 w-[12px] h-[12px] pointer-events-none transition-opacity stroke-[3]" />
               </div>
-              <span className="text-xs font-medium text-gray-500 group-hover:text-gray-800 transition-colors">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
                 Remember me
               </span>
             </label>
             <button
               type="button"
-              className="text-xs font-semibold text-gray-500 hover:text-[#00A8E8] transition-colors"
+              className="text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-[#00A8E8] dark:hover:text-[#00A8E8] transition-colors"
               onClick={() => setShowForgot(true)}
             >
               Forgot password?
@@ -313,10 +315,10 @@ const Login = () => {
 
         <div className="relative py-4 my-1">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-100"></div>
+            <div className="w-full border-t border-gray-100 dark:border-gray-700 transition-colors"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+            <span className="bg-white dark:bg-gray-800 px-3 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest transition-colors">
               Or
             </span>
           </div>
@@ -338,7 +340,7 @@ const Login = () => {
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500 font-medium mt-8">
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 font-medium mt-8 transition-colors">
           Don't have an account?{" "}
           <Link
             to="/signup"
@@ -351,20 +353,20 @@ const Login = () => {
 
       {/* --- ROLE COMPLETION MODAL --- */}
       {showRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 animate-fade-in backdrop-blur-sm">
-          <div className="bg-white border border-gray-100 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] p-8 max-w-sm w-full animate-slide-up relative">
-            <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 dark:bg-black/60 animate-fade-in backdrop-blur-sm transition-colors">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] p-8 max-w-sm w-full animate-slide-up relative transition-colors">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight transition-colors">
               Finalize Profile
             </h3>
-            <p className="text-gray-500 text-sm mb-6 font-medium">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-medium transition-colors">
               Please select your intended role to complete registration.
             </p>
 
             <div className="space-y-5">
               <div className="relative group">
-                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors z-10" />
+                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-colors z-10" />
                 <select
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 text-sm focus:outline-none focus:border-[#00A8E8] focus:ring-2 focus:ring-[#00A8E8]/20 focus:bg-white transition-all appearance-none"
+                  className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:ring-2 focus:ring-[#00A8E8]/20 focus:bg-white dark:focus:bg-gray-800 transition-all appearance-none"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                 >
@@ -402,26 +404,26 @@ const Login = () => {
 
       {/* --- FORGOT PASSWORD MODAL --- */}
       {showForgot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 animate-fade-in backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] p-8 sm:p-10 max-w-[420px] w-full animate-slide-up relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 dark:bg-black/60 animate-fade-in backdrop-blur-sm transition-colors">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] p-8 sm:p-10 max-w-[420px] w-full animate-slide-up relative transition-colors">
             {forgotStep === 1 ? (
               <>
-                <h2 className="text-3xl font-bold text-[#0F172A] text-center mb-3 tracking-tight">
+                <h2 className="text-3xl font-bold text-[#0F172A] dark:text-white text-center mb-3 tracking-tight transition-colors">
                   Forgot Password
                 </h2>
-                <p className="text-sm text-[#475569] text-center mb-8 px-2 font-medium leading-relaxed">
+                <p className="text-sm text-[#475569] dark:text-[#94A3B8] text-center mb-8 px-2 font-medium leading-relaxed transition-colors">
                   Enter your email address and we'll send you a code to reset
                   your password.
                 </p>
 
                 <div className="space-y-6">
                   <div className="space-y-2 group">
-                    <label className="block text-[13px] font-bold text-[#334155] ml-1 transition-colors group-focus-within:text-[#00A8E8]">
+                    <label className="block text-[13px] font-bold text-[#334155] dark:text-gray-300 ml-1 transition-colors group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8]">
                       Email address
                     </label>
                     <input
                       type="email"
-                      className="w-full bg-white border border-[#E2E8F0] rounded-[1rem] px-4 py-4 text-[#0F172A] text-[15px] outline-none focus:border-[#00A8E8] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-[#94A3B8]"
+                      className="w-full bg-white dark:bg-gray-900/50 border border-[#E2E8F0] dark:border-gray-600 rounded-[1rem] px-4 py-4 text-[#0F172A] dark:text-white text-[15px] outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-[#94A3B8] dark:placeholder-gray-500"
                       placeholder="you@example.com"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
@@ -453,13 +455,13 @@ const Login = () => {
             ) : (
               <>
                 {/* STEP 2 */}
-                <h2 className="text-3xl font-bold text-[#0F172A] text-center mb-3 tracking-tight">
+                <h2 className="text-3xl font-bold text-[#0F172A] dark:text-white text-center mb-3 tracking-tight transition-colors">
                   Verification Code
                 </h2>
-                <p className="text-sm text-[#475569] text-center mb-8 px-2 font-medium leading-relaxed">
+                <p className="text-sm text-[#475569] dark:text-[#94A3B8] text-center mb-8 px-2 font-medium leading-relaxed transition-colors">
                   Enter the 6-digit code sent to{" "}
                   <br className="hidden sm:block" />
-                  <strong className="text-[#0F172A] break-words inline-block max-w-[280px] align-top">
+                  <strong className="text-[#0F172A] dark:text-white break-words inline-block max-w-[280px] align-top transition-colors">
                     {forgotEmail}
                   </strong>
                   .
@@ -467,7 +469,7 @@ const Login = () => {
 
                 <div className="space-y-6">
                   <div className="space-y-3 group">
-                    <label className="block text-[13px] font-bold text-[#334155] ml-1 transition-colors group-focus-within:text-[#00A8E8]">
+                    <label className="block text-[13px] font-bold text-[#334155] dark:text-gray-300 ml-1 transition-colors group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8]">
                       Verification Code
                     </label>
                     <div className="flex justify-between gap-1 sm:gap-2 w-full px-1">
@@ -476,7 +478,7 @@ const Login = () => {
                           key={index}
                           type="text"
                           maxLength="1"
-                          className="w-10 h-12 sm:w-[48px] sm:h-[56px] text-center text-xl sm:text-2xl font-bold bg-white border border-[#E2E8F0] rounded-[1rem] focus:outline-none focus:border-[#00A8E8] focus:bg-[#f8fafc] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-gray-300 shadow-sm"
+                          className="w-10 h-12 sm:w-[48px] sm:h-[56px] text-center text-xl sm:text-2xl font-bold bg-white dark:bg-gray-900/50 border border-[#E2E8F0] dark:border-gray-600 rounded-[1rem] focus:outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:bg-[#f8fafc] dark:focus:bg-gray-800 focus:ring-4 focus:ring-[#00A8E8]/10 text-gray-900 dark:text-white transition-all placeholder-gray-300 dark:placeholder-gray-600 shadow-sm"
                           value={data}
                           onChange={(e) => handleOtpChange(e.target, index)}
                           onKeyDown={(e) => handleOtpKeyDown(e, index)}
@@ -487,14 +489,14 @@ const Login = () => {
                   </div>
 
                   <div className="space-y-2 group">
-                    <label className="block text-[13px] font-bold text-[#334155] ml-1 transition-colors group-focus-within:text-[#00A8E8]">
+                    <label className="block text-[13px] font-bold text-[#334155] dark:text-gray-300 ml-1 transition-colors group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8]">
                       New Password
                     </label>
                     <div className="relative">
-                      <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8] group-focus-within:text-[#00A8E8] transition-colors z-10" />
+                      <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#94A3B8] dark:text-gray-500 group-focus-within:text-[#00A8E8] dark:group-focus-within:text-[#00A8E8] transition-colors z-10" />
                       <input
                         type="password"
-                        className="w-full bg-white border border-[#E2E8F0] rounded-[1rem] pl-11 pr-4 py-4 text-[#0F172A] text-[15px] outline-none focus:border-[#00A8E8] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-[#94A3B8]"
+                        className="w-full bg-white dark:bg-gray-900/50 border border-[#E2E8F0] dark:border-gray-600 rounded-[1rem] pl-11 pr-4 py-4 text-[#0F172A] dark:text-white text-[15px] outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:ring-4 focus:ring-[#00A8E8]/10 transition-all placeholder-[#94A3B8] dark:placeholder-gray-500"
                         placeholder="Enter new password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}

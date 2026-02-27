@@ -8,7 +8,6 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import { fetchBatches } from "../../../services/batchApi";
 import { generateAssessment } from "../../../services/aiApi";
 import LoadingSpinner from "../../common/LoadingSpinner"; 
-import "./AiBuilderTab.css";
 
 const AiBuilderTab = ({ institution, currentUser }) => {
   const [batches, setBatches] = useState([]);

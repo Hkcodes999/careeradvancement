@@ -7,6 +7,7 @@ const {
   updateInstitution, // Added this
   getMyInstitution,
   getActiveInstitutions,
+  getPublicInstitution,
 } = require("../controllers/institutionController");
 
 /* ======================================================
@@ -34,5 +35,12 @@ router.get("/my", protect, getMyInstitution);
 ====================================================== */
 // Changed from "/list" to "/active" to match your frontend fetchInstitutions call
 router.get("/active", getActiveInstitutions);
+
+/* ======================================================
+   GET PUBLIC INSTITUTION (STUDENT SCAN QR)
+   GET /api/institution/public/:id
+   (Unprotected route to fetch name for UI prompt)
+====================================================== */
+router.get("/public/:id", getPublicInstitution);
 
 module.exports = router;

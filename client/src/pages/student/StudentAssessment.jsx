@@ -3,7 +3,6 @@ import { fetchAssessment } from "../../services/studentApi";
 import { submitAssessment } from "../../services/resultApi";
 import StudentSidebar from "../../components/StudentSidebar";
 import DomainSelector from "../../components/DomainSelector.jsx"; // Import renamed .jsx file
-import "./StudentDashboard.css";
 
 const StudentAssessment = () => {
   const [step, setStep] = useState("selector"); // 'selector' or 'quiz'

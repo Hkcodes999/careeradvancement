@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import StudentSidebar from "../../components/StudentSidebar";
 import { fetchMyResult } from "../../services/resultApi";
 import GlobalLoader from "../../components/GlobalLoader";
-import "./StudentDashboard.css";
 
 const StudentResults = () => {
   const [result, setResult] = useState(null);

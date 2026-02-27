@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Context Provider
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 
+// Components
 import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SmoothScroll from "./components/SmoothScroll";
+import GlobalLoader from "./components/GlobalLoader";
 
+// Pages
 import Home from "./pages/common/Home";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -20,34 +24,41 @@ import PersonalAssessment from "./pages/student/PersonalAssessment";
 import Results from "./pages/common/Results";
 import Assessment from "./pages/common/Assessment";
 import Campus from "./pages/student/Campus";
-import SmoothScroll from "./components/SmoothScroll";
-import GlobalLoader from "./components/GlobalLoader";
+import StudentResultsHistory from "./pages/student/StudentResultsHistory";
 
-/* ---------------- App Layout ---------------- */
-const AppLayout = ({ children }) => {
-  const location = useLocation();
-  const { loading } = useAuth(); // Access loading state from context
+/* ---------------- Layout Components ---------------- */
 
-  const hideNavbar =
-    location.pathname === "/login" ||
-    location.pathname === "/signup" ||
-    location.pathname.startsWith("/dashboard") ||
-    location.pathname.startsWith("/profile") ||
-    location.pathname.startsWith("/assessment") ||
-    location.pathname.startsWith("/personal-assessment") ||
-    location.pathname.startsWith("/results") ||
-    location.pathname.startsWith("/campus");
-
-  // Prevent UI flicker while checking localStorage/token on refresh
-  if (loading) {
-    return <GlobalLoader />;
-  }
-
+// 1. Main Layout: For public pages with Navbar
+const MainLayout = () => {
   return (
     <SmoothScroll>
-      {!hideNavbar && <Navbar />}
-      {!hideNavbar ? <Layout>{children}</Layout> : children}
+      <Navbar />
+      <Layout>
+        <Outlet />
+      </Layout>
     </SmoothScroll>
+  );
+};
+
+// 2. Auth Layout: For Login/Signup pages without Navbar
+const AuthLayout = () => {
+  return (
+    <SmoothScroll>
+      <Outlet />
+    </SmoothScroll>
+  );
+};
+
+// 3. Protected Layout: For all authenticated routes. Wraps ProtectedRoute.
+const ProtectedLayout = ({ allowedRoles }) => {
+  return (
+    <ProtectedRoute allowedRoles={allowedRoles}>
+      <SmoothScroll>
+        <Layout>
+          <Outlet />
+        </Layout>
+      </SmoothScroll>
+    </ProtectedRoute>
   );
 };
 
@@ -72,98 +83,70 @@ const App = () => {
   }, []);
 
   return (
-    // 1. AuthProvider must be INSIDE BrowserRouter or OUTSIDE.
-    // Usually, we put it outside or inside main.jsx.
     <AuthProvider>
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            {/* PUBLIC */}
+        <Routes>
+          {/* ================= PUBLIC MAIN ROUTES ================= */}
+          <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
             <Route
               path="/join-campus/:institutionId"
               element={<JoinCampus />}
             />
+          </Route>
 
-            {/* STUDENT PROFILE */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute
-                  allowedRoles={["student", "general", "campus_student"]}
-                >
-                  <StudentProfile />
-                </ProtectedRoute>
-              }
-            />
+          {/* ================= AUTH ROUTES ================= */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Route>
 
-            {/* DASHBOARD */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute
-                  allowedRoles={[
-                    "student",
-                    "general",
-                    "campus_student",
-                    "admin",
-                    "superadmin",
-                  ]}
-                >
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+          {/* ================= PROTECTED ROUTES ================= */}
 
-            {/* CAMPUS (PREDEFINED BATCHES & INSTITUTION LINK) */}
-            <Route
-              path="/campus"
-              element={
-                <ProtectedRoute allowedRoles={["student", "campus_student"]}>
-                  <Campus />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* PERSONAL ASSESSMENT */}
+          {/* STUDENT / GENERAL / CAMPUS_STUDENT */}
+          <Route
+            element={
+              <ProtectedLayout
+                allowedRoles={["student", "general", "campus_student"]}
+              />
+            }
+          >
+            <Route path="/profile" element={<StudentProfile />} />
             <Route
               path="/personal-assessment"
-              element={
-                <ProtectedRoute
-                  allowedRoles={["student", "general", "campus_student"]}
-                >
-                  <PersonalAssessment />
-                </ProtectedRoute>
-              }
+              element={<PersonalAssessment />}
             />
+            <Route path="/assessment" element={<Assessment />} />
+            <Route path="/results" element={<StudentResultsHistory />} />
+            <Route path="/results/:id" element={<Results />} />
+          </Route>
 
-            {/* ASSESSMENT */}
-            <Route
-              path="/assessment"
-              element={
-                <ProtectedRoute
-                  allowedRoles={["student", "general", "campus_student"]}
-                >
-                  <Assessment />
-                </ProtectedRoute>
-              }
-            />
+          {/* DASHBOARD - ALL ROLES */}
+          <Route
+            element={
+              <ProtectedLayout
+                allowedRoles={[
+                  "student",
+                  "general",
+                  "campus_student",
+                  "admin",
+                  "superadmin",
+                ]}
+              />
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
 
-            {/* RESULTS */}
-            <Route
-              path="/results"
-              element={
-                <ProtectedRoute
-                  allowedRoles={["student", "general", "campus_student"]}
-                >
-                  <Results />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </AppLayout>
+          {/* CAMPUS PAGES - CAMPUS_STUDENT ONLY */}
+          <Route
+            element={
+              <ProtectedLayout allowedRoles={["student", "campus_student"]} />
+            }
+          >
+            <Route path="/campus" element={<Campus />} />
+          </Route>
+        </Routes>
 
         <ToastContainer
           position={toastPosition}

@@ -185,14 +185,34 @@ exports.selectInstitution = async (req, res) => {
 
 exports.joinCampus = async (req, res) => {
   try {
-    const { institutionId } = req.body;
+    const { institutionId, batchId } = req.body;
     const user = await User.findById(req.user.id);
 
     user.institutionId = institutionId;
     user.role = "campus_student";
+    // Reset batch state initially
     user.stream = null;
     user.batchId = null;
     user.batchRef = null;
+
+    if (batchId) {
+      const batch = await Batch.findOne({ batchId, isActive: true });
+      if (batch) {
+        if (!batch.students.includes(user._id)) {
+          batch.students.push(user._id);
+          await batch.save();
+        }
+        user.batchId = batch.batchId;
+        user.batchRef = batch._id;
+        user.stream = batch.targetDomain;
+
+        // Trigger assessment generation in background if autopilot missing
+        generateAssessmentForBatch(batch).catch((err) =>
+          console.error("Background AI process failed:", err),
+        );
+      }
+    }
+
     await user.save();
 
     res.json({ success: true, message: "Joined campus successfully." });

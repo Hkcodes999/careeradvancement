@@ -17,7 +17,7 @@ export const getMyInstitution = async () => {
   const res = await fetch(`${API_BASE}/my`, {
     method: "GET",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -38,7 +38,7 @@ export const createInstitution = async (payload) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
     },
     body: JSON.stringify(payload),
   });
@@ -60,7 +60,7 @@ export const updateInstitution = async (id, payload) => {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${getToken()}`,
+      Authorization: `Bearer ${getToken()}`,
     },
     body: JSON.stringify(payload),
   });
@@ -98,16 +98,31 @@ export const selectInstitution = async (institutionId, stream) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${getToken()}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       // Now sending both IDs to ensure batching logic has context
       body: JSON.stringify({ institutionId, stream }),
-    }
+    },
   );
 
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.message || "Failed to select institution and domain");
+  }
+
+  return res.json();
+};
+
+/* =====================================================
+   PUBLIC – Get Institution details (No Auth)
+   For QR code Confirmation screens
+===================================================== */
+export const getPublicInstitution = async (id) => {
+  const res = await fetch(`${API_BASE}/public/${id}`);
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Failed to fetch institution properties");
   }
 
   return res.json();

@@ -6,7 +6,12 @@ const getToken = () =>
 /* ===============================
     Submit assessment answers
 ================================ */
-export const submitAssessment = async ({ answers, timeSpent, targetDomain, educationLevel }) => {
+export const submitAssessment = async ({
+  answers,
+  timeSpent,
+  targetDomain,
+  educationLevel,
+}) => {
   const res = await fetch(`${API_BASE}/submit`, {
     method: "POST",
     headers: {
@@ -40,6 +45,44 @@ export const fetchMyResult = async () => {
 
   if (!res.ok) {
     throw new Error(data.message || "Failed to fetch result");
+  }
+
+  return data;
+};
+
+/* ===============================
+    Fetch all my results (History)
+================================================ */
+export const fetchAllMyResults = async () => {
+  const res = await fetch(`${API_BASE}/my/all`, {
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch results history");
+  }
+
+  return data;
+};
+
+/* ===============================
+    Fetch a specific result by ID
+================================================ */
+export const fetchResultById = async (id) => {
+  const res = await fetch(`${API_BASE}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to fetch specific result");
   }
 
   return data;

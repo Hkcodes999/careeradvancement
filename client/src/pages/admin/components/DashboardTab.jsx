@@ -201,7 +201,7 @@ const DashboardTab = ({ setActiveTab, institution }) => {
                 Institutions
               </h2>
             </div>
-            {institution && institution.length > 4 && (
+            {Array.isArray(institution) && institution.length > 4 && (
               <button
                 onClick={() => setActiveTab("institution")}
                 className="text-sm font-bold text-[#00A8E8] hover:text-[#007EA7] flex items-center gap-1 transition-colors group"
@@ -213,7 +213,7 @@ const DashboardTab = ({ setActiveTab, institution }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
-            {institution && institution.length > 0 ? (
+            {Array.isArray(institution) && institution.length > 0 ? (
               institution.slice(0, 4).map((inst) => (
                 <div
                   key={inst._id || inst.name}

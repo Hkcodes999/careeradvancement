@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { fetchBatches, addStudentToBatch } from "../../../services/batchApi";
-import "./AssignTab.css";
 
 const AssignTab = () => {
   const [batches, setBatches] = useState([]);

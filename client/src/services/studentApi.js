@@ -125,10 +125,10 @@ export const selectInstitution = async (institutionId, targetStream = null) => {
   });
 };
 
-export const joinCampus = async (institutionId) => {
+export const joinCampus = async (institutionId, batchId = null) => {
   return apiFetch(`${API_BASE}/join-campus`, {
     method: "POST",
-    body: JSON.stringify({ institutionId }),
+    body: JSON.stringify({ institutionId, batchId }),
   });
 };
 

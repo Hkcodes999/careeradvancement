@@ -181,6 +181,61 @@ exports.getMyResult = async (req, res) => {
 };
 
 /* ======================================================
+    GET ALL MY RESULTS (FOR HISTORY VIEW)
+====================================================== */
+exports.getAllMyResults = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    // Find all results for this student, sorted newest first
+    const results = await Result.find({ studentId }).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      results,
+    });
+  } catch (err) {
+    console.error("GET ALL MYS RESULTS ERROR:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to retrieve results history" });
+  }
+};
+
+/* ======================================================
+    GET SPECIFIC RESULT BY ID
+====================================================== */
+exports.getResultById = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { id } = req.params;
+
+    const result = await Result.findOne({ _id: id, studentId });
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Result not found or unauthorized.",
+      });
+    }
+
+    const user = await User.findById(studentId).select("name email");
+
+    res.json({
+      success: true,
+      ...result.toObject(),
+      studentName: user ? user.name : "N/A",
+      studentEmail: user ? user.email : "N/A",
+    });
+  } catch (err) {
+    console.error("GET RESULT BY ID ERROR:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to retrieve specific result" });
+  }
+};
+
+/* ======================================================
     ADMIN ANALYTICS & RESET
 ====================================================== */
 exports.getBatchAnalytics = async (req, res) => {

@@ -13,7 +13,6 @@ import {
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import GlobalLoader from "../components/GlobalLoader";
-import "./SuperAdminDashboard.css";
 
 const SuperAdminDashboard = () => {
   const [userName, setUserName] = useState("");

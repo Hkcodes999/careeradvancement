@@ -11,6 +11,7 @@ import {
   FiBookOpen,
   FiArrowLeft,
   FiGrid,
+  FiLink,
 } from "react-icons/fi";
 import { createBatch, fetchBatches } from "../../../services/batchApi";
 
@@ -28,7 +29,10 @@ const BatchTab = ({ institution }) => {
     startTime: "",
     endTime: "",
     maxStudents: 50,
+    institutionId: "",
   });
+
+  const [qrModal, setQrModal] = useState({ isOpen: false, batch: null });
 
   const loadBatches = async () => {
     try {
@@ -48,11 +52,6 @@ const BatchTab = ({ institution }) => {
   }, []);
 
   const handleAddNew = () => {
-    if (!institution) {
-      return toast.warning(
-        "Please create an institution first before creating batches.",
-      );
-    }
     setBatchForm({
       name: "",
       className: "",
@@ -61,12 +60,15 @@ const BatchTab = ({ institution }) => {
       startTime: "",
       endTime: "",
       maxStudents: 50,
+      institutionId:
+        Array.isArray(institution) && institution.length > 0
+          ? institution[0]._id
+          : "",
     });
     setViewMode("form");
   };
 
   const handleCreateBatch = async () => {
-    if (!institution) return toast.error("Create an institution first");
     if (!batchForm.name || !batchForm.className || !batchForm.educationLevel) {
       return toast.error("Batch name, class & education level required");
     }
@@ -86,6 +88,7 @@ const BatchTab = ({ institution }) => {
           endTime: batchForm.endTime,
         },
         maxStudents: batchForm.maxStudents,
+        institutionId: batchForm.institutionId || undefined,
       });
 
       if (res.batch || res) {
@@ -157,19 +160,6 @@ const BatchTab = ({ institution }) => {
                 <span className="relative inline-flex rounded-full h-10 w-10 bg-[#007EA7]"></span>
               </span>
             </div>
-          ) : !institution ? (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 bg-amber-500/10 dark:bg-amber-500/5 backdrop-blur-xl border border-amber-500/20 rounded-[2rem]">
-              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-500/20 rounded-full flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
-                <FiBookOpen size={28} />
-              </div>
-              <h3 className="text-xl font-bold text-[#1C1E21] dark:text-white mb-2">
-                No Institution Setup
-              </h3>
-              <p className="text-[#4B5563] dark:text-white/60 text-center max-w-sm">
-                You must complete your Institution Profile first before creating
-                any batches.
-              </p>
-            </div>
           ) : batches.length > 0 ? (
             batches.map((batch, idx) => {
               // Handle potential deeply nested slots from backend
@@ -209,6 +199,14 @@ const BatchTab = ({ institution }) => {
                         <span className="truncate">{batch.educationLevel}</span>
                       </div>
                     </div>
+                    {/* QR Code Button */}
+                    <button
+                      onClick={() => setQrModal({ isOpen: true, batch })}
+                      className="p-2.5 bg-black/5 dark:bg-white/10 hover:bg-[#00A8E8]/10 hover:text-[#00A8E8] dark:hover:bg-[#00A8E8]/20 dark:hover:text-[#00A8E8] rounded-xl transition-all duration-300 flex-shrink-0"
+                      title="Get QR Link"
+                    >
+                      <FiLink size={18} />
+                    </button>
                   </div>
 
                   <div className="w-full bg-black/5 dark:bg-white/5 h-px my-1"></div>
@@ -286,6 +284,39 @@ const BatchTab = ({ institution }) => {
         /* Form View */
         <div className="bg-white/60 dark:bg-[#00171F]/50 backdrop-blur-xl border border-black/5 dark:border-white/10 p-6 md:p-10 rounded-[2rem] shadow-soft animate-fade-in-up delay-[200ms]">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            {/* Institution Dropdown (Only for SuperAdmins/Arrays) */}
+            {Array.isArray(institution) && institution.length > 0 && (
+              <div className="flex flex-col gap-2 md:col-span-2">
+                <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
+                  Assign to Institution *
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#00A8E8] transition-colors">
+                    <FiLayers size={18} />
+                  </div>
+                  <select
+                    value={batchForm.institutionId}
+                    onChange={(e) =>
+                      setBatchForm({
+                        ...batchForm,
+                        institutionId: e.target.value,
+                      })
+                    }
+                    className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white appearance-none"
+                  >
+                    <option value="" disabled className="text-gray-400">
+                      -- Select Institution --
+                    </option>
+                    {institution.map((inst) => (
+                      <option key={inst._id} value={inst._id}>
+                        {inst.name} ({inst.city})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
                 Batch Name *
@@ -449,6 +480,48 @@ const BatchTab = ({ institution }) => {
                   <span>Create Batch</span>
                 </>
               )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* QR Modal */}
+      {qrModal.isOpen && qrModal.batch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-2xl p-8 max-w-sm w-full relative animate-slide-up flex flex-col items-center text-center">
+            <button
+              onClick={() => setQrModal({ isOpen: false, batch: null })}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <FiX size={24} />
+            </button>
+
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+              Campus Invite Link
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+              Scan this QR code or copy the link to join{" "}
+              <strong>{qrModal.batch.name}</strong>.
+            </p>
+
+            <div className="w-56 h-56 bg-gray-50 border border-gray-200 dark:border-gray-600 rounded-2xl flex items-center justify-center overflow-hidden mb-6 shadow-inner">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}/join-campus/${qrModal.batch.institutionId}?batch=${qrModal.batch.batchId}`)}`}
+                alt="QR Code"
+                className="w-48 h-48 object-contain mix-blend-multiply dark:mix-blend-normal"
+              />
+            </div>
+
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/join-campus/${qrModal.batch.institutionId}?batch=${qrModal.batch.batchId}`,
+                );
+                toast.success("Link copied to clipboard!");
+              }}
+              className="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold rounded-xl transition-all"
+            >
+              Copy Link
             </button>
           </div>
         </div>

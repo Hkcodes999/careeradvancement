@@ -63,6 +63,11 @@ const BatchSchema = new mongoose.Schema({
     default: "manual",
   },
 
+  isPersonal: {
+    type: Boolean,
+    default: false,
+  },
+
   /* ================= SLOT / TIME LOCK ================= */
   slot: {
     date: {

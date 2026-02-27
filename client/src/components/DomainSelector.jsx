@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { HiOutlineBookOpen, HiOutlineBriefcase, HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
-import "./DomainSelector.css";
 
 const DomainSelector = ({ onStart }) => {
   const [targetDomain, setTargetDomain] = useState("");

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import StudentSidebar from "../../components/StudentSidebar";
 import {
@@ -11,6 +11,7 @@ import {
   fetchInstitutions,
   selectInstitution,
 } from "../../services/institutionApi";
+import { fetchAllMyResults } from "../../services/resultApi";
 import { toast } from "react-toastify";
 import {
   FiCheckCircle,
@@ -21,6 +22,8 @@ import {
   FiRefreshCw,
   FiArrowRight,
   FiUsers,
+  FiCalendar,
+  FiAward,
 } from "react-icons/fi";
 import GlobalLoader from "../../components/GlobalLoader";
 
@@ -36,6 +39,7 @@ const Campus = () => {
   const [selecting, setSelecting] = useState(false);
   const [autopilotLoading, setAutopilotLoading] = useState(false);
   const [isTailoring, setIsTailoring] = useState(false);
+  const [results, setResults] = useState([]);
 
   const [availableBatches, setAvailableBatches] = useState([]);
   const [loadingBatches, setLoadingBatches] = useState(false);
@@ -64,8 +68,7 @@ const Campus = () => {
       if (res.userName) setUserName(res.userName);
 
       if (res.profileComplete && !res.institutionId) {
-        const instRes = await fetchInstitutions();
-        setInstitutions(instRes.institutions || []);
+        // Don't fetch all institutions — students must be invited via link
       } else if (res.profileComplete && res.institutionId && !res.assigned) {
         try {
           setLoadingBatches(true);
@@ -78,6 +81,14 @@ const Campus = () => {
         } finally {
           setLoadingBatches(false);
         }
+      }
+
+      // Load results history
+      try {
+        const resultsRes = await fetchAllMyResults();
+        setResults(resultsRes.results || []);
+      } catch (e) {
+        console.error("Failed to load results", e);
       }
 
       if (res.assigned && isTailoring) {
@@ -232,67 +243,26 @@ const Campus = () => {
                 <div className="h-12 w-1 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] rounded-full"></div>
                 <div>
                   <h3 className="text-xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight">
-                    Select Your Campus
+                    Waiting for Campus Batch Invite
                   </h3>
                   <p className="text-[#4B5563] dark:text-white/60 font-medium mt-1 text-xs">
-                    Connect your institution to fetch your academic records.
+                    You need a batch invitation link from your institution.
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {institutions.map((inst) => {
-                  const isCompleted = status?.completedInstitutions?.includes(
-                    inst._id,
-                  );
-
-                  return (
-                    <div
-                      key={inst._id}
-                      className={`bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 p-5 rounded-2xl shadow-soft transition-all duration-300 group relative overflow-hidden flex flex-col shrink-0 min-w-[160px] ${
-                        isCompleted
-                          ? "opacity-60 grayscale pointer-events-none"
-                          : "hover:shadow-soft-xl hover:-translate-y-1"
-                      }`}
-                    >
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#00A8E8]/10 to-transparent dark:from-white/5 rounded-bl-[60px] -mr-6 -mt-6 transition-transform group-hover:scale-110 pointer-events-none"></div>
-
-                      <div className="relative z-10 flex-1">
-                        <div
-                          className={`w-12 h-12 bg-[#F8F9FA] dark:bg-white/10 text-[#00A8E8] dark:text-white rounded-xl flex items-center justify-center mb-4 transition-colors duration-300 shadow-sm ${!isCompleted && "group-hover:bg-[#00A8E8] group-hover:text-white"}`}
-                        >
-                          <FiMapPin size={24} />
-                        </div>
-                        <h4 className="text-base font-bold text-[#1C1E21] dark:text-white mb-4 leading-snug line-clamp-2">
-                          {inst.name}
-                        </h4>
-                      </div>
-                      <div className="relative z-10 mt-auto">
-                        <button
-                          disabled={selecting || isCompleted}
-                          onClick={() =>
-                            !isCompleted && handleLinkInstitution(inst._id)
-                          }
-                          className={`w-full py-2.5 text-sm font-bold rounded-lg transition-all border border-transparent dark:border-white/10 ${
-                            isCompleted
-                              ? "bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                              : "bg-[#F8F9FA] dark:bg-[#00171F]/50 text-[#1C1E21] dark:text-white/80 hover:bg-[#00A8E8] dark:hover:bg-[#00A8E8] hover:text-white dark:hover:text-white disabled:opacity-50"
-                          }`}
-                        >
-                          {isCompleted ? (
-                            "Already Given Test"
-                          ) : selecting ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <FiLoader className="animate-spin" /> ...
-                            </span>
-                          ) : (
-                            "Connect"
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="p-10 bg-white/50 dark:bg-white/5 backdrop-blur-xl rounded-[2rem] border border-black/5 dark:border-white/10 text-center">
+                <div className="w-20 h-20 bg-[#00A8E8]/10 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FiMapPin size={32} className="text-[#00A8E8]" />
+                </div>
+                <h3 className="text-xl font-bold text-[#1C1E21] dark:text-white mb-2">
+                  Waiting for Campus Batch Invite
+                </h3>
+                <p className="text-[#4B5563] dark:text-white/60 text-sm max-w-md mx-auto">
+                  Ask your institution to share the QR code or invite link with
+                  you. Once you scan it or open the link, your batch will be
+                  automatically connected here.
+                </p>
               </div>
             </div>
           )}
@@ -442,15 +412,16 @@ const Campus = () => {
                         <FiCheckCircle size={18} /> Assessment Ready
                       </div>
                       <h3 className="text-2xl md:text-4xl font-display font-black mb-6 tracking-tight text-white leading-tight">
-                        {status.stream} <br />{" "}
+                        {status.batchDetails?.name || status.stream} <br />{" "}
                         <span className="text-white/50 text-xl md:text-2xl font-extrabold">
-                          Bridge Path
+                          {status.batchDetails?.targetDomain || "Bridge Path"}
                         </span>
                       </h3>
                       <p className="text-white/70 text-md max-w-xl leading-relaxed font-medium">
-                        Your personalized assessment architecture for the{" "}
+                        Your campus assessment for the{" "}
                         <span className="text-white font-bold">
-                          {status.educationLevel}
+                          {status.batchDetails?.educationLevel ||
+                            status.educationLevel}
                         </span>{" "}
                         level has been generated and is ready to deploy.
                       </p>
@@ -459,7 +430,7 @@ const Campus = () => {
                     <div className="mt-8 md:mt-0 flex-shrink-0">
                       <button
                         className="px-8 py-4 bg-[#00A8E8] text-white font-black text-lg rounded-2xl shadow-[0_0_40px_rgba(0,168,232,0.4)] hover:shadow-[0_0_60px_rgba(0,168,232,0.6)] hover:bg-[#00B4F5] hover:scale-105 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-4 group/btn"
-                        onClick={() => navigate("/assessment")}
+                        onClick={() => navigate("/assessment?type=campus")}
                       >
                         Start Assessment
                         <FiArrowRight
@@ -471,6 +442,129 @@ const Campus = () => {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ============ RESULTS HISTORY SECTION ============ */}
+          {results.length > 0 && (
+            <div className="max-w-6xl mx-auto mt-16 mb-12 animate-fade-in-up">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="h-12 w-1 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] rounded-full"></div>
+                <div>
+                  <h3 className="text-2xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight flex items-center gap-3">
+                    <FiAward className="text-[#00A8E8]" size={24} />
+                    Your Results
+                  </h3>
+                  <p className="text-sm text-[#4B5563] dark:text-white/60 font-medium mt-1">
+                    Click on any result to view a detailed breakdown.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {results.map((item, index) => {
+                  const dateString = new Date(
+                    item.createdAt,
+                  ).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  });
+                  const isLatest = index === 0;
+
+                  return (
+                    <Link
+                      key={item._id}
+                      to={`/results/${item._id}`}
+                      className={`block group bg-white/60 dark:bg-[#00171F]/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-3xl p-6 md:p-8 shadow-soft hover:shadow-xl hover:border-[#00A8E8]/30 transition-all duration-300 animate-fade-in-up ${
+                        isLatest
+                          ? "md:col-span-2 xl:col-span-2 bg-gradient-to-br from-white/80 to-[#00A8E8]/5 dark:from-[#00171F]/80 dark:to-[#00A8E8]/10"
+                          : ""
+                      }`}
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <div className="flex flex-col h-full justify-between gap-6">
+                        <div className="flex flex-wrap md:flex-nowrap justify-between items-start gap-4">
+                          {isLatest && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-emerald-500/10 to-emerald-400/10 dark:from-emerald-500/20 dark:to-emerald-400/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-widest rounded-full border border-emerald-500/20">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                              Latest Analysis
+                            </span>
+                          )}
+                          <div className="flex items-center gap-2 text-[#4B5563] dark:text-white/50 text-xs font-bold uppercase tracking-wider ml-auto">
+                            <FiCalendar size={16} />
+                            {dateString}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          {/* Assessment type badge */}
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest w-fit ${
+                              item.assessmentType === "Batch Test"
+                                ? "bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20"
+                                : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20"
+                            }`}
+                          >
+                            {item.assessmentType || "Assessment"}
+                          </span>
+                          <h2
+                            className={`font-display font-black text-[#1C1E21] dark:text-white leading-tight ${
+                              isLatest ? "text-3xl lg:text-4xl" : "text-2xl"
+                            }`}
+                          >
+                            {item.batchName ||
+                              item.targetDomain ||
+                              "General Profile"}
+                          </h2>
+                          {item.batchName && (
+                            <p className="text-sm text-[#4B5563] dark:text-white/60 font-medium">
+                              Domain:{" "}
+                              <span className="font-bold text-[#1C1E21] dark:text-white">
+                                {item.targetDomain}
+                              </span>
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            <span className="px-3 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-xs font-bold text-[#4B5563] dark:text-white/70 border border-black/5 dark:border-white/5 shadow-inner">
+                              {item.educationLevel || "UG"}
+                            </span>
+                            <span className="px-3 py-1 bg-[#00A8E8]/10 dark:bg-[#00A8E8]/20 rounded-lg text-xs font-bold text-[#007EA7] dark:text-[#00A8E8] border border-[#00A8E8]/20 shadow-inner">
+                              Attempt {item.attempt || 1}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto pt-6 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
+                          <div>
+                            <p className="text-[10px] text-[#4B5563] dark:text-white/50 font-bold uppercase tracking-widest mb-1">
+                              Readiness Score
+                            </p>
+                            <div className="flex items-end gap-1">
+                              <span
+                                className={`font-black tracking-tighter ${
+                                  isLatest
+                                    ? "text-5xl text-transparent bg-clip-text bg-gradient-to-r from-[#00A8E8] to-[#007EA7]"
+                                    : "text-4xl text-[#1C1E21] dark:text-white"
+                                }`}
+                              >
+                                {item.overallPercentage || 0}%
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-[#00A8E8] group-hover:text-white transition-colors duration-300 text-[#4B5563] dark:text-white/60">
+                            <FiArrowRight
+                              size={20}
+                              className="transform group-hover:translate-x-0.5 transition-transform"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           )}
         </main>

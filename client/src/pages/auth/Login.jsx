@@ -19,7 +19,6 @@ import { useAuth } from "../../context/AuthContext";
 import {
   loginUser,
   googleLogin,
-  updateRole,
   forgotPassword,
   resetPassword,
 } from "../../services/authApi";
@@ -42,8 +41,6 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [tempToken, setTempToken] = useState(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -80,36 +77,23 @@ const Login = () => {
 
   const handleGoogleSuccess = async (cred) => {
     setLoading(true);
+
+    let explicitRole = "general";
+    const returnTo = location.state?.returnTo || "";
+    if (returnTo.includes("batch=")) {
+      explicitRole = "campus_student";
+    }
+
     try {
-      const res = await googleLogin({ token: cred.credential });
+      const res = await googleLogin({
+        token: cred.credential,
+        role: explicitRole,
+      });
       if (res.success) {
-        if (res.data.role) completeLogin(res.data, true);
-        else {
-          setTempToken(res.data.token);
-          setShowRoleModal(true);
-        }
+        completeLogin(res.data, true);
       } else toast.error(res.message || "Google login failed");
     } catch {
       toast.error("Google login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const submitGoogleRole = async () => {
-    if (!tempToken) return;
-    setLoading(true);
-    try {
-      const res = await updateRole(tempToken, role);
-      if (res.success) {
-        completeLogin(
-          { token: tempToken, role: res.role || res.data.role },
-          true,
-        );
-        setShowRoleModal(false);
-      } else toast.error(res.message || "Failed to update role");
-    } catch {
-      toast.error("Error updating role");
     } finally {
       setLoading(false);
     }
@@ -344,63 +328,13 @@ const Login = () => {
           Don't have an account?{" "}
           <Link
             to="/signup"
+            state={{ returnTo: location.state?.returnTo }}
             className="font-semibold text-[#00A8E8] hover:text-[#007EA7] transition-colors"
           >
             Create one
           </Link>
         </p>
       </div>
-
-      {/* --- ROLE COMPLETION MODAL --- */}
-      {showRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 dark:bg-black/60 animate-fade-in backdrop-blur-sm transition-colors">
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] p-8 max-w-sm w-full animate-slide-up relative transition-colors">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight transition-colors">
-              Finalize Profile
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 font-medium transition-colors">
-              Please select your intended role to complete registration.
-            </p>
-
-            <div className="space-y-5">
-              <div className="relative group">
-                <FiBriefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-colors z-10" />
-                <select
-                  className="w-full pl-11 pr-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[#00A8E8] dark:focus:border-[#00A8E8] focus:ring-2 focus:ring-[#00A8E8]/20 focus:bg-white dark:focus:bg-gray-800 transition-all appearance-none"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  <option value="student">Student</option>
-                  <option value="admin">Admin</option>
-                  <option value="superadmin">Super Admin</option>
-                </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <button
-                className="w-full py-3 bg-gradient-to-b from-[#00A8E8] to-[#007EA7] text-white text-sm font-bold rounded-xl shadow-[0_4px_12px_rgba(0,168,232,0.25)] hover:shadow-[0_6px_16px_rgba(0,168,232,0.35)] hover:-translate-y-[1px] transition-all disabled:opacity-70"
-                onClick={submitGoogleRole}
-                disabled={loading}
-              >
-                {loading ? "Finalizing..." : "Complete Setup"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* --- FORGOT PASSWORD MODAL --- */}
       {showForgot && (

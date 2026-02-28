@@ -125,7 +125,9 @@ async function generateAssessmentForBatch(batch) {
 ====================================================== */
 exports.getBatchStatus = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate("batchRef");
+    const user = await User.findById(req.user.id)
+      .populate("batchRef")
+      .populate("personalBatchRef");
 
     // Find completed assessments to disable selected campuses
     const results = await Result.find({ studentId: user._id }).select(
@@ -138,7 +140,9 @@ exports.getBatchStatus = async (req, res) => {
       const batches = await Batch.find({
         batchId: { $in: completedBatchIds },
       }).select("institutionId");
-      completedInstitutions = batches.map((b) => b.institutionId.toString());
+      completedInstitutions = batches
+        .filter((b) => b.institutionId)
+        .map((b) => b.institutionId.toString());
     }
 
     let institutionName = "";
@@ -155,10 +159,18 @@ exports.getBatchStatus = async (req, res) => {
       institutionId: user.institutionId,
       institutionName,
       educationLevel: user.profile?.education,
+      profileStream: user.profile?.stream || user.stream,
+      // Campus assessment
       stream: user.stream,
       assigned: !!user.batchId,
       batchDetails: user.batchRef,
-      completedInstitutions, // Array of institution IDs the user has already tested for
+      // Personal assessment (completely independent)
+      personalStream: user.personalStream,
+      personalAssigned: !!user.personalBatchId,
+      personalBatchId: user.personalBatchId,
+      personalBatchDetails: user.personalBatchRef,
+      completedInstitutions,
+      assessmentsCompleted: results.length,
     });
   } catch (err) {
     res.status(500).json({ message: "Error fetching status" });
@@ -224,13 +236,17 @@ exports.joinCampus = async (req, res) => {
 exports.getAssessmentForStudent = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    const type = req.query.type || "campus"; // "campus" or "personal"
 
-    if (!user.batchId) {
+    const activeBatchId =
+      type === "personal" ? user.personalBatchId : user.batchId;
+
+    if (!activeBatchId) {
       return res.json({ locked: true, reason: "No active assessment." });
     }
 
     const assessment = await Assessment.findOne({
-      batchId: user.batchId,
+      batchId: activeBatchId,
     }).select("-questions.correctAnswer");
 
     if (!assessment) {
@@ -243,7 +259,7 @@ exports.getAssessmentForStudent = async (req, res) => {
 
     const existingResult = await Result.findOne({
       studentId: user._id,
-      batchId: user.batchId,
+      batchId: activeBatchId,
     });
     // Allow users with the 'general' role to take the assessment unlimited times
     if (existingResult && user.role !== "general") {
@@ -259,6 +275,7 @@ exports.getAssessmentForStudent = async (req, res) => {
       assessment,
       timePerQuestion: assessment.timePerQuestion,
       slot: assessment.slot,
+      assessmentType: type,
     });
   } catch (err) {
     res.json({ locked: true, reason: "Error loading assessment." });
@@ -272,17 +289,17 @@ exports.cancelAutopilot = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
 
-    // Only allow cancelling if it's an autopilot batch
-    if (user.batchId && user.batchId.startsWith("AUTO-")) {
+    // Cancel the personal assessment (uses personalBatchId)
+    if (user.personalBatchId && user.personalBatchId.startsWith("AUTO-")) {
       // Delete the generated assessment
-      await Assessment.deleteMany({ batchId: user.batchId });
+      await Assessment.deleteMany({ batchId: user.personalBatchId });
       // Delete the batch document
-      await Batch.deleteMany({ batchId: user.batchId });
+      await Batch.deleteMany({ batchId: user.personalBatchId });
 
-      // Clear user state
-      user.batchId = null;
-      user.batchRef = null;
-      user.stream = null;
+      // Clear personal state only
+      user.personalBatchId = null;
+      user.personalBatchRef = null;
+      user.personalStream = null;
       await user.save();
 
       return res.json({

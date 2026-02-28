@@ -87,8 +87,9 @@ exports.createBatch = async (req, res) => {
       maxStudents = 50,
       className,
       educationLevel,
-      targetDomain = "General", // Default for manual
-      institutionId, // Now accepting an explicit institution ID
+      targetDomain = "General",
+      difficulty = "medium",
+      institutionId,
     } = req.body;
 
     if (!name || !slot || !className || !educationLevel) {
@@ -98,14 +99,12 @@ exports.createBatch = async (req, res) => {
     let institution;
 
     if (["admin", "superadmin"].includes(req.user.role)) {
-      // SuperAdmin can target a specific institution or fallback to the first active one
       if (institutionId) {
         institution = await Institution.findById(institutionId);
       } else {
         institution = await Institution.findOne({ isActive: true });
       }
     } else {
-      // Normal admins must have created the institution
       institution = await Institution.findOne({ createdBy: req.user.id });
     }
 
@@ -120,10 +119,11 @@ exports.createBatch = async (req, res) => {
       className,
       educationLevel,
       targetDomain,
+      difficulty,
       batchId: crypto.randomUUID(),
       institutionId: institution._id,
       createdBy: req.user.id,
-      creationType: "manual", // Distinction
+      creationType: "manual",
       slot,
       maxStudents,
       students: [],
@@ -133,6 +133,55 @@ exports.createBatch = async (req, res) => {
   } catch (err) {
     console.error("CREATE BATCH ERROR:", err.message);
     res.status(500).json({ message: "Batch creation failed" });
+  }
+};
+
+/* =========================
+   UPDATE BATCH (ADMIN)
+========================= */
+exports.updateBatch = async (req, res) => {
+  try {
+    const { batchId } = req.params;
+    const {
+      name,
+      className,
+      educationLevel,
+      targetDomain,
+      difficulty,
+      slot,
+      maxStudents,
+    } = req.body;
+
+    const batch = await Batch.findOne({ batchId });
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
+    // Only the creator or a superadmin can update
+    if (
+      batch.createdBy.toString() !== req.user.id &&
+      req.user.role !== "superadmin"
+    ) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    if (name !== undefined) batch.name = name;
+    if (className !== undefined) batch.className = className;
+    if (educationLevel !== undefined) batch.educationLevel = educationLevel;
+    if (targetDomain !== undefined) batch.targetDomain = targetDomain;
+    if (difficulty !== undefined) batch.difficulty = difficulty;
+    if (maxStudents !== undefined) batch.maxStudents = maxStudents;
+    if (slot) {
+      if (slot.date) batch.slot.date = slot.date;
+      if (slot.startTime) batch.slot.startTime = slot.startTime;
+      if (slot.endTime) batch.slot.endTime = slot.endTime;
+    }
+
+    await batch.save();
+    res.json({ batch });
+  } catch (err) {
+    console.error("UPDATE BATCH ERROR:", err.message);
+    res.status(500).json({ message: "Batch update failed" });
   }
 };
 

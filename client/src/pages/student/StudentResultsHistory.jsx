@@ -143,11 +143,31 @@ const StudentResultsHistory = () => {
                       </div>
 
                       <div className="flex flex-col gap-2">
+                        {/* Assessment type badge */}
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest w-fit ${
+                            item.assessmentType === "Batch Test"
+                              ? "bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20"
+                              : "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20"
+                          }`}
+                        >
+                          {item.assessmentType || "Assessment"}
+                        </span>
                         <h2
                           className={`font-display font-black text-[#1C1E21] dark:text-white leading-tight ${isLatest ? "text-3xl lg:text-4xl" : "text-2xl"}`}
                         >
-                          {item.targetDomain || "General Profile"}
+                          {item.batchName ||
+                            item.targetDomain ||
+                            "General Profile"}
                         </h2>
+                        {item.batchName && (
+                          <p className="text-sm text-[#4B5563] dark:text-white/60 font-medium">
+                            Domain:{" "}
+                            <span className="font-bold text-[#1C1E21] dark:text-white">
+                              {item.targetDomain}
+                            </span>
+                          </p>
+                        )}
                         <div className="flex flex-wrap gap-2 mt-1">
                           <span className="px-3 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-xs font-bold text-[#4B5563] dark:text-white/70 border border-black/5 dark:border-white/5 shadow-inner">
                             {item.educationLevel || "UG"}

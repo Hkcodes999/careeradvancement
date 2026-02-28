@@ -148,11 +148,12 @@ export const joinBatch = async (batchId) => {
 ================================================== */
 export const fetchAssessment = async (config = {}) => {
   try {
-    const { targetDomain, educationLevel } = config;
+    const { targetDomain, educationLevel, type } = config;
 
     const queryParams = new URLSearchParams();
     if (targetDomain) queryParams.append("targetDomain", targetDomain);
     if (educationLevel) queryParams.append("educationLevel", educationLevel);
+    if (type) queryParams.append("type", type);
 
     const url = `${API_BASE}/assessment?${queryParams.toString()}`;
 

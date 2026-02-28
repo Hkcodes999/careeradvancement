@@ -11,6 +11,7 @@ export const submitAssessment = async ({
   timeSpent,
   targetDomain,
   educationLevel,
+  type,
 }) => {
   const res = await fetch(`${API_BASE}/submit`, {
     method: "POST",
@@ -18,8 +19,13 @@ export const submitAssessment = async ({
       "Content-Type": "application/json",
       Authorization: `Bearer ${getToken()}`,
     },
-    // Added targetDomain and educationLevel to the request body
-    body: JSON.stringify({ answers, timeSpent, targetDomain, educationLevel }),
+    body: JSON.stringify({
+      answers,
+      timeSpent,
+      targetDomain,
+      educationLevel,
+      type,
+    }),
   });
 
   const data = await res.json();

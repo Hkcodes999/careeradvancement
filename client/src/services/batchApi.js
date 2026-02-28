@@ -35,3 +35,15 @@ export const addStudentToBatch = async (data) => {
   });
   return res.json();
 };
+
+export const updateBatch = async (batchId, data) => {
+  const res = await fetch(`${BASE}/update/${batchId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+};

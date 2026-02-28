@@ -8,7 +8,8 @@ const careerEngine = require("../utils/careerEngine");
 ====================================================== */
 exports.submitAssessment = async (req, res) => {
   try {
-    const { answers, timeSpent, targetDomain, educationLevel } = req.body;
+    const { answers, timeSpent, targetDomain, educationLevel, type } = req.body;
+    const assessmentType = type || "campus"; // "campus" or "personal"
     const studentId = req.user.id;
 
     // Fetch full user to get Profile info and Batch info
@@ -19,7 +20,8 @@ exports.submitAssessment = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    const batchId = user.batchId;
+    const batchId =
+      assessmentType === "personal" ? user.personalBatchId : user.batchId;
 
     if (!batchId) {
       return res.status(400).json({
@@ -122,11 +124,18 @@ exports.submitAssessment = async (req, res) => {
     });
 
     /* ================= CLEAR ACTIVE ASSESSMENT STATE ================= */
-    // Allow the student to take another assessment for a different campus
-    user.batchId = null;
-    user.batchRef = null;
-    user.institutionId = null;
-    user.stream = null;
+    // Clear only the fields for the type of assessment that was just submitted
+    if (assessmentType === "personal") {
+      user.personalBatchId = null;
+      user.personalBatchRef = null;
+      user.personalStream = null;
+    } else {
+      user.batchId = null;
+      user.batchRef = null;
+      user.stream = null;
+      // Allow the student to take another assessment for a different campus
+      user.institutionId = null;
+    }
     await user.save();
 
     res.json({
@@ -186,13 +195,41 @@ exports.getMyResult = async (req, res) => {
 exports.getAllMyResults = async (req, res) => {
   try {
     const studentId = req.user.id;
+    const Batch = require("../models/Batch");
 
     // Find all results for this student, sorted newest first
-    const results = await Result.find({ studentId }).sort({ createdAt: -1 });
+    const results = await Result.find({ studentId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Collect unique batchIds to look up
+    const batchIds = [...new Set(results.map((r) => r.batchId))];
+    const batches = await Batch.find({ batchId: { $in: batchIds } }).lean();
+    const batchMap = {};
+    batches.forEach((b) => {
+      batchMap[b.batchId] = b;
+    });
+
+    // Enrich each result with batch name and type
+    const enriched = results.map((r) => {
+      const batch = batchMap[r.batchId];
+      if (batch && batch.creationType === "manual") {
+        return {
+          ...r,
+          batchName: batch.name,
+          assessmentType: "Batch Test",
+        };
+      }
+      return {
+        ...r,
+        batchName: null,
+        assessmentType: "Personal Assessment",
+      };
+    });
 
     res.json({
       success: true,
-      results,
+      results: enriched,
     });
   } catch (err) {
     console.error("GET ALL MYS RESULTS ERROR:", err);

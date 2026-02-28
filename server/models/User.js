@@ -126,6 +126,23 @@ const UserSchema = new mongoose.Schema(
       default: null,
     },
 
+    /* ================= PERSONAL ASSESSMENT (isolated from campus) ================= */
+    personalStream: {
+      type: String,
+      default: null,
+    },
+
+    personalBatchId: {
+      type: String,
+      default: null,
+    },
+
+    personalBatchRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Batch",
+      default: null,
+    },
+
     /* ================= STATUS ================= */
     isActive: {
       type: Boolean,

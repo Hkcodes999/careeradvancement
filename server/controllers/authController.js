@@ -194,8 +194,9 @@ exports.login = async (req, res) => {
 /* ---------------- GOOGLE LOGIN ---------------- */
 exports.googleAuth = async (req, res) => {
   try {
+    const { token, role } = req.body;
     const ticket = await client.verifyIdToken({
-      idToken: req.body.token,
+      idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
@@ -203,22 +204,29 @@ exports.googleAuth = async (req, res) => {
 
     let user = await User.findOne({ email });
 
+    const computedRole =
+      role && ["general", "campus_student"].includes(role) ? role : "general";
+
     if (!user) {
       user = await User.create({
         name,
         email,
         password: crypto.randomBytes(32).toString("hex"),
-        role: null,
+        role: computedRole,
         isActive: true, // ✅ FIX (CRITICAL)
       });
+    } else if (!user.role || user.role === null) {
+      // If user exists but role was null for some reason, update it
+      user.role = computedRole;
+      await user.save();
     }
 
-    const token = generateToken(user);
+    const jwtToken = generateToken(user);
 
     res.json({
       success: true,
-      token,
-      role: user.role, // may be null → frontend role modal
+      token: jwtToken,
+      role: user.role, // role is now guaranteed to exist
       name: user.name,
     });
   } catch (err) {

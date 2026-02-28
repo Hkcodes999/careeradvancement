@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchAssessment } from "../../services/studentApi";
 import { submitAssessment } from "../../services/resultApi";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FiClock,
   FiChevronLeft,
@@ -22,6 +22,8 @@ const CURRENT_Q_KEY = "assessment_current_q";
 
 const Assessment = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const assessmentType = searchParams.get("type") || "campus";
 
   const [assessment, setAssessment] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -40,7 +42,7 @@ const Assessment = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await fetchAssessment();
+        const res = await fetchAssessment({ type: assessmentType });
 
         if (res.locked) {
           toast.info(res.reason || "Access restricted");
@@ -173,6 +175,7 @@ const Assessment = () => {
       await submitAssessment({
         answers,
         timeSpent,
+        type: assessmentType,
       });
 
       // Cleanup

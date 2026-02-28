@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import {
   FiPlus,
@@ -12,26 +13,72 @@ import {
   FiArrowLeft,
   FiGrid,
   FiLink,
+  FiEdit2,
+  FiTarget,
+  FiBarChart2,
 } from "react-icons/fi";
-import { createBatch, fetchBatches } from "../../../services/batchApi";
+import {
+  createBatch,
+  fetchBatches,
+  updateBatch,
+} from "../../../services/batchApi";
+
+const EDUCATION_LEVELS = [
+  "8th",
+  "9th",
+  "10th",
+  "12th",
+  "Diploma",
+  "UG",
+  "PG",
+  "Post PG",
+];
+
+const DOMAIN_OPTIONS = {
+  Technical: [
+    "Software Engineering",
+    "Data Science",
+    "Cybersecurity",
+    "Cloud Computing",
+    "UI/UX Design",
+    "AI & Machine Learning",
+  ],
+  Medical: [
+    "Medical Sciences",
+    "Healthcare Administration",
+    "Nursing",
+    "Biotechnology",
+  ],
+  Business: [
+    "Financial Analysis",
+    "Product Management",
+    "Digital Marketing",
+    "Sales & Operations",
+  ],
+  Other: ["General Aptitude", "Communication Skills", "Logical Reasoning"],
+};
+
+const EMPTY_FORM = {
+  name: "",
+  className: "",
+  educationLevel: "",
+  targetDomain: "",
+  customDomain: "",
+  difficulty: "medium",
+  date: "",
+  startTime: "",
+  endTime: "",
+  maxStudents: 50,
+  institutionId: "",
+};
 
 const BatchTab = ({ institution }) => {
-  const [viewMode, setViewMode] = useState("list"); // "list" or "form"
+  const [viewMode, setViewMode] = useState("list"); // "list" | "form"
+  const [editingBatch, setEditingBatch] = useState(null); // null for create, batch object for edit
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [batchForm, setBatchForm] = useState({
-    name: "",
-    className: "",
-    educationLevel: "",
-    date: "",
-    startTime: "",
-    endTime: "",
-    maxStudents: 50,
-    institutionId: "",
-  });
-
+  const [batchForm, setBatchForm] = useState({ ...EMPTY_FORM });
   const [qrModal, setQrModal] = useState({ isOpen: false, batch: null });
 
   const loadBatches = async () => {
@@ -52,14 +99,9 @@ const BatchTab = ({ institution }) => {
   }, []);
 
   const handleAddNew = () => {
+    setEditingBatch(null);
     setBatchForm({
-      name: "",
-      className: "",
-      educationLevel: "",
-      date: "",
-      startTime: "",
-      endTime: "",
-      maxStudents: 50,
+      ...EMPTY_FORM,
       institutionId:
         Array.isArray(institution) && institution.length > 0
           ? institution[0]._id
@@ -68,7 +110,29 @@ const BatchTab = ({ institution }) => {
     setViewMode("form");
   };
 
-  const handleCreateBatch = async () => {
+  const handleEditBatch = (batch) => {
+    setEditingBatch(batch);
+    const slot = batch.slot || {};
+    const allDomains = Object.values(DOMAIN_OPTIONS).flat();
+    const isPreset = allDomains.includes(batch.targetDomain);
+
+    setBatchForm({
+      name: batch.name || "",
+      className: batch.className || "",
+      educationLevel: batch.educationLevel || "",
+      targetDomain: isPreset ? batch.targetDomain : "custom",
+      customDomain: isPreset ? "" : batch.targetDomain || "",
+      difficulty: batch.difficulty || "medium",
+      date: slot.date || "",
+      startTime: slot.startTime || "",
+      endTime: slot.endTime || "",
+      maxStudents: batch.maxStudents || 50,
+      institutionId: batch.institutionId || "",
+    });
+    setViewMode("form");
+  };
+
+  const handleSubmitBatch = async () => {
     if (!batchForm.name || !batchForm.className || !batchForm.educationLevel) {
       return toast.error("Batch name, class & education level required");
     }
@@ -76,12 +140,23 @@ const BatchTab = ({ institution }) => {
       return toast.error("Date and time slots are required");
     }
 
+    const finalDomain =
+      batchForm.targetDomain === "custom"
+        ? batchForm.customDomain
+        : batchForm.targetDomain || "General";
+
+    if (!finalDomain) {
+      return toast.error("Please specify a target domain");
+    }
+
     setIsSubmitting(true);
     try {
-      const res = await createBatch({
+      const payload = {
         name: batchForm.name,
         className: batchForm.className,
         educationLevel: batchForm.educationLevel,
+        targetDomain: finalDomain,
+        difficulty: batchForm.difficulty,
         slot: {
           date: batchForm.date,
           startTime: batchForm.startTime,
@@ -89,15 +164,20 @@ const BatchTab = ({ institution }) => {
         },
         maxStudents: batchForm.maxStudents,
         institutionId: batchForm.institutionId || undefined,
-      });
+      };
 
-      if (res.batch || res) {
+      if (editingBatch) {
+        await updateBatch(editingBatch.batchId, payload);
+        toast.success("Batch updated successfully");
+      } else {
+        await createBatch(payload);
         toast.success("Batch created successfully");
-        await loadBatches();
-        setViewMode("list");
       }
+      await loadBatches();
+      setViewMode("list");
+      setEditingBatch(null);
     } catch (error) {
-      toast.error(error.message || "Failed to create batch");
+      toast.error(error.message || "Failed to save batch");
     } finally {
       setIsSubmitting(false);
     }
@@ -113,6 +193,18 @@ const BatchTab = ({ institution }) => {
     return `${formattedHours}:${minutes} ${ampm}`;
   };
 
+  const difficultyColor = (d) => {
+    if (d === "easy")
+      return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+    if (d === "hard") return "text-red-500 bg-red-500/10 border-red-500/20";
+    return "text-amber-500 bg-amber-500/10 border-amber-500/20";
+  };
+
+  const inputClass =
+    "w-full pl-11 pr-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white placeholder-gray-400 dark:placeholder-white/30";
+  const selectClass =
+    "w-full px-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white appearance-none";
+
   return (
     <div className="w-full space-y-8 pb-10">
       {/* Header */}
@@ -124,7 +216,9 @@ const BatchTab = ({ institution }) => {
           <p className="mt-1 text-sm text-[#4B5563] dark:text-white/60">
             {viewMode === "list"
               ? "Manage student batches and scheduling slots"
-              : "Create a new batch and assign scheduling slots"}
+              : editingBatch
+                ? `Editing: ${editingBatch.name}`
+                : "Create a new batch and assign scheduling slots"}
           </p>
         </div>
 
@@ -138,7 +232,10 @@ const BatchTab = ({ institution }) => {
           </button>
         ) : (
           <button
-            onClick={() => setViewMode("list")}
+            onClick={() => {
+              setViewMode("list");
+              setEditingBatch(null);
+            }}
             className="flex items-center gap-2 px-5 py-2.5 bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 hover:bg-[#F8FAFC] dark:hover:bg-white/10 text-[#4B5563] dark:text-white/80 rounded-xl transition-all duration-300 font-bold text-sm w-fit group"
           >
             <FiArrowLeft
@@ -162,7 +259,6 @@ const BatchTab = ({ institution }) => {
             </div>
           ) : batches.length > 0 ? (
             batches.map((batch, idx) => {
-              // Handle potential deeply nested slots from backend
               const slot = batch.slot || {};
               const studentsAssigned = batch.students
                 ? batch.students.length
@@ -193,26 +289,46 @@ const BatchTab = ({ institution }) => {
                       </h3>
                       <div className="flex items-center gap-2 text-xs font-medium text-[#9CA3AF] dark:text-white/50 mt-1">
                         <span className="px-2 py-0.5 bg-black/5 dark:bg-white/10 rounded-md truncate">
-                          {batch.className}
+                          {batch.targetDomain || batch.className}
                         </span>
                         <span>•</span>
                         <span className="truncate">{batch.educationLevel}</span>
                       </div>
                     </div>
-                    {/* QR Code Button */}
-                    <button
-                      onClick={() => setQrModal({ isOpen: true, batch })}
-                      className="p-2.5 bg-black/5 dark:bg-white/10 hover:bg-[#00A8E8]/10 hover:text-[#00A8E8] dark:hover:bg-[#00A8E8]/20 dark:hover:text-[#00A8E8] rounded-xl transition-all duration-300 flex-shrink-0"
-                      title="Get QR Link"
-                    >
-                      <FiLink size={18} />
-                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => handleEditBatch(batch)}
+                        className="p-2.5 bg-black/5 dark:bg-white/10 hover:bg-amber-500/10 hover:text-amber-500 dark:hover:bg-amber-500/20 dark:hover:text-amber-400 rounded-xl transition-all duration-300"
+                        title="Edit Batch"
+                      >
+                        <FiEdit2 size={16} />
+                      </button>
+                      {/* QR Code Button */}
+                      <button
+                        onClick={() => setQrModal({ isOpen: true, batch })}
+                        className="p-2.5 bg-black/5 dark:bg-white/10 hover:bg-[#00A8E8]/10 hover:text-[#00A8E8] dark:hover:bg-[#00A8E8]/20 dark:hover:text-[#00A8E8] rounded-xl transition-all duration-300"
+                        title="Get QR Link"
+                      >
+                        <FiLink size={16} />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="w-full bg-black/5 dark:bg-white/5 h-px my-1"></div>
 
                   {/* Batch Details */}
                   <div className="w-full space-y-3 mb-2 flex-1 relative z-10">
+                    {/* Difficulty badge */}
+                    {batch.difficulty && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold capitalize border ${difficultyColor(batch.difficulty)}`}
+                        >
+                          {batch.difficulty}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2 text-[#4B5563] dark:text-white/70">
                         <FiCalendar size={16} className="text-[#00A8E8]" />
@@ -302,7 +418,7 @@ const BatchTab = ({ institution }) => {
                         institutionId: e.target.value,
                       })
                     }
-                    className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white appearance-none"
+                    className={`${inputClass} pl-11`}
                   >
                     <option value="" disabled className="text-gray-400">
                       -- Select Institution --
@@ -317,6 +433,7 @@ const BatchTab = ({ institution }) => {
               </div>
             )}
 
+            {/* Batch Name */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
                 Batch Name *
@@ -332,11 +449,12 @@ const BatchTab = ({ institution }) => {
                   onChange={(e) =>
                     setBatchForm({ ...batchForm, name: e.target.value })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white placeholder-gray-400 dark:placeholder-white/30"
+                  className={inputClass}
                 />
               </div>
             </div>
 
+            {/* Class / Section */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
                 Class / Section *
@@ -352,11 +470,12 @@ const BatchTab = ({ institution }) => {
                   onChange={(e) =>
                     setBatchForm({ ...batchForm, className: e.target.value })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white placeholder-gray-400 dark:placeholder-white/30"
+                  className={inputClass}
                 />
               </div>
             </div>
 
+            {/* Education Level */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
                 Education Level *
@@ -366,19 +485,20 @@ const BatchTab = ({ institution }) => {
                 onChange={(e) =>
                   setBatchForm({ ...batchForm, educationLevel: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white appearance-none"
+                className={selectClass}
               >
                 <option value="" disabled className="text-gray-400">
                   -- Select Level --
                 </option>
-                <option value="10th">10th</option>
-                <option value="12th">12th</option>
-                <option value="Diploma">Diploma</option>
-                <option value="UG">UG (Undergraduate)</option>
-                <option value="PG">PG (Postgraduate)</option>
+                {EDUCATION_LEVELS.map((lvl) => (
+                  <option key={lvl} value={lvl}>
+                    {lvl}
+                  </option>
+                ))}
               </select>
             </div>
 
+            {/* Max Students */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
                 Max Students
@@ -397,11 +517,110 @@ const BatchTab = ({ institution }) => {
                       maxStudents: Number(e.target.value),
                     })
                   }
-                  className="w-full pl-11 pr-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white"
+                  className={inputClass}
                 />
               </div>
             </div>
 
+            {/* === Assessment Configuration Section === */}
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <div className="w-full bg-black/5 dark:bg-white/5 h-px my-2"></div>
+              <h4 className="font-bold text-[#1C1E21] dark:text-white mb-2 ml-1 flex items-center gap-2">
+                <FiTarget className="text-[#00A8E8]" /> Assessment Configuration
+              </h4>
+            </div>
+
+            {/* Target Domain */}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
+                Target Domain *
+              </label>
+              <select
+                value={batchForm.targetDomain}
+                onChange={(e) =>
+                  setBatchForm({
+                    ...batchForm,
+                    targetDomain: e.target.value,
+                    customDomain: "",
+                  })
+                }
+                className={selectClass}
+              >
+                <option value="" disabled>
+                  -- Select Domain --
+                </option>
+                {Object.entries(DOMAIN_OPTIONS).map(([category, domains]) => (
+                  <optgroup key={category} label={category}>
+                    {domains.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                <option value="custom">✏️ Custom Domain</option>
+              </select>
+            </div>
+
+            {/* Custom Domain Input (conditional) */}
+            {batchForm.targetDomain === "custom" && (
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
+                  Custom Domain Name *
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#00A8E8] transition-colors">
+                    <FiTarget size={18} />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="e.g. Robotics Engineering"
+                    value={batchForm.customDomain}
+                    onChange={(e) =>
+                      setBatchForm({
+                        ...batchForm,
+                        customDomain: e.target.value,
+                      })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Difficulty Level */}
+            <div
+              className={`flex flex-col gap-2 ${batchForm.targetDomain !== "custom" ? "" : ""}`}
+            >
+              <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
+                Difficulty Level
+              </label>
+              <div className="flex gap-3">
+                {["easy", "medium", "hard"].map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() =>
+                      setBatchForm({ ...batchForm, difficulty: level })
+                    }
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold capitalize transition-all duration-300 border-2 ${
+                      batchForm.difficulty === level
+                        ? level === "easy"
+                          ? "bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-lg shadow-emerald-500/10"
+                          : level === "medium"
+                            ? "bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 shadow-lg shadow-amber-500/10"
+                            : "bg-red-500/10 border-red-500 text-red-600 dark:text-red-400 shadow-lg shadow-red-500/10"
+                        : "border-black/10 dark:border-white/10 text-[#4B5563] dark:text-white/60 hover:border-[#00A8E8]/50"
+                    }`}
+                  >
+                    <FiBarChart2 className="inline mr-1.5 -mt-0.5" size={14} />
+                    {level}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* === Scheduling Slot Section === */}
             <div className="flex flex-col gap-2 md:col-span-2">
               <div className="w-full bg-black/5 dark:bg-white/5 h-px my-2"></div>
               <h4 className="font-bold text-[#1C1E21] dark:text-white mb-2 ml-1 flex items-center gap-2">
@@ -409,6 +628,7 @@ const BatchTab = ({ institution }) => {
               </h4>
             </div>
 
+            {/* Date */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
                 Date *
@@ -419,10 +639,11 @@ const BatchTab = ({ institution }) => {
                 onChange={(e) =>
                   setBatchForm({ ...batchForm, date: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                className={`${selectClass} [color-scheme:light] dark:[color-scheme:dark]`}
               />
             </div>
 
+            {/* Time grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-bold text-[#4B5563] dark:text-white/80 ml-1">
@@ -434,7 +655,7 @@ const BatchTab = ({ institution }) => {
                   onChange={(e) =>
                     setBatchForm({ ...batchForm, startTime: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                  className={`${selectClass} [color-scheme:light] dark:[color-scheme:dark]`}
                 />
               </div>
 
@@ -448,15 +669,19 @@ const BatchTab = ({ institution }) => {
                   onChange={(e) =>
                     setBatchForm({ ...batchForm, endTime: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-white dark:bg-[#00171F]/80 border border-black/10 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-[#00A8E8]/50 outline-none transition-all text-[#1C1E21] dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                  className={`${selectClass} [color-scheme:light] dark:[color-scheme:dark]`}
                 />
               </div>
             </div>
           </div>
 
+          {/* Submit / Discard */}
           <div className="mt-10 flex flex-col md:flex-row items-center gap-4 justify-end border-t border-black/5 dark:border-white/10 pt-6">
             <button
-              onClick={() => setViewMode("list")}
+              onClick={() => {
+                setViewMode("list");
+                setEditingBatch(null);
+              }}
               disabled={isSubmitting}
               className="w-full md:w-auto px-6 py-3 rounded-xl border border-black/10 dark:border-white/10 text-[#4B5563] dark:text-white/80 font-bold hover:bg-[#F8FAFC] dark:hover:bg-white/5 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
@@ -465,7 +690,7 @@ const BatchTab = ({ institution }) => {
             </button>
 
             <button
-              onClick={handleCreateBatch}
+              onClick={handleSubmitBatch}
               disabled={isSubmitting}
               className="w-full md:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-[#00A8E8] to-[#007EA7] hover:from-[#00A8E8] hover:to-[#00A8E8] text-white font-bold shadow-lg shadow-[#00A8E8]/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:translate-y-0"
             >
@@ -477,7 +702,7 @@ const BatchTab = ({ institution }) => {
               ) : (
                 <>
                   <FiCheck size={18} />
-                  <span>Create Batch</span>
+                  <span>{editingBatch ? "Update Batch" : "Create Batch"}</span>
                 </>
               )}
             </button>
@@ -485,47 +710,50 @@ const BatchTab = ({ institution }) => {
         </div>
       )}
 
-      {/* QR Modal */}
-      {qrModal.isOpen && qrModal.batch && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-2xl p-8 max-w-sm w-full relative animate-slide-up flex flex-col items-center text-center">
-            <button
-              onClick={() => setQrModal({ isOpen: false, batch: null })}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              <FiX size={24} />
-            </button>
+      {/* QR Modal rendered in portal so the backdrop covers the whole screen */}
+      {qrModal.isOpen &&
+        qrModal.batch &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl shadow-2xl p-8 max-w-sm w-full relative animate-slide-up flex flex-col items-center text-center">
+              <button
+                onClick={() => setQrModal({ isOpen: false, batch: null })}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <FiX size={24} />
+              </button>
 
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
-              Campus Invite Link
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-              Scan this QR code or copy the link to join{" "}
-              <strong>{qrModal.batch.name}</strong>.
-            </p>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+                Campus Invite Link
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                Scan this QR code or copy the link to join{" "}
+                <strong>{qrModal.batch.name}</strong>.
+              </p>
 
-            <div className="w-56 h-56 bg-gray-50 border border-gray-200 dark:border-gray-600 rounded-2xl flex items-center justify-center overflow-hidden mb-6 shadow-inner">
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`${window.location.origin}/join-campus/${qrModal.batch.institutionId}?batch=${qrModal.batch.batchId}`)}`}
-                alt="QR Code"
-                className="w-48 h-48 object-contain mix-blend-multiply dark:mix-blend-normal"
-              />
+              <div className="w-56 h-56 bg-white border border-gray-200 dark:border-gray-600 rounded-2xl flex items-center justify-center overflow-hidden mb-6 shadow-inner">
+                <img
+                  src={`https://quickchart.io/qr?text=${encodeURIComponent(`${window.location.origin}/join-campus/${qrModal.batch.institutionId}?batch=${qrModal.batch.batchId}`)}&size=200`}
+                  alt="QR Code"
+                  className="w-48 h-48 object-contain"
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/join-campus/${qrModal.batch.institutionId}?batch=${qrModal.batch.batchId}`,
+                  );
+                  toast.success("Link copied to clipboard!");
+                }}
+                className="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold rounded-xl transition-all"
+              >
+                Copy Link
+              </button>
             </div>
-
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  `${window.location.origin}/join-campus/${qrModal.batch.institutionId}?batch=${qrModal.batch.batchId}`,
-                );
-                toast.success("Link copied to clipboard!");
-              }}
-              className="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold rounded-xl transition-all"
-            >
-              Copy Link
-            </button>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

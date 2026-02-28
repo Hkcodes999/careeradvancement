@@ -38,6 +38,13 @@ const BatchSchema = new mongoose.Schema({
     trim: true,
   },
 
+  /* DIFFICULTY LEVEL */
+  difficulty: {
+    type: String,
+    enum: ["easy", "medium", "hard"],
+    default: "medium",
+  },
+
   /* ================= INSTITUTION ================= */
   institutionId: {
     type: mongoose.Schema.Types.ObjectId,

@@ -124,12 +124,21 @@ exports.runAutopilot = async (req, res) => {
       });
     }
 
-    // 4. Student Sync
-    if (user.batchId !== batch.batchId) {
-      user.batchId = batch.batchId;
-      user.batchRef = batch._id;
-      user.stream = targetDomain;
-      await user.save();
+    // 4. Student Sync — save to the correct set of fields
+    if (isPersonal) {
+      if (user.personalBatchId !== batch.batchId) {
+        user.personalBatchId = batch.batchId;
+        user.personalBatchRef = batch._id;
+        user.personalStream = targetDomain;
+        await user.save();
+      }
+    } else {
+      if (user.batchId !== batch.batchId) {
+        user.batchId = batch.batchId;
+        user.batchRef = batch._id;
+        user.stream = targetDomain;
+        await user.save();
+      }
     }
 
     if (!batch.students.includes(userId)) {

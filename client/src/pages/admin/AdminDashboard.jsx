@@ -6,6 +6,7 @@ import DashboardTab from "./components/DashboardTab";
 import InstitutionTab from "./components/InstitutionTab";
 import BatchTab from "./components/BatchTab";
 import AssignTab from "./components/AssignTab";
+import UsersTab from "./components/UsersTab";
 import AiBuilderTab from "./components/AiBuilderTab";
 import GlobalLoader from "../../components/GlobalLoader";
 
@@ -54,6 +55,8 @@ const AdminDashboard = () => {
         return <BatchTab institution={institution} />;
       case "assign":
         return <AssignTab />;
+      case "users":
+        return <UsersTab />;
       case "ai":
         return <AiBuilderTab institution={institution} />;
       default:

@@ -118,6 +118,22 @@ const App = () => {
             />
             <Route path="/assessment" element={<Assessment />} />
             <Route path="/results" element={<StudentResultsHistory />} />
+          </Route>
+
+          {/* RESULTS VIEW - AUTHENTICATED USERS (Students & Admins) */}
+          <Route
+            element={
+              <ProtectedLayout
+                allowedRoles={[
+                  "student",
+                  "general",
+                  "campus_student",
+                  "admin",
+                  "superadmin",
+                ]}
+              />
+            }
+          >
             <Route path="/results/:id" element={<Results />} />
           </Route>
 

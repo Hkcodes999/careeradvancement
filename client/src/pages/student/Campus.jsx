@@ -83,10 +83,13 @@ const Campus = () => {
         }
       }
 
-      // Load results history
+      // Load results history (Filter to only show Batch Tests in Campus view)
       try {
         const resultsRes = await fetchAllMyResults();
-        setResults(resultsRes.results || []);
+        const batchResults = (resultsRes.results || []).filter(
+          (r) => r.assessmentType === "Batch Test",
+        );
+        setResults(batchResults);
       } catch (e) {
         console.error("Failed to load results", e);
       }

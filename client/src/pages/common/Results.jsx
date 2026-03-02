@@ -16,6 +16,13 @@ import {
   HiOutlineTrendingUp,
   HiOutlineSparkles,
 } from "react-icons/hi";
+import {
+  FiTarget,
+  FiAward,
+  FiBook,
+  FiBarChart2,
+  FiArrowRight,
+} from "react-icons/fi";
 import jsPDF from "jspdf";
 import {
   fetchResultById,
@@ -25,6 +32,149 @@ import {
 import GlobalLoader from "../../components/GlobalLoader";
 import StudentSidebar from "../../components/StudentSidebar";
 
+/* ============================================================
+   SCORE RING — Animated SVG circular progress
+============================================================ */
+const ScoreRing = ({ score, size = 200, strokeWidth = 12 }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (score / 100) * circumference;
+
+  const getColor = (s) => {
+    if (s >= 80) return { from: "#10b981", to: "#059669" };
+    if (s >= 60) return { from: "#00A8E8", to: "#007EA7" };
+    if (s >= 40) return { from: "#f59e0b", to: "#d97706" };
+    return { from: "#ef4444", to: "#dc2626" };
+  };
+  const color = getColor(score);
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <defs>
+          <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={color.from} />
+            <stop offset="100%" stopColor={color.to} />
+          </linearGradient>
+        </defs>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-black/5 dark:text-white/5"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="url(#scoreGrad)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 1.5s ease-out" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-5xl md:text-6xl font-black text-white dark:text-white tracking-tighter">
+          {score}
+          <span className="text-2xl text-[#4B5563] dark:text-white/50">%</span>
+        </span>
+        <span className="text-xs font-bold uppercase tracking-widest text-[#4B5563] dark:text-white/40 mt-1">
+          Readiness
+        </span>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+   CATEGORY PROGRESS BAR
+============================================================ */
+const CategoryBar = ({ category, correct, total, percentage, delay = 0 }) => {
+  const getBarColor = (p) => {
+    if (p >= 80) return "from-emerald-500 to-emerald-600";
+    if (p >= 60) return "from-[#00A8E8] to-[#007EA7]";
+    if (p >= 40) return "from-amber-500 to-amber-600";
+    return "from-rose-500 to-rose-600";
+  };
+
+  return (
+    <div
+      className="animate-fade-in-up"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-bold text-[#1C1E21] dark:text-white text-sm">
+          {category}
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-[#4B5563] dark:text-white/50">
+            {correct}/{total} correct
+          </span>
+          <span
+            className={`text-sm font-black ${percentage >= 60 ? "text-emerald-600 dark:text-emerald-400" : percentage >= 40 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"}`}
+          >
+            {percentage}%
+          </span>
+        </div>
+      </div>
+      <div className="w-full h-3 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${getBarColor(percentage)} transition-all duration-1000 ease-out`}
+          style={{
+            width: `${percentage}%`,
+            transitionDelay: `${delay + 300}ms`,
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+   STAT CARD COMPONENT
+============================================================ */
+const StatCard = ({ icon: Icon, label, value, color = "blue", subtext }) => {
+  const colorMap = {
+    blue: "bg-[#00A8E8]/10 text-[#007EA7] dark:text-[#00A8E8] border-[#00A8E8]/20",
+    green:
+      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    amber:
+      "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    purple:
+      "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
+  };
+
+  return (
+    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl p-5 shadow-soft hover:shadow-soft-xl transition-all hover:-translate-y-0.5">
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`p-2.5 rounded-xl border ${colorMap[color]}`}>
+          <Icon size={18} />
+        </div>
+        <span className="text-xs font-bold uppercase tracking-widest text-[#4B5563] dark:text-white/50">
+          {label}
+        </span>
+      </div>
+      <p className="text-2xl font-black text-[#1C1E21] dark:text-white tracking-tight">
+        {value}
+      </p>
+      {subtext && (
+        <p className="text-xs text-[#4B5563] dark:text-white/40 font-medium mt-1">
+          {subtext}
+        </p>
+      )}
+    </div>
+  );
+};
+
+/* ============================================================
+   MAIN RESULTS COMPONENT
+============================================================ */
 const Results = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -39,7 +189,6 @@ const Results = () => {
         if (id) {
           res = await fetchResultById(id);
         } else {
-          // Fallback just in case someone hits the component directly
           res = await fetchMyResult();
         }
 
@@ -64,9 +213,20 @@ const Results = () => {
     plugins: {
       legend: {
         position: "bottom",
-        labels: { padding: 20, usePointStyle: true, font: { size: 12 } },
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: { size: 12, weight: "bold" },
+        },
       },
-      tooltip: { backgroundColor: "#1e293b", padding: 12, bodySpacing: 4 },
+      tooltip: {
+        backgroundColor: "#0f172a",
+        padding: 14,
+        bodySpacing: 6,
+        bodyFont: { size: 13 },
+        titleFont: { size: 14, weight: "bold" },
+        cornerRadius: 12,
+      },
     },
   };
 
@@ -77,14 +237,17 @@ const Results = () => {
       y: {
         beginAtZero: true,
         max: 100,
-        grid: { display: false },
-        ticks: { font: { size: 11 } },
+        grid: { color: "rgba(0,0,0,0.03)" },
+        ticks: { font: { size: 11, weight: "bold" }, color: "#9ca3af" },
       },
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 11, weight: "bold" }, color: "#9ca3af" },
+      },
     },
   };
 
-  /* ================= MODERN PDF GENERATION LOGIC ================= */
+  /* ================= PDF GENERATION ================= */
   const handleDownloadPDF = () => {
     if (!result) return;
 
@@ -95,40 +258,29 @@ const Results = () => {
     let yPos = 0;
 
     const colors = {
-      blue: [37, 99, 235], // #2563eb
-      purple: [124, 58, 237], // #7c3aed
-      gold: [245, 158, 11], // #f59e0b
-      dark: [30, 41, 59], // Slate 800
+      blue: [37, 99, 235],
+      purple: [124, 58, 237],
+      gold: [245, 158, 11],
+      dark: [30, 41, 59],
       lightGray: [241, 245, 249],
       border: [226, 232, 240],
     };
 
-
-    // Helper: Light Header Design
     const drawHeader = () => {
-      // Light background for header area
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, pageWidth, 50, "F");
       doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
       doc.line(0, 50, pageWidth, 50);
 
-      // Increased Logo Size (30x30)
-      try {
-        doc.addImage(logoBase64, "PNG", margin, 10, 30, 30);
-      } catch (e) {
-        console.warn("Logo load failed");
-      }
-
-      // Header Text with Color Accents
       doc.setTextColor(colors.dark[0], colors.dark[1], colors.dark[2]);
       doc.setFontSize(22);
       doc.setFont("helvetica", "bold");
-      doc.text("CAREER FITMENT REPORT", margin + 35, 24);
+      doc.text("CAREER FITMENT REPORT", margin, 24);
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(colors.purple[0], colors.purple[1], colors.purple[2]);
-      doc.text("AI-DRIVEN COMPETENCY & DOMAIN INSIGHTS", margin + 35, 30);
+      doc.text("AI-DRIVEN COMPETENCY & DOMAIN INSIGHTS", margin, 30);
     };
 
     const addWrappedText = (
@@ -156,7 +308,7 @@ const Results = () => {
     const drawSectionTitle = (title, accentColor) => {
       yPos += 12;
       doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-      doc.rect(margin, yPos - 5, contentWidth, 8, "F"); // Full width light bar
+      doc.rect(margin, yPos - 5, contentWidth, 8, "F");
 
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
@@ -165,11 +317,9 @@ const Results = () => {
       yPos += 10;
     };
 
-    // --- Start Generation ---
     drawHeader();
     yPos = 65;
 
-    // 1. PROFILE CARD
     doc.setFillColor(
       colors.lightGray[0],
       colors.lightGray[1],
@@ -190,14 +340,12 @@ const Results = () => {
     doc.text(`Level: ${result.educationLevel}`, margin + 8, yPos + 26);
     yPos += 45;
 
-    // 2. DETAILED ANALYSIS
     drawSectionTitle("Assessment Reasoning", colors.purple);
     addWrappedText(result.fitReasoning);
 
     drawSectionTitle("Identified Skill Gaps", colors.gold);
     addWrappedText(result.gapReasoning);
 
-    // 3. PERFORMANCE CHART SIMULATION
     drawSectionTitle("Metric Breakdown", colors.blue);
     (result.categoryScores || []).forEach((cat) => {
       if (yPos > 270) {
@@ -208,27 +356,21 @@ const Results = () => {
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
       doc.setTextColor(colors.dark[0], colors.dark[1], colors.dark[2]);
-
-      // Text Label
       doc.text(cat.category, margin + 5, yPos);
 
-      // Progress track (Background)
       doc.setFillColor(235, 235, 240);
       doc.roundedRect(margin + 70, yPos - 3, 80, 3, 1, 1, "F");
 
-      // Progress fill (Purple)
       doc.setFillColor(colors.purple[0], colors.purple[1], colors.purple[2]);
       const barWidth = (cat.percentage / 100) * 80;
       doc.roundedRect(margin + 70, yPos - 3, barWidth, 3, 1, 1, "F");
 
-      // Percentage Label (Right Aligned)
       doc.setTextColor(colors.purple[0], colors.purple[1], colors.purple[2]);
       doc.text(`${cat.percentage}%`, margin + 155, yPos);
 
-      yPos += 10; // Consistent vertical spacing between bars
+      yPos += 10;
     });
 
-    // 4. NEXT STEPS
     drawSectionTitle("Career Recommendations", colors.purple);
     addWrappedText(
       `Recommended Roles: ${(result.recommendedCareers || []).join(" • ")}`,
@@ -238,37 +380,27 @@ const Results = () => {
     );
 
     yPos += 6;
-    const bulletGutter = 12; // The horizontal space reserved for the bullet
+    const bulletGutter = 12;
 
     (result.improvementSuggestions || []).forEach((tip) => {
-      // 1. Calculate the lines for this specific tip to handle wrapping correctly
       const textLines = doc.splitTextToSize(tip, contentWidth - bulletGutter);
 
-      // 2. Page overflow check
       if (yPos + textLines.length * 6 > 280) {
         doc.addPage();
         yPos = 30;
       }
 
-      // 3. Draw the bullet point
-      // We align it with the vertical center of the first line (approx yPos + 1.5)
       doc.setFillColor(colors.gold[0], colors.gold[1], colors.gold[2]);
       doc.circle(margin + 6, yPos + 1.5, 0.8, "F");
 
-      // 4. Draw the text
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(80, 80, 80);
-
-      // Use the gutter to indent the text so it doesn't overlap the bullet
       doc.text(textLines, margin + bulletGutter, yPos + 2.5);
 
-      // 5. Update yPos based on the actual height of the text lines drawn
-      // 5.5 is the line height, 4 is the paragraph spacing
       yPos += textLines.length * 5.5 + 4;
     });
 
-    // Footer
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -323,35 +455,6 @@ const Results = () => {
   if (!result)
     return (
       <div className="relative flex min-h-screen bg-surface dark:bg-[#00171F] font-sans overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#00A8E8]/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#007EA7]/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100"></div>
-          <div className="absolute top-[40%] left-[60%] w-[400px] h-[400px] bg-[#00A8E8]/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100"></div>
-          <div className="absolute inset-0 z-0 overflow-hidden opacity-20 hidden md:block">
-            <svg
-              className="absolute w-full h-full"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <pattern
-                  id="dashboard-grid"
-                  w="40"
-                  h="40"
-                  patternUnits="userSpaceOnUse"
-                >
-                  <path
-                    d="M 40 0 L 0 0 0 40"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                    className="text-black/[0.1] dark:text-white/20"
-                  />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#dashboard-grid)" />
-            </svg>
-          </div>
-        </div>
         <div className="relative z-10 flex w-full">
           <StudentSidebar />
           <main className="flex-1 p-6 md:p-10 md:ml-72 max-w-7xl mx-auto w-full pt-[40px] md:pt-10 flex items-center justify-center">
@@ -368,66 +471,66 @@ const Results = () => {
   const categoryScores = Array.isArray(result.categoryScores)
     ? result.categoryScores
     : [];
+
+  const chartColors = [
+    "#00A8E8",
+    "#007EA7",
+    "#10b981",
+    "#f59e0b",
+    "#7c3aed",
+    "#ec4899",
+  ];
+
   const chartData = {
     labels: categoryScores.map((c) => c.category),
     datasets: [
       {
         label: "Mastery %",
         data: categoryScores.map((c) => c.percentage),
-        backgroundColor: [
-          "#00A8E8",
-          "#007EA7",
-          "#10b981",
-          "#f59e0b",
-          "#7c3aed",
-        ],
-        borderWidth: 1,
-        borderColor: "rgba(255,255,255,0.1)",
+        backgroundColor: chartColors.slice(0, categoryScores.length),
+        borderWidth: 0,
+        borderRadius: 6,
       },
     ],
   };
 
+  const scoreLabel =
+    result.overallPercentage >= 80
+      ? "Excellent"
+      : result.overallPercentage >= 60
+        ? "Good"
+        : result.overallPercentage >= 40
+          ? "Developing"
+          : "Needs Work";
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="relative flex min-h-screen bg-surface dark:bg-[#00171F] font-sans overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#00A8E8]/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#007EA7]/20 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100"></div>
-        <div className="absolute top-[40%] left-[60%] w-[400px] h-[400px] bg-[#00A8E8]/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100"></div>
-        <div className="absolute inset-0 z-0 overflow-hidden opacity-20 hidden md:block">
-          <svg
-            className="absolute w-full h-full"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <pattern
-                id="dashboard-grid"
-                w="40"
-                h="40"
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d="M 40 0 L 0 0 0 40"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="0.5"
-                  className="text-black/[0.1] dark:text-white/20"
-                />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dashboard-grid)" />
-          </svg>
-        </div>
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#00A8E8]/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#007EA7]/15 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen opacity-50 dark:opacity-100" />
       </div>
+
       <div className="relative z-10 flex w-full">
         <StudentSidebar />
         <main className="flex-1 p-6 md:p-10 md:ml-72 max-w-7xl mx-auto w-full pt-[40px] md:pt-10 mb-20">
-          <div className="animate-fade-in-up mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          {/* ==================== HEADER ==================== */}
+          <div className="animate-fade-in-up mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <h1 className="text-2xl md:text-4xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight mb-2 drop-shadow-sm">
-                Global Results
+              <h1 className="text-2xl md:text-4xl font-display font-black text-[#1C1E21] dark:text-white tracking-tight mb-2">
+                Assessment Results
               </h1>
               <p className="text-sm text-[#4B5563] dark:text-white/60 font-medium">
-                Detailed insights into your performance standing.
+                Detailed AI-powered analysis of your performance
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -447,41 +550,187 @@ const Results = () => {
               </button>
               <button
                 onClick={handleDownloadPDF}
-                className="px-5 py-3 bg-gradient-to-r from-[#00A8E8] to-[#007EA7] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                className="px-5 py-3 bg-gradient-to-r from-[#00A8E8] to-[#007EA7] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95"
               >
                 <HiOutlineDownload size={20} />
                 Download Report
               </button>
             </div>
           </div>
-          <div
-            className="bg-white/60 dark:bg-[#00171F]/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2rem] p-6 md:p-10 shadow-soft relative overflow-hidden"
-            ref={reportRef}
-          >
-            <div className="text-center mb-12 relative z-10 animate-fade-in-up">
-              
-              <h2 className="text-3xl md:text-4xl font-display font-black text-[#1C1E21] dark:text-white mb-3">
-                Career:{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00A8E8] to-[#007EA7]">
-                  {result.targetDomain}
-                </span>
-              </h2>
-              <p className="text-[#4B5563] dark:text-white/60 font-medium inline-block px-5 py-2 bg-black/5 dark:bg-white/5 rounded-full text-sm border border-black/5 dark:border-white/10 shadow-inner">
-                Education Level: {result.educationLevel}
-              </p>
+
+          <div ref={reportRef}>
+            {/* ==================== HERO SCORE SECTION ==================== */}
+            <div className="bg-gradient-to-br from-[#00171F] to-[#003459] rounded-[2.5rem] p-8 md:p-12 mb-8 relative overflow-hidden border border-[#00A8E8]/20 shadow-2xl shadow-[#003459]/30 animate-fade-in-up">
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00A8E8]/15 rounded-full translate-x-1/3 -translate-y-1/3 blur-[100px] pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#007EA7]/10 rounded-full -translate-x-1/3 translate-y-1/3 blur-[80px] pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+                {/* Score Ring */}
+                <ScoreRing score={result.overallPercentage || 0} />
+
+                {/* Info */}
+                <div className="flex-1 text-center md:text-left">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#00A8E8]/20 border border-[#00A8E8]/30 rounded-full text-xs font-bold uppercase tracking-widest text-[#00A8E8] mb-4">
+                    <FiTarget size={14} />
+                    {result.assessmentType === "Batch Test"
+                      ? "Batch Test"
+                      : "Personal Assessment"}
+                  </div>
+
+                  <h2 className="text-3xl md:text-4xl font-display font-black text-white mb-2 tracking-tight">
+                    {result.targetDomain}
+                  </h2>
+
+                  {result.batchName && (
+                    <p className="text-white/50 text-sm font-medium mb-4">
+                      Batch:{" "}
+                      <span className="text-white/80 font-bold">
+                        {result.batchName}
+                      </span>
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap gap-3 justify-center md:justify-start mb-6">
+                    <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs font-bold text-white/70 border border-white/10">
+                      {result.educationLevel}
+                    </span>
+                    <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs font-bold text-white/70 border border-white/10">
+                      Attempt {result.attempt || 1}
+                    </span>
+                    <span className="px-3 py-1.5 bg-white/10 rounded-lg text-xs font-bold text-white/70 border border-white/10">
+                      {formatDate(result.createdAt)}
+                    </span>
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-white/10 rounded-xl">
+                    <FiAward
+                      className={`${result.overallPercentage >= 60 ? "text-emerald-400" : "text-amber-400"}`}
+                      size={20}
+                    />
+                    <span className="text-white font-bold text-lg">
+                      {scoreLabel}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* ==================== QUICK STATS ROW ==================== */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fade-in-up delay-[150ms]">
+              <StatCard
+                icon={FiBarChart2}
+                label="Overall Score"
+                value={`${result.overallPercentage || 0}%`}
+                color="blue"
+                subtext={scoreLabel}
+              />
+              <StatCard
+                icon={HiOutlineCheckCircle}
+                label="Correct Answers"
+                value={`${result.totalCorrect}/${result.totalQuestions}`}
+                color="green"
+                subtext={`${Math.round((result.totalCorrect / result.totalQuestions) * 100)}% accuracy`}
+              />
+              <StatCard
+                icon={HiOutlineClock}
+                label="Time Spent"
+                value={`${Math.floor(result.timeSpent / 60)}m ${result.timeSpent % 60}s`}
+                color="amber"
+                subtext={`~${Math.round(result.timeSpent / result.totalQuestions)}s per question`}
+              />
+              <StatCard
+                icon={FiTarget}
+                label="Categories"
+                value={categoryScores.length}
+                color="purple"
+                subtext={`${categoryScores.filter((c) => c.percentage >= 60).length} above 60%`}
+              />
+            </div>
+
+            {/* ==================== CATEGORY BREAKDOWN ==================== */}
+            {categoryScores.length > 0 && (
+              <div className="bg-white/60 dark:bg-[#00171F]/50 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2rem] p-6 md:p-8 shadow-soft mb-8 animate-fade-in-up delay-[300ms]">
+                <h3 className="flex items-center gap-3 font-display font-black text-[#1C1E21] dark:text-white mb-8 text-xl">
+                  <div className="p-2.5 bg-[#00A8E8]/10 text-[#00A8E8] rounded-xl border border-[#00A8E8]/20">
+                    <HiOutlineChartBar size={20} />
+                  </div>
+                  Category Performance
+                </h3>
+
+                <div className="space-y-6 mb-8">
+                  {categoryScores.map((cat, idx) => (
+                    <CategoryBar
+                      key={idx}
+                      category={cat.category}
+                      correct={cat.correct}
+                      total={cat.total}
+                      percentage={cat.percentage}
+                      delay={idx * 100}
+                    />
+                  ))}
+                </div>
+
+                {/* Charts Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-black/5 dark:border-white/10">
+                  <div className="bg-[#F8FAFC] dark:bg-white/5 rounded-2xl p-6 border border-black/5 dark:border-white/10 h-[320px] flex flex-col">
+                    <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-widest text-[#4B5563] dark:text-white/50">
+                      <HiOutlineChartBar size={14} className="text-[#00A8E8]" />
+                      Distribution
+                    </div>
+                    <div className="flex-1 min-h-0">
+                      <Pie
+                        data={chartData}
+                        options={{
+                          ...commonOptions,
+                          plugins: {
+                            ...commonOptions.plugins,
+                            legend: {
+                              ...commonOptions.plugins.legend,
+                              labels: {
+                                color: "#9ca3af",
+                                usePointStyle: true,
+                                padding: 16,
+                                font: { size: 11, weight: "bold" },
+                              },
+                            },
+                          },
+                          maintainAspectRatio: false,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-[#F8FAFC] dark:bg-white/5 rounded-2xl p-6 border border-black/5 dark:border-white/10 h-[320px] flex flex-col">
+                    <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-widest text-[#4B5563] dark:text-white/50">
+                      <FiBarChart2 size={14} className="text-[#00A8E8]" />
+                      Performance
+                    </div>
+                    <div className="flex-1 min-h-0">
+                      <Bar
+                        data={chartData}
+                        options={{
+                          ...barOptions,
+                          maintainAspectRatio: false,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ==================== AI INSIGHTS ==================== */}
             {result.explanations && result.explanations.length > 0 && (
-              <div className="bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-[#00A8E8]/5 dark:to-[#007EA7]/5 rounded-3xl p-8 mb-12 shadow-inner border border-[#00A8E8]/20 dark:border-[#00A8E8]/10 relative overflow-hidden animate-fade-in-up delay-[150ms]">
+              <div className="bg-gradient-to-br from-[#00A8E8]/10 to-[#007EA7]/10 dark:from-[#00A8E8]/5 dark:to-[#007EA7]/5 rounded-[2rem] p-6 md:p-8 mb-8 border border-[#00A8E8]/20 dark:border-[#00A8E8]/10 relative overflow-hidden animate-fade-in-up delay-[450ms]">
                 <div className="absolute top-0 right-0 p-8 opacity-5 dark:opacity-10 text-[#00A8E8]">
                   <HiOutlineLightBulb className="text-8xl" />
                 </div>
                 <h3 className="text-xl font-display font-black text-[#1C1E21] dark:text-white mb-6 flex items-center gap-3 relative z-10">
-                  <div className="p-2 bg-[#00A8E8] text-white rounded-xl shadow-md">
+                  <div className="p-2.5 bg-[#00A8E8] text-white rounded-xl shadow-md">
                     <HiOutlineSparkles size={20} />
                   </div>
                   AI Combinatorial Insights
                 </h3>
-                <div className="space-y-4 relative z-10">
+                <div className="space-y-3 relative z-10">
                   {result.explanations.map((exp, idx) => (
                     <div
                       key={idx}
@@ -498,13 +747,15 @@ const Results = () => {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-              <div className="bg-[#10b981]/5 dark:bg-[#10b981]/5 rounded-3xl p-6 border border-[#10b981]/20 dark:border-[#10b981]/10 flex flex-col gap-4 shadow-soft animate-fade-in-up delay-[300ms] group hover:-translate-y-1 transition-all duration-300">
+
+            {/* ==================== FIT / GAP ANALYSIS ==================== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-in-up delay-[600ms]">
+              <div className="bg-emerald-500/5 rounded-[2rem] p-6 border border-emerald-500/20 flex flex-col gap-4 shadow-soft group hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-[#10b981]/20 rounded-xl group-hover:scale-110 transition-transform">
-                    <HiOutlineCheckCircle className="text-2xl text-[#10b981] shrink-0" />
+                  <div className="p-3 bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                    <HiOutlineCheckCircle className="text-2xl text-emerald-500 shrink-0" />
                   </div>
-                  <h4 className="font-bold font-display text-[#10b981] text-xl">
+                  <h4 className="font-bold font-display text-emerald-600 dark:text-emerald-400 text-xl">
                     Why You Fit
                   </h4>
                 </div>
@@ -513,7 +764,7 @@ const Results = () => {
                     "Your strengths align with the core requirements of this field."}
                 </p>
               </div>
-              <div className="bg-amber-500/5 dark:bg-amber-500/5 rounded-3xl p-6 border border-amber-500/20 dark:border-amber-500/10 flex flex-col gap-4 shadow-soft animate-fade-in-up delay-[450ms] group hover:-translate-y-1 transition-all duration-300">
+              <div className="bg-amber-500/5 rounded-[2rem] p-6 border border-amber-500/20 flex flex-col gap-4 shadow-soft group hover:-translate-y-1 transition-all duration-300">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-amber-500/20 rounded-xl group-hover:scale-110 transition-transform">
                     <HiOutlineExclamationCircle className="text-2xl text-amber-500 shrink-0" />
@@ -528,50 +779,69 @@ const Results = () => {
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 p-6 md:p-8 bg-white/40 dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/10 shadow-soft animate-fade-in-up delay-[600ms]">
-              <section>
-                <h3 className="flex items-center gap-2 font-display font-black text-[#1C1E21] dark:text-white mb-6 text-xl">
+
+            {/* ==================== STRENGTHS & CAREERS ==================== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 animate-fade-in-up delay-[750ms]">
+              <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2rem] p-6 md:p-8 shadow-soft">
+                <h3 className="flex items-center gap-2 font-display font-black text-[#1C1E21] dark:text-white mb-6 text-lg">
                   <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-lg">
                     <HiOutlineLightningBolt size={20} />
                   </div>
                   Foundational Strengths
                 </h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   {(result.strengths || []).map((s, idx) => (
                     <span
                       key={idx}
-                      className="px-4 py-2 bg-white/80 dark:bg-[#00171F]/80 rounded-xl border border-black/5 dark:border-white/10 shadow-sm text-[#1C1E21] dark:text-white/90 font-bold text-sm flex items-center gap-2 backdrop-blur-md"
+                      className="px-4 py-2 bg-white/80 dark:bg-[#00171F]/80 rounded-xl border border-black/5 dark:border-white/10 shadow-sm text-[#1C1E21] dark:text-white/90 font-bold text-sm flex items-center gap-2"
                     >
-                      <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-indigo-500" />
                       {s}
                     </span>
                   ))}
+                  {(!result.strengths || result.strengths.length === 0) && (
+                    <p className="text-sm text-[#4B5563] dark:text-white/40 font-medium">
+                      No specific strengths identified yet.
+                    </p>
+                  )}
                 </div>
-              </section>
-              <section>
-                <h3 className="flex items-center gap-2 font-display font-black text-[#1C1E21] dark:text-white mb-6 text-xl">
+              </div>
+
+              <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2rem] p-6 md:p-8 shadow-soft">
+                <h3 className="flex items-center gap-2 font-display font-black text-[#1C1E21] dark:text-white mb-6 text-lg">
                   <div className="p-2 bg-amber-50 dark:bg-amber-500/10 text-amber-500 dark:text-amber-400 rounded-lg">
                     <HiOutlineAcademicCap size={20} />
                   </div>
-                  Derived Combinatorial Roles
+                  Recommended Career Paths
                 </h3>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2.5">
                   {(result.recommendedCareers || []).map((c, idx) => (
                     <span
                       key={idx}
-                      className="px-4 py-2 bg-white/80 dark:bg-[#00171F]/80 rounded-xl border border-black/5 dark:border-white/10 shadow-sm text-[#1C1E21] dark:text-white/90 font-bold text-sm flex items-center gap-2 backdrop-blur-md"
+                      className="px-4 py-2 bg-white/80 dark:bg-[#00171F]/80 rounded-xl border border-black/5 dark:border-white/10 shadow-sm text-[#1C1E21] dark:text-white/90 font-bold text-sm flex items-center gap-2"
                     >
-                      <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                      <FiArrowRight
+                        size={12}
+                        className="text-amber-500 shrink-0"
+                      />
                       {c}
                     </span>
                   ))}
+                  {(!result.recommendedCareers ||
+                    result.recommendedCareers.length === 0) && (
+                    <p className="text-sm text-[#4B5563] dark:text-white/40 font-medium">
+                      No career recommendations available.
+                    </p>
+                  )}
                 </div>
-              </section>
+              </div>
             </div>
+
+            {/* ==================== WEAKNESSES & REMEDIATION ==================== */}
             {result.weaknesses && result.weaknesses.length > 0 && (
-              <div className="mb-12 animate-fade-in-up delay-[750ms]">
+              <div className="mb-8 animate-fade-in-up delay-[900ms]">
                 <h3 className="flex items-center gap-3 font-display font-black text-[#1C1E21] dark:text-white mb-6 text-xl px-2">
-                  <div className="p-2 bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-lg">
+                  <div className="p-2.5 bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 rounded-xl">
                     <HiOutlineTrendingUp size={20} />
                   </div>
                   Targeted Remediation Areas
@@ -580,7 +850,7 @@ const Results = () => {
                   {result.weaknesses.map((w, idx) => (
                     <div
                       key={idx}
-                      className="bg-white/60 dark:bg-white/5 p-6 rounded-3xl border border-black/5 dark:border-white/10 shadow-soft hover:shadow-soft-xl transition-all flex flex-col backdrop-blur-md"
+                      className="bg-white/60 dark:bg-white/5 p-6 rounded-[2rem] border border-black/5 dark:border-white/10 shadow-soft hover:shadow-soft-xl transition-all flex flex-col backdrop-blur-md"
                     >
                       <div className="flex items-center justify-between mb-4">
                         <span className="font-extrabold text-rose-600 dark:text-rose-400 uppercase text-xs tracking-wider bg-rose-50 dark:bg-rose-500/10 px-3 py-1.5 rounded-lg border border-rose-100 dark:border-rose-500/20">
@@ -590,13 +860,13 @@ const Results = () => {
                       <p className="text-[#1C1E21] dark:text-white/90 text-[15px] mb-5 font-bold leading-relaxed">
                         {w.reason}
                       </p>
-                      <div className="space-y-3 mt-auto">
+                      <div className="space-y-2.5 mt-auto">
                         {(w.improvementTips || []).map((tip, tIdx) => (
                           <div
                             key={tIdx}
-                            className="flex gap-3 items-start text-xs font-medium text-[#4B5563] dark:text-white/70 bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-black/5 dark:border-white/5 shadow-inner"
+                            className="flex gap-3 items-start text-xs font-medium text-[#4B5563] dark:text-white/70 bg-white/50 dark:bg-black/20 p-3.5 rounded-xl border border-black/5 dark:border-white/5 shadow-inner"
                           >
-                            <div className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1 shrink-0"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1 shrink-0" />
                             <span className="leading-relaxed">{tip}</span>
                           </div>
                         ))}
@@ -606,82 +876,34 @@ const Results = () => {
                 </div>
               </div>
             )}
-            {categoryScores.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 animate-fade-in-up delay-[900ms]">
-                <div className="bg-[#F8FAFC] dark:bg-white/5 rounded-3xl p-6 md:p-8 border border-black/5 dark:border-white/10 shadow-inner relative h-[380px] flex flex-col hover:shadow-soft-xl transition-all">
-                  <div className="flex items-center gap-2 mb-6 justify-center bg-black/5 dark:bg-white/5 py-2 px-4 rounded-full mx-auto w-fit">
-                    <HiOutlineChartBar className="text-[#00A8E8]" size={18} />
-                    <h4 className="text-[#1C1E21] dark:text-white font-bold text-xs uppercase tracking-widest">
-                      Cognitive Distribution
-                    </h4>
-                  </div>
-                  <div className="flex-1 relative w-full h-full min-h-0">
-                    <Pie
-                      data={chartData}
-                      options={{
-                        ...commonOptions,
-                        plugins: {
-                          ...commonOptions.plugins,
-                          legend: {
-                            ...commonOptions.plugins.legend,
-                            labels: { color: "rgba(156, 163, 175, 1)" },
-                          },
-                        },
-                        maintainAspectRatio: false,
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="bg-[#F8FAFC] dark:bg-white/5 rounded-3xl p-6 md:p-8 border border-black/5 dark:border-white/10 shadow-inner relative h-[380px] flex flex-col hover:shadow-soft-xl transition-all">
-                  <div className="flex items-center gap-2 mb-6 justify-center bg-black/5 dark:bg-white/5 py-2 px-4 rounded-full mx-auto w-fit">
-                    <HiOutlineChartBar className="text-[#00A8E8]" size={18} />
-                    <h4 className="text-[#1C1E21] dark:text-white font-bold text-xs uppercase tracking-widest">
-                      Absolute Performance
-                    </h4>
-                  </div>
-                  <div className="flex-1 relative w-full h-full min-h-0">
-                    <Bar
-                      data={chartData}
-                      options={{
-                        ...barOptions,
-                        scales: {
-                          ...barOptions.scales,
-                          y: {
-                            ...barOptions.scales.y,
-                            ticks: { color: "rgba(156, 163, 175, 1)" },
-                          },
-                          x: {
-                            ...barOptions.scales.x,
-                            ticks: { color: "rgba(156, 163, 175, 1)" },
-                          },
-                        },
-                        maintainAspectRatio: false,
-                      }}
-                    />
+
+            {/* ==================== IMPROVEMENT SUGGESTIONS ==================== */}
+            {result.improvementSuggestions &&
+              result.improvementSuggestions.length > 0 && (
+                <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-[2rem] p-6 md:p-8 shadow-soft mb-8 animate-fade-in-up delay-[1050ms]">
+                  <h3 className="flex items-center gap-3 font-display font-black text-[#1C1E21] dark:text-white mb-6 text-xl">
+                    <div className="p-2.5 bg-violet-500/10 text-violet-500 dark:text-violet-400 rounded-xl border border-violet-500/20">
+                      <FiBook size={20} />
+                    </div>
+                    Growth Roadmap
+                  </h3>
+                  <div className="space-y-3">
+                    {result.improvementSuggestions.map((suggestion, idx) => (
+                      <div
+                        key={idx}
+                        className="flex gap-4 items-start p-4 bg-white/80 dark:bg-black/20 rounded-xl border border-black/5 dark:border-white/5 shadow-inner hover:shadow-soft transition-all"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-violet-500/15 text-violet-500 dark:text-violet-400 flex items-center justify-center shrink-0 text-xs font-black border border-violet-500/20">
+                          {idx + 1}
+                        </div>
+                        <p className="text-[#1C1E21] dark:text-white/80 text-sm font-medium leading-relaxed">
+                          {suggestion}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-            <div className="border border-black/5 dark:border-white/10 text-center bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-[2rem] p-10 shadow-soft animate-fade-in-up delay-[1050ms]">
-              <div className="flex justify-center items-center gap-2 text-[#4B5563] dark:text-white/60 text-sm font-bold mb-4">
-                <div className="p-2 bg-black/5 dark:bg-white/10 rounded-lg text-[#00A8E8]">
-                  <HiOutlineClock size={16} />
-                </div>
-                <span>
-                  Assessment Duration:{" "}
-                  <span className="text-[#1C1E21] dark:text-white">
-                    {Math.floor(result.timeSpent / 60)}m {result.timeSpent % 60}
-                    s
-                  </span>
-                </span>
-              </div>
-              <p className="text-[#1C1E21] dark:text-white/60 font-bold mb-2 uppercase tracking-widest text-sm">
-                Overall Readiness Score
-              </p>
-              <strong className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#00A8E8] to-[#007EA7] tracking-tight drop-shadow-md">
-                {result.overallPercentage || 0}%
-              </strong>
-            </div>
+              )}
           </div>
         </main>
       </div>

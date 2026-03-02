@@ -325,13 +325,14 @@ const PersonalAssessment = () => {
         await new Promise((r) => setTimeout(r, 3000 - elapsed));
       }
 
-      // Fetch latest status without GlobalLoader
+      // Refresh status silently
       await loadDashboard(false);
 
-      console.log("[PersonalAssessment] Status after refresh:", status);
-
       setIsGenerating(false);
-      toast.success("Assessment Ready! You can start it now.");
+      toast.success("Assessment Ready! Starting now...");
+
+      // Auto-navigate to the assessment page
+      navigate("/assessment?type=personal");
     } catch (err) {
       toast.error(err.message || "Failed to generate personal assessment.");
       setIsGenerating(false);

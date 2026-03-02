@@ -247,12 +247,45 @@ exports.getResultById = async (req, res) => {
     const studentId = req.user.id;
     const { id } = req.params;
 
-    const result = await Result.findOne({ _id: id, studentId });
+    const result = await Result.findById(id);
 
     if (!result) {
       return res.status(404).json({
         success: false,
-        message: "Result not found or unauthorized.",
+        message: "Result not found.",
+      });
+    }
+
+    // Authorization: User owns the result OR Admin of the student's institution
+    const isOwner = result.studentId.toString() === studentId;
+    let isAdminAuthorized = false;
+
+    if (!isOwner) {
+      if (req.user.role === "superadmin") {
+        isAdminAuthorized = true;
+      } else if (req.user.role === "admin") {
+        const student = await User.findById(result.studentId);
+        if (student && student.institutionId) {
+          // Find if this admin is linked to the student's institution
+          const Institution = require("../models/Institution");
+          const institution = await Institution.findOne({
+            $or: [
+              { _id: student.institutionId, createdBy: studentId },
+              { _id: student.institutionId, _id: req.user.institutionId },
+            ],
+          });
+
+          if (institution) {
+            isAdminAuthorized = true;
+          }
+        }
+      }
+    }
+
+    if (!isOwner && !isAdminAuthorized) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to view this result.",
       });
     }
 

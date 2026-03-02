@@ -1,6 +1,7 @@
 const API_BASE = `${import.meta.env.VITE_API_URL}/admin`;
 
-const getToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+const getToken = () =>
+  localStorage.getItem("token") || sessionStorage.getItem("token");
 
 const authorizedFetch = async (endpoint) => {
   const token = getToken();
@@ -16,7 +17,9 @@ const authorizedFetch = async (endpoint) => {
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || `Error ${res.status}: ${res.statusText}`);
+      throw new Error(
+        errorData.message || `Error ${res.status}: ${res.statusText}`,
+      );
     }
 
     return await res.json();
@@ -28,3 +31,5 @@ const authorizedFetch = async (endpoint) => {
 
 export const fetchAdminStats = () => authorizedFetch("/stats");
 export const fetchRecentActivities = () => authorizedFetch("/activity");
+export const fetchInstitutionStudents = () => authorizedFetch("/students");
+export const fetchStudentDetails = (id) => authorizedFetch(`/students/${id}`);

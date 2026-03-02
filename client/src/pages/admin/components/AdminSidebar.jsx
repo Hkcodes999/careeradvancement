@@ -11,6 +11,7 @@ import {
   FiX,
   FiSun,
   FiMoon,
+  FiUsers,
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import logo from "../../../assets/logo.png";
@@ -25,6 +26,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
     { id: "institution", label: "Institution", icon: <FiBook size={20} /> },
     { id: "batch", label: "Batch & Slots", icon: <FiLayers size={20} /> },
     { id: "assign", label: "Assign Students", icon: <FiUserPlus size={20} /> },
+    { id: "users", label: "Users", icon: <FiUsers size={20} /> },
     { id: "ai", label: "AI Builder", icon: <FiCpu size={20} /> },
   ];
 
@@ -100,10 +102,12 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
               alt="MentorPath AI Logo"
               className={`h-10 w-auto object-contain transition-all duration-300 ${isDarkMode ? "brightness-0 invert" : ""}`}
             />
-            {/* Keeping the text part optional if they want it next to the logo, adjusting for dark mode */}
-            <span className="font-display font-bold text-xl tracking-tight text-[#1C1E21] dark:text-white">
-              MentorPath
-            </span>
+            {/* Redesigned Brand name for consistency with student side */}
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-xl leading-none text-[#1C1E21] dark:text-white tracking-tight">
+                Career <span className="text-[#00A8E8]">Advancement</span>
+              </span>
+            </div>
           </div>
         </div>
 
